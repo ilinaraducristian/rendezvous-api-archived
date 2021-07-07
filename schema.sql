@@ -10,11 +10,11 @@ CREATE TABLE servers
     name           varchar(255) NOT NULL,
     user_id        char(36)     NOT NULL COMMENT 'owner',
     invitation     char(36),
-    invitation_exp datetime
-        CHECK (
-                (invitation IS NULL AND invitation_exp IS NULL) OR
-                (invitation IS NOT NULL AND invitation_exp IS NOT NULL)
-            )
+    invitation_exp datetime,
+    CHECK (
+            (invitation IS NULL AND invitation_exp IS NULL) OR
+            (invitation IS NOT NULL AND invitation_exp IS NOT NULL)
+        )
 )$$
 
 CREATE TABLE `groups`
