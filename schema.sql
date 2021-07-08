@@ -11,6 +11,7 @@ CREATE TABLE servers
     user_id        char(36)     NOT NULL COMMENT 'owner',
     invitation     char(36),
     invitation_exp datetime,
+    FOREIGN KEY (user_id) REFERENCES keycloak.USER_ENTITY (id),
     CHECK (
             (invitation IS NULL AND invitation_exp IS NULL) OR
             (invitation IS NOT NULL AND invitation_exp IS NOT NULL)
@@ -30,7 +31,7 @@ CREATE TABLE channels
     id        int PRIMARY KEY AUTO_INCREMENT,
     server_id int                    NOT NULL,
     group_id  int,
-    type      ENUM ('text', 'voice') NOT NULL,
+    type      enum ('text', 'voice') NOT NULL,
     name      varchar(255)           NOT NULL,
     FOREIGN KEY (server_id) REFERENCES servers (id),
     FOREIGN KEY (group_id) REFERENCES `groups` (id)
@@ -41,7 +42,8 @@ CREATE TABLE members
     id        int PRIMARY KEY AUTO_INCREMENT,
     server_id int      NOT NULL,
     user_id   char(36) NOT NULL,
-    FOREIGN KEY (server_id) REFERENCES servers (id)
+    FOREIGN KEY (server_id) REFERENCES servers (id),
+    FOREIGN KEY (user_id) REFERENCES keycloak.USER_ENTITY (id)
 )$$
 
 CREATE TABLE messages
@@ -53,7 +55,8 @@ CREATE TABLE messages
     timestamp  datetime     NOT NULL DEFAULT NOW(),
     text       varchar(255) NOT NULL,
     FOREIGN KEY (server_id) REFERENCES servers (id),
-    FOREIGN KEY (channel_id) REFERENCES channels (id)
+    FOREIGN KEY (channel_id) REFERENCES channels (id),
+    FOREIGN KEY (user_id) REFERENCES keycloak.USER_ENTITY (id)
 )$$
 
 CREATE UNIQUE INDEX unique_member
@@ -134,8 +137,12 @@ CREATE VIEW members_view
 AS
 SELECT m1.id,
        m1.server_id as serverId,
-       m1.user_id   as userId
-FROM members m1 $$
+       m1.user_id   as userId,
+       e.USERNAME   as username,
+       e.FIRST_NAME as firstName,
+       e.LAST_NAME  as lastName
+FROM members m1
+         JOIN keycloak.USER_ENTITY e ON m1.user_id = e.ID $$
 
 CREATE VIEW messages_view
 AS
@@ -164,7 +171,7 @@ BEGIN
              JOIN members m ON c.serverId = m.server_id
         AND m.user_id = userId;
 
-    SELECT m1.id, m1.serverId, m1.userId
+    SELECT m1.id, m1.serverId, m1.userId, m1.username, m1.firstName, m1.lastName
     FROM members_view m1
              JOIN members m2 ON m1.serverId = m2.server_id
     WHERE m2.user_id = userId;
@@ -228,7 +235,7 @@ BEGIN
     FROM channels_view c
     WHERE c.serverId = @serverId;
 
-    SELECT m1.id, m1.serverId, m1.userId
+    SELECT m1.id, m1.serverId, m1.userId, m1.username, m1.firstName, m1.lastName
     FROM members_view m1
              JOIN members m2 ON m1.serverId = @serverId
     WHERE m2.user_id = userId;
@@ -296,9 +303,65 @@ BEGIN
     FROM channels_view c
     WHERE c.serverId = @serverId;
 
-    SELECT m1.id, m1.serverId, m1.userId
+    SELECT m1.id, m1.serverId, m1.userId, m1.username, m1.firstName, m1.lastName
     FROM members_view m1
     WHERE m1.serverId = @serverId;
+
+END $$
+
+CREATE FUNCTION create_channel(userId char(36), serverId int, groupId int, channelType enum ('text', 'voice'),
+                               channelName varchar(255)) RETURNS int DETERMINISTIC
+    MODIFIES SQL DATA
+BEGIN
+    SET @channelName = TRIM(channelName);
+
+    IF (LENGTH(@channelName) = 0) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Channel name must not be empty';
+    END IF;
+
+    SELECT id INTO @memberId FROM members m WHERE userId = m.user_id AND serverId = m.server_id;
+
+    IF (@memberId IS NULL) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'User is not part of this server';
+    END IF;
+
+    IF (groupId IS NOT NULL) THEN
+        SELECT id INTO @groupId FROM `groups` g WHERE groupId = g.id;
+
+        IF (@groupId IS NULL) THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Group doesn\' exist';
+        END IF;
+    END IF;
+
+    INSERT INTO channels (server_id, group_id, type, name) VALUES (serverId, groupId, channelType, channelName);
+
+    RETURN LAST_INSERT_ID();
+
+END $$
+
+CREATE FUNCTION create_group(userId char(36), serverId int, groupName varchar(255)) RETURNS int DETERMINISTIC
+    MODIFIES SQL DATA
+BEGIN
+    SET @groupName = TRIM(groupName);
+
+    IF (LENGTH(@groupName) = 0) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Group name must not be empty';
+    END IF;
+
+    SELECT id INTO @memberId FROM members m WHERE userId = m.user_id AND serverId = m.server_id;
+
+    IF (@memberId IS NULL) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'User is not part of this server';
+    END IF;
+
+    INSERT INTO `groups` (server_id, name) VALUES (serverId, groupName);
+
+    RETURN LAST_INSERT_ID();
 
 END $$
 

@@ -37,14 +37,29 @@ export class AppService {
     const channelsTable = result[2].map<[number, Channel]>(
       (channel: Channel) => [channel.id, channel],
     );
-    const membersTable = result[3].map<[number, Member]>((member: Member) => [
-      member.id,
-      member,
-    ]);
-    const usersTable = result[4].map<[string, User]>((user: User) => [
-      user.id,
-      user,
-    ]);
+
+    const membersTable: [number, Member][] = [];
+    const usersTable: [string, User][] = [];
+
+    result[3].forEach((member: Member & User) => {
+      membersTable.push([
+        member.id,
+        {
+          id: member.id,
+          userId: member.userId,
+          serverId: member.serverId,
+        },
+      ]);
+      usersTable.push([
+        member.userId,
+        {
+          id: member.userId,
+          username: member.username,
+          firstName: member.firstName,
+          lastName: member.lastName,
+        },
+      ]);
+    });
 
     return {
       servers: serversTable,
@@ -107,7 +122,6 @@ export class AppService {
       uid,
       name,
     ]);
-    result = this.appendUsersDataFromAuthService(result);
     return AppService.processQuery(result);
   }
 
@@ -117,7 +131,6 @@ export class AppService {
       'CALL get_user_servers_data(?)',
       [userId],
     );
-    result = await this.appendUsersDataFromAuthService(result);
     return AppService.processQuery(result);
   }
 
@@ -139,59 +152,6 @@ export class AppService {
       'CALL join_server(?,?)',
       [uid, invitation],
     );
-    result = await this.appendUsersDataFromAuthService(result);
     return AppService.processQuery(result);
-  }
-
-  private async appendUsersDataFromAuthService(
-    result: UserServersDataQueryResult,
-  ) {
-    // get users information from the auth service
-    result[4] = [];
-    for (const member of result[3]) {
-      const response: any = await fetch(
-        `${process.env.AUTH0_ISSUER_URL}oauth/token`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            client_id: process.env.AUTH0_CLIENT_ID,
-            client_secret: process.env.AUTH0_CLIENT_SECRET,
-            audience: process.env.AUTH0_AUDIENCE,
-            grant_type: 'client_credentials',
-          }),
-        },
-      )
-        .then((response) => response.json())
-        .then((response) =>
-          fetch(
-            `${process.env.AUTH0_AUDIENCE}users?fields=user_id%2Cnickname%2Cgiven_name%2Cfamily_name&include_fields=true`,
-            {
-              method: 'GET',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${response.access_token}`,
-              },
-            },
-          ),
-        )
-        .then((response) => response.json())
-        .then((response) =>
-          response.map((response) => {
-            response.username = response.nickname;
-            delete response.nickname;
-            return response;
-          }),
-        );
-      result[4].push({
-        id: response.userId,
-        username: response.username,
-        firstName: response.given_name,
-        lastName: response.family_name,
-      });
-    }
-    return result;
   }
 }
