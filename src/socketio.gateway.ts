@@ -72,16 +72,23 @@ export class SocketIOGateway implements OnGatewayConnection<Socket> {
   @SubscribeMessage('create_channel')
   async createChannel(
     client: Socket,
-    payload: { serverId: number; channelName: string },
+    payload: { serverId: number; groupId: number | null; channelName: string },
   ): Promise<number> {
     const channelId = await this.appService.createChannel(
       client.handshake.auth.sub,
       payload.serverId,
-      null,
+      payload.groupId,
       ChannelType.Text,
       payload.channelName,
     );
-    client.to(`server_${payload.serverId}`).emit('new_channel', { channelId });
+    const channel = {
+      id: channelId,
+      serverId: payload.serverId,
+      groupId: payload.groupId,
+      type: ChannelType.Text,
+      name: payload.channelName,
+    };
+    client.to(`server_${payload.serverId}`).emit('new_channel', channel);
     return channelId;
   }
 
@@ -95,9 +102,12 @@ export class SocketIOGateway implements OnGatewayConnection<Socket> {
       payload.serverId,
       payload.groupName,
     );
-    client
-      .to(`server_${payload.serverId}`)
-      .emit('new_group', { group: groupId });
+    const group = {
+      id: groupId,
+      serverId: payload.serverId,
+      name: payload.groupName,
+    };
+    client.to(`server_${payload.serverId}`).emit('new_group', group);
     return groupId;
   }
 
