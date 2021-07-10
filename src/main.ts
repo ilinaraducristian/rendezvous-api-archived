@@ -1,8 +1,11 @@
-import { NestFactory } from "@nestjs/core";
-import { FastifyAdapter, NestFastifyApplication } from "@nestjs/platform-fastify";
-import { AppModule } from "./app.module";
-import { SocketIoAdapter } from "./socket-io.adapter";
-import { config } from "dotenv";
+import { NestFactory } from '@nestjs/core';
+import {
+  FastifyAdapter,
+  NestFastifyApplication,
+} from '@nestjs/platform-fastify';
+import { AppModule } from './app.module';
+import { SocketIoAdapter } from './socket-io.adapter';
+import { config } from 'dotenv';
 
 const { error } = config();
 
@@ -15,10 +18,11 @@ bootstrap();
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter()
+    new FastifyAdapter(),
   );
   app.enableCors();
+  app.setGlobalPrefix('api');
   app.useWebSocketAdapter(new SocketIoAdapter(app, true));
 
-  await app.listen(process.env.PORT || 3100, "0.0.0.0");
+  await app.listen(process.env.PORT || 3100, '0.0.0.0');
 }

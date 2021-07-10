@@ -20,7 +20,7 @@ import { InvitationsController } from './controllers/invitations/invitations.con
         username: process.env.DB_USER,
         password: process.env.DB_PASS,
         database: process.env.DB_NAME,
-        entities: ['dist/**/*.entity{.ts,.js}'],
+        entities: ['./**/*.entity{.ts,.js}'],
         synchronize: false,
       }),
     }),

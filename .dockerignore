@@ -1,0 +1,6 @@
+*
+
+!dist
+!prod.env
+!package.json
+!grant-manager.js
