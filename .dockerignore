@@ -4,3 +4,4 @@
 !prod.env
 !package.json
 !grant-manager.js
+!yarn.lock

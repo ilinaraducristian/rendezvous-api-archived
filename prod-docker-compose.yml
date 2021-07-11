@@ -13,7 +13,7 @@ services:
       - KEYCLOAK_IMPORT=/tmp/capp.json
       - PROXY_ADDRESS_FORWARDING=true
     volumes:
-      - "./capp.json:/tmp/capp.json"
+      - "./prod-capp.json:/tmp/capp.json"
   db:
     image: percona:8
     environment:

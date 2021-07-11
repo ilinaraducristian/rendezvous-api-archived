@@ -21,7 +21,6 @@ async function bootstrap() {
     new FastifyAdapter(),
   );
   app.enableCors();
-  app.setGlobalPrefix('api');
   app.useWebSocketAdapter(new SocketIoAdapter(app, true));
 
   await app.listen(process.env.PORT || 3100, '0.0.0.0');
