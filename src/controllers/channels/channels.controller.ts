@@ -1,22 +1,19 @@
-import { Controller, Get, Param, Query } from "@nestjs/common";
-import { AppService } from "../../app.service";
-import { AuthenticatedUser } from "nest-keycloak-connect";
-import { KeycloakUser } from "../../types";
+import { Controller, Get, Param, Query } from '@nestjs/common';
+import { AppService } from '../../app.service';
+import { AuthenticatedUser } from 'nest-keycloak-connect';
+import { KeycloakUser } from '../../types';
 
-@Controller("channels")
+@Controller('channels')
 export class ChannelsController {
+  constructor(private readonly appService: AppService) {}
 
-  constructor(private readonly appService: AppService) {
-  }
-
-
-  @Get(":id/messages")
+  @Get(':id/messages')
   async getMessages(
     @AuthenticatedUser() user: KeycloakUser,
-    @Param("id") id: number,
-    @Query("offset") offset: number
+    @Param('id') id: number,
+    @Query('serverId') serverId: number,
+    @Query('offset') offset: number,
   ) {
-    return this.appService.getMessages(user.sub, id, offset);
+    return this.appService.getMessages(user.sub, serverId, id, offset);
   }
-
 }

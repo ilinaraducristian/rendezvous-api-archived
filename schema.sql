@@ -365,14 +365,13 @@ BEGIN
 
 END $$
 
-CREATE PROCEDURE get_messages(userId char(36), channelId int, offset int)
+CREATE PROCEDURE get_messages(userId char(36), serverId int, channelId int, offset int)
 BEGIN
 
     SELECT m.id
     INTO @MEMBER_ID
     FROM members m
-             JOIN servers s ON m.server_id = s.id
-    WHERE m.user_id = userId;
+    WHERE m.user_id = userId and m.server_id = serverId;
 
     IF (@MEMBER_ID IS NULL) THEN
         SIGNAL SQLSTATE '45000'

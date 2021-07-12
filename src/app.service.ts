@@ -13,7 +13,6 @@ import {
   UserServersData,
   UserServersDataQueryResult,
 } from './types';
-import fetch from 'node-fetch';
 
 @Injectable()
 export class AppService {
@@ -136,11 +135,13 @@ export class AppService {
 
   async getMessages(
     userId: string,
+    serverId: number,
     channelId: number,
     offset: number,
   ): Promise<[number, Message][]> {
-    const result = await this.connection.query('CALL get_messages(?,?,?)', [
+    const result = await this.connection.query('CALL get_messages(?,?,?,?)', [
       userId,
+      serverId,
       channelId,
       offset,
     ]);
