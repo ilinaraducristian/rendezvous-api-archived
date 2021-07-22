@@ -20,7 +20,8 @@ export class AppService {
     private connection: Connection,
     @InjectRepository(ServerEntity)
     private serverRepository: Repository<ServerEntity>,
-  ) {}
+  ) {
+  }
 
   private static processQuery(
     result: UserServersDataQueryResult,
@@ -101,6 +102,24 @@ export class AppService {
         name,
       ])
       .then((result) => Object.entries(result[0])[0][1] as number);
+  }
+
+  async moveChannel(
+    userId: string,
+    serverId: number,
+    groupId: number | null,
+    channelId: number,
+    channelOrder: number,
+  ): Promise<boolean> {
+    let result = await this.connection.query('CALL move_channel(?,?,?,?,?)', [
+      userId,
+      serverId,
+      groupId,
+      channelId,
+      channelOrder,
+    ]);
+    console.log(result);
+    return true;
   }
 
   async sendMessage(

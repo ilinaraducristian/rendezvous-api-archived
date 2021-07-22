@@ -33,6 +33,7 @@ CREATE TABLE channels
     group_id  int,
     type      enum ('text', 'voice') NOT NULL,
     name      varchar(255)           NOT NULL,
+    `order`   int                    NOT NULL,
     FOREIGN KEY (server_id) REFERENCES servers (id),
     FOREIGN KEY (group_id) REFERENCES `groups` (id)
 )$$
@@ -130,7 +131,7 @@ FROM `groups` g $$
 
 CREATE VIEW channels_view
 AS
-SELECT c.id, c.server_id as serverId, c.group_id as groupId, c.type, c.name
+SELECT c.id, c.server_id as serverId, c.group_id as groupId, c.type, c.name, c.`order`
 FROM channels c $$
 
 CREATE VIEW members_view
@@ -153,6 +154,18 @@ SELECT m.id,
        m.timestamp,
        m.text
 FROM messages m;
+
+CREATE FUNCTION is_member(userId char(36), serverId int) RETURNS BOOLEAN DETERMINISTIC
+    READS SQL DATA
+BEGIN
+    SELECT id INTO @memberId FROM members m WHERE userId = m.user_id AND serverId = m.server_id;
+
+    IF (@memberId IS NULL) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'User is not part of this server';
+    END IF;
+    RETURN TRUE;
+END $$
 
 CREATE PROCEDURE get_user_servers_data(userId char(36))
 BEGIN
@@ -231,7 +244,7 @@ BEGIN
     FROM groups_view g
     WHERE g.serverId = @serverId;
 
-    SELECT c.id, c.serverId, c.groupId, c.type, c.name
+    SELECT c.id, c.serverId, c.groupId, c.type, c.name, c.`order`
     FROM channels_view c
     WHERE c.serverId = @serverId;
 
@@ -286,8 +299,10 @@ BEGIN
     SET @group1Id = LAST_INSERT_ID();
     INSERT INTO `groups` (server_id, name) VALUES (@serverId, @group2Name);
     SET @group2Id = LAST_INSERT_ID();
-    INSERT INTO channels (server_id, group_id, type, name) VALUES (@serverId, @group1Id, 'text', @channel1Name);
-    INSERT INTO channels (server_id, group_id, type, name) VALUES (@serverId, @group2Id, 'voice', @channel2Name);
+    INSERT INTO channels (server_id, group_id, type, name, `order`)
+    VALUES (@serverId, @group1Id, 'text', @channel1Name, 0);
+    INSERT INTO channels (server_id, group_id, type, name, `order`)
+    VALUES (@serverId, @group2Id, 'voice', @channel2Name, 0);
 
     INSERT INTO members (server_id, user_id) VALUES (@serverId, userId);
 
@@ -299,7 +314,7 @@ BEGIN
     FROM groups_view g
     WHERE g.serverId = @serverId;
 
-    SELECT c.id, c.serverId, c.groupId, c.type, c.name
+    SELECT c.id, c.serverId, c.groupId, c.type, c.name, c.`order`
     FROM channels_view c
     WHERE c.serverId = @serverId;
 
@@ -320,25 +335,39 @@ BEGIN
             SET MESSAGE_TEXT = 'Channel name must not be empty';
     END IF;
 
-    SELECT id INTO @memberId FROM members m WHERE userId = m.user_id AND serverId = m.server_id;
-
-    IF (@memberId IS NULL) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'User is not part of this server';
-    END IF;
+    SELECT is_member(userId, serverId);
 
     IF (groupId IS NOT NULL) THEN
         SELECT id INTO @groupId FROM `groups` g WHERE groupId = g.id;
 
         IF (@groupId IS NULL) THEN
             SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = 'Group doesn\' exist';
+                SET MESSAGE_TEXT = 'Group doesn\'t exist';
         END IF;
     END IF;
 
-    INSERT INTO channels (server_id, group_id, type, name) VALUES (serverId, groupId, channelType, channelName);
+    SELECT c.`order` INTO @lastChannelOrder FROM channels c WHERE server_id = serverId ORDER BY c.`order` DESC LIMIT 1;
+
+    INSERT INTO channels (server_id, group_id, type, name, `order`)
+    VALUES (serverId, groupId, channelType, channelName, @lastChannelOrder + 1);
 
     RETURN LAST_INSERT_ID();
+
+END $$
+
+CREATE PROCEDURE move_channel(userId char(36), serverId int, groupId int, channelId int, channelOrder int)
+BEGIN
+
+    SELECT is_member(userId, serverId);
+
+    START TRANSACTION;
+    UPDATE channels c SET c.`order` = channelOrder WHERE c.id = channelId;
+    SELECT (SUM(c.`order`) = COUNT(*) - 1) INTO @eq FROM channels c WHERE c.group_id = groupId;
+    IF @eq = FALSE THEN
+        ROLLBACK;
+    ELSE
+        COMMIT;
+    END IF;
 
 END $$
 
@@ -352,12 +381,7 @@ BEGIN
             SET MESSAGE_TEXT = 'Group name must not be empty';
     END IF;
 
-    SELECT id INTO @memberId FROM members m WHERE userId = m.user_id AND serverId = m.server_id;
-
-    IF (@memberId IS NULL) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'User is not part of this server';
-    END IF;
+    SELECT is_member(userId, serverId);
 
     INSERT INTO `groups` (server_id, name) VALUES (serverId, groupName);
 
@@ -371,7 +395,8 @@ BEGIN
     SELECT m.id
     INTO @MEMBER_ID
     FROM members m
-    WHERE m.user_id = userId and m.server_id = serverId;
+    WHERE m.user_id = userId
+      and m.server_id = serverId;
 
     IF (@MEMBER_ID IS NULL) THEN
         SIGNAL SQLSTATE '45000'

@@ -106,7 +106,8 @@ USE capp;
 CALL get_messages(@user1, 1, 30);
 CALL send_message(@user1, 1, 'test message4');
 CALL create_server(@user1, 'a new server');
-
+SELECT create_channel(@user1, 1, 1, 'text', 'ch5');
+CALL move_channel(1, 4, 4);
 
 # create 9 servers
 CALL create_server(@user1, 'a new server 1', 0);
