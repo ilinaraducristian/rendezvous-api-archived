@@ -1,19 +1,30 @@
-import {
-  OnGatewayConnection,
-  SubscribeMessage,
-  WebSocketGateway,
-  WebSocketServer,
-} from '@nestjs/websockets';
+import { OnGatewayConnection, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { AppService } from './app.service';
 import { ChannelType, Message, UserServersData } from './types';
 
 @WebSocketGateway()
 export class SocketIOGateway implements OnGatewayConnection<Socket> {
+
   @WebSocketServer()
   server: Server;
 
-  constructor(private readonly appService: AppService) {}
+  constructor(private readonly appService: AppService) {
+  }
+
+  async handleConnection(client: Socket, ...args: any[]) {
+    const response = await this.appService.getUserServersData(
+      client.handshake.auth.sub,
+    );
+    response.servers.forEach((server) => {
+      client.join(`server_${server[0]}`);
+    });
+  }
+
+  @SubscribeMessage('get_user_servers_data')
+  async getUserServersData(client: Socket): Promise<UserServersData> {
+    return await this.appService.getUserServersData(client.handshake.auth.sub);
+  }
 
   @SubscribeMessage('create_server')
   async createServer(
@@ -111,12 +122,4 @@ export class SocketIOGateway implements OnGatewayConnection<Socket> {
     return groupId;
   }
 
-  async handleConnection(client: Socket, ...args: any[]) {
-    const response = await this.appService.getUserServersData(
-      client.handshake.auth.sub,
-    );
-    response.servers.forEach((server) => {
-      client.join(`server_${server[0]}`);
-    });
-  }
 }
