@@ -84,7 +84,7 @@ export class SocketIOGateway implements OnGatewayConnection<Socket> {
   async createChannel(
     client: Socket,
     payload: { serverId: number; groupId: number | null; channelName: string },
-  ): Promise<number> {
+  ): Promise<{ channelId: number }> {
     const channelId = await this.appService.createChannel(
       client.handshake.auth.sub,
       payload.serverId,
@@ -100,7 +100,7 @@ export class SocketIOGateway implements OnGatewayConnection<Socket> {
       name: payload.channelName,
     };
     client.to(`server_${payload.serverId}`).emit('new_channel', channel);
-    return channelId;
+    return { channelId };
   }
 
   @SubscribeMessage('create_group')
