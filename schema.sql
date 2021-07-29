@@ -261,7 +261,7 @@ BEGIN
 
     IF (@serverId IS NULL) THEN
         SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Channel doesn\'t exist';
+            SET MESSAGE_TEXT = 'Channel doesnt exist';
     END IF;
 
     SELECT m.id
@@ -335,14 +335,14 @@ BEGIN
             SET MESSAGE_TEXT = 'Channel name must not be empty';
     END IF;
 
-    SELECT is_member(userId, serverId);
+    SELECT is_member(userId, serverId) INTO @isMember;
 
     IF (groupId IS NOT NULL) THEN
         SELECT id INTO @groupId FROM `groups` g WHERE groupId = g.id;
 
         IF (@groupId IS NULL) THEN
             SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = 'Group doesn\'t exist';
+                SET MESSAGE_TEXT = 'Group doesnt exist';
         END IF;
     END IF;
 
@@ -381,7 +381,7 @@ BEGIN
             SET MESSAGE_TEXT = 'Group name must not be empty';
     END IF;
 
-    SELECT is_member(userId, serverId);
+    SELECT is_member(userId, serverId) INTO @isMember;
 
     INSERT INTO `groups` (server_id, name) VALUES (serverId, groupName);
 

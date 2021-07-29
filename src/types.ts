@@ -31,7 +31,8 @@ export type Channel = {
   groupId: number,
   type: ChannelType,
   name: string,
-  order: number
+  order: number,
+  users?: any[]
 }
 
 export type Message = {

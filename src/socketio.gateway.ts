@@ -16,14 +16,37 @@ export class SocketIOGateway implements OnGatewayConnection<Socket> {
     const response = await this.appService.getUserServersData(
       client.handshake.auth.sub,
     );
-    response.servers.forEach((server) => {
-      client.join(`server_${server[0]}`);
-    });
+    await Promise.all(response.servers.map((server) =>
+      client.join(`server_${server[0]}`),
+    ));
+  }
+
+  @SubscribeMessage('join_voice-channel')
+  async joinVoiceChannel(client: Socket, { serverId, channelId }: { serverId: number, channelId: number }) {
+    await client.join(`channel_${channelId}`);
+    this.server.emit('user_joined_voice-channel', { channelId, userId: client.handshake.auth.sub });
+    const room = this.server.of('/').adapter.rooms.get(`channel_${channelId}`);
+    if (room === undefined) return [];
+    return Array.from(room)
+      .map(socketId => ({
+        socketId,
+        userId: this.server.sockets.sockets.get(socketId).handshake.auth.sub as string,
+      }));
   }
 
   @SubscribeMessage('get_user_servers_data')
   async getUserServersData(client: Socket): Promise<UserServersData> {
-    return await this.appService.getUserServersData(client.handshake.auth.sub);
+    const response = await this.appService.getUserServersData(client.handshake.auth.sub);
+    response.channels = response.channels.map(([id, channel]) => {
+      if (channel.type === ChannelType.Text) return [id, channel];
+      const room = this.server.of('/').adapter.rooms.get(`channel_${id}`);
+      channel.users = [];
+      if(room === undefined) return [id, channel];
+      channel.users = Array.from(room)
+        .map(socketId => ({ socketId, userId: this.server.sockets.sockets.get(socketId).handshake.auth.sub }));
+      return [id, channel];
+    });
+    return response;
   }
 
   @SubscribeMessage('create_server')
