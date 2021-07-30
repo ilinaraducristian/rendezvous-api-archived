@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, Provider } from '@nestjs/common';
 import { ServersController } from './controllers/servers/servers.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -9,6 +9,60 @@ import { SocketIOGateway } from './socketio.gateway';
 import { ChannelsController } from './controllers/channels/channels.controller';
 import { UsersController } from './controllers/users/users.controller';
 import { InvitationsController } from './controllers/invitations/invitations.controller';
+import { createWorker } from 'mediasoup';
+import { Router } from 'mediasoup/lib/Router';
+
+const mediaCodecs = [
+  {
+    kind: 'audio',
+    mimeType: 'audio/opus',
+    clockRate: 48000,
+    channels: 2,
+  },
+  {
+    kind: 'video',
+    mimeType: 'video/VP8',
+    clockRate: 90000,
+    parameters:
+      {
+        'x-google-start-bitrate': 1000,
+      },
+  },
+  {
+    kind: 'video',
+    mimeType: 'video/VP9',
+    clockRate: 90000,
+    parameters:
+      {
+        'profile-id': 2,
+        'x-google-start-bitrate': 1000,
+      },
+  },
+  {
+    kind: 'video',
+    mimeType: 'video/h264',
+    clockRate: 90000,
+    parameters:
+      {
+        'packetization-mode': 1,
+        'profile-level-id': '4d0032',
+        'level-asymmetry-allowed': 1,
+        'x-google-start-bitrate': 1000,
+      },
+  },
+  {
+    kind: 'video',
+    mimeType: 'video/h264',
+    clockRate: 90000,
+    parameters:
+      {
+        'packetization-mode': 1,
+        'profile-level-id': '42e01f',
+        'level-asymmetry-allowed': 1,
+        'x-google-start-bitrate': 1000,
+      },
+  },
+];
 
 @Module({
   imports: [
@@ -52,8 +106,19 @@ import { InvitationsController } from './controllers/invitations/invitations.con
       provide: APP_GUARD,
       useClass: AuthGuard,
     },
+    AppModule.mediasoupProvider(),
     AppService,
     SocketIOGateway,
   ],
 })
-export class AppModule {}
+export class AppModule {
+
+  static mediasoupProvider(): Provider {
+    return {
+      provide: Router,
+      // @ts-ignore
+      useFactory: () => createWorker().then(worker => worker.createRouter({ mediaCodecs })),
+    };
+  }
+
+}
