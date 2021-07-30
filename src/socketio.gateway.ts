@@ -3,7 +3,7 @@ import { Server, Socket } from 'socket.io';
 import { AppService } from './app.service';
 import { ChannelType, Message, UserServersData } from './types';
 import { Router } from 'mediasoup/lib/Router';
-import { DtlsParameters } from 'mediasoup/lib/WebRtcTransport';
+import { DtlsParameters, WebRtcTransport } from 'mediasoup/lib/WebRtcTransport';
 
 const webRtcTransportOptions = {
   listenIps: [{ ip: '192.168.1.4' }],
@@ -27,6 +27,7 @@ export class SocketIOGateway implements OnGatewayConnection<Socket> {
     const response = await this.appService.getUserServersData(
       client.handshake.auth.sub,
     );
+    client.data = {recvTransports: [], consumers: []}
     await Promise.all(response.servers.map((server) =>
       client.join(`server_${server[0]}`),
     ));
@@ -73,21 +74,26 @@ export class SocketIOGateway implements OnGatewayConnection<Socket> {
   }
 
   @SubscribeMessage('create_consumer')
-  async createConsumer(client, payload) {
-    client.data.consumer = await client.data.recvTransport.consume({ ...payload, paused: true });
+  async createConsumer(client, { transportId, socketId, ...payload }) {
+    const producerId = this.server.sockets.sockets.get(socketId).data.producer.id
+    const consumer = await client.data.recvTransports
+      .find(transport => transport.id === transportId)
+      .consume({ producerId, ...payload, paused: true });
+    client.data.consumers.push(consumer);
     return {
       consumerParameters: {
-        id: client.data.consumer.id,
-        rtpParameters: client.data.consumer.rtpParameters,
-        kind: client.data.consumer.kind,
-        appData: client.data.consumer.appData,
+        id: consumer.id,
+        producerId,
+        rtpParameters: consumer.rtpParameters,
+        kind: consumer.kind,
+        appData: consumer.appData,
       },
     };
   }
 
   @SubscribeMessage('resume_consumer')
-  async resumeConsumer(client: Socket) {
-    await client.data.consumer.resume();
+  async resumeConsumer(client: Socket, {id}: {id: string}) {
+    await client.data.consumers.find(consumer => consumer.id === id).resume();
     return 0;
   }
 
@@ -152,6 +158,15 @@ export class SocketIOGateway implements OnGatewayConnection<Socket> {
       .map((user) => user[1])
       .find((user) => user.id === client.handshake.auth.sub);
     const serverId = result.servers[0][0];
+    result.channels = result.channels.map(([id, channel]) => {
+      if (channel.type === ChannelType.Text) return [id, channel];
+      const room = this.server.of('/').adapter.rooms.get(`channel_${id}`);
+      channel.users = [];
+      if (room === undefined) return [id, channel];
+      channel.users = Array.from(room)
+        .map(socketId => ({ socketId, userId: this.server.sockets.sockets.get(socketId).handshake.auth.sub }));
+      return [id, channel];
+    });
 
     client.join(`server_${serverId}`);
     client.to(`server_${serverId}`).emit('new_member', {
@@ -167,7 +182,6 @@ export class SocketIOGateway implements OnGatewayConnection<Socket> {
     client: Socket,
     payload: { channelId: number; message: string },
   ): Promise<Message> {
-    console.log('received');
     const message = await this.appService.sendMessage(
       client.handshake.auth.sub,
       payload.channelId,
