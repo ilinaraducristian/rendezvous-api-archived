@@ -1,9 +1,9 @@
 import { OnGatewayConnection, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { AppService } from './app.service';
-import { ChannelType, Message, UserServersData } from './types';
+import { ChannelType, Message, UserServersData, VoiceChannel } from './types';
 import { Router } from 'mediasoup/lib/Router';
-import { DtlsParameters, WebRtcTransport } from 'mediasoup/lib/WebRtcTransport';
+import { DtlsParameters } from 'mediasoup/lib/WebRtcTransport';
 
 const webRtcTransportOptions = {
   listenIps: [{ ip: '192.168.1.4' }],
@@ -27,7 +27,7 @@ export class SocketIOGateway implements OnGatewayConnection<Socket> {
     const response = await this.appService.getUserServersData(
       client.handshake.auth.sub,
     );
-    client.data = {recvTransports: [], consumers: []}
+    client.data = { recvTransports: [], consumers: [] };
     await Promise.all(response.servers.map((server) =>
       client.join(`server_${server[0]}`),
     ));
@@ -58,7 +58,11 @@ export class SocketIOGateway implements OnGatewayConnection<Socket> {
   }
 
   @SubscribeMessage('connect_transport')
-  async connectSendTransport(client, { type, dtlsParameters, id }: { type: string, dtlsParameters: DtlsParameters, id: string }) {
+  async connectSendTransport(client, {
+    type,
+    dtlsParameters,
+    id,
+  }: { type: string, dtlsParameters: DtlsParameters, id: string }) {
     if (type === 'send') {
       await client.data.sendTransport.connect({ dtlsParameters });
     } else if (type === 'recv') {
@@ -75,7 +79,7 @@ export class SocketIOGateway implements OnGatewayConnection<Socket> {
 
   @SubscribeMessage('create_consumer')
   async createConsumer(client, { transportId, socketId, ...payload }) {
-    const producerId = this.server.sockets.sockets.get(socketId).data.producer.id
+    const producerId = this.server.sockets.sockets.get(socketId).data.producer.id;
     const consumer = await client.data.recvTransports
       .find(transport => transport.id === transportId)
       .consume({ producerId, ...payload, paused: true });
@@ -92,7 +96,7 @@ export class SocketIOGateway implements OnGatewayConnection<Socket> {
   }
 
   @SubscribeMessage('resume_consumer')
-  async resumeConsumer(client: Socket, {id}: {id: string}) {
+  async resumeConsumer(client: Socket, { id }: { id: string }) {
     await client.data.consumers.find(consumer => consumer.id === id).resume();
     return 0;
   }
@@ -117,14 +121,12 @@ export class SocketIOGateway implements OnGatewayConnection<Socket> {
   @SubscribeMessage('get_user_servers_data')
   async getUserServersData(client: Socket): Promise<UserServersData> {
     const response = await this.appService.getUserServersData(client.handshake.auth.sub);
-    response.channels = response.channels.map(([id, channel]) => {
-      if (channel.type === ChannelType.Text) return [id, channel];
-      const room = this.server.of('/').adapter.rooms.get(`channel_${id}`);
-      channel.users = [];
-      if (room === undefined) return [id, channel];
-      channel.users = Array.from(room)
-        .map(socketId => ({ socketId, userId: this.server.sockets.sockets.get(socketId).handshake.auth.sub }));
-      return [id, channel];
+
+    response.servers.forEach(server => {
+      server.channels.forEach(this.processChannel);
+      server.groups.forEach(group =>
+        group.channels.forEach(this.processChannel),
+      );
     });
     return response;
   }
@@ -151,22 +153,16 @@ export class SocketIOGateway implements OnGatewayConnection<Socket> {
       client.handshake.auth.sub,
       payload.invitation,
     );
-    const newMember = result.members
-      .map((member) => member[1])
+    const newMember = result.servers.map(server => server.members).flat()
       .find((member) => member.userId === client.handshake.auth.sub);
     const newUser = result.users
       .map((user) => user[1])
       .find((user) => user.id === client.handshake.auth.sub);
-    const serverId = result.servers[0][0];
-    result.channels = result.channels.map(([id, channel]) => {
-      if (channel.type === ChannelType.Text) return [id, channel];
-      const room = this.server.of('/').adapter.rooms.get(`channel_${id}`);
-      channel.users = [];
-      if (room === undefined) return [id, channel];
-      channel.users = Array.from(room)
-        .map(socketId => ({ socketId, userId: this.server.sockets.sockets.get(socketId).handshake.auth.sub }));
-      return [id, channel];
-    });
+    const serverId = result.servers[0].id;
+    result.servers[0].channels.forEach(this.processChannel);
+    result.servers[0].groups.forEach(group =>
+      group.channels.forEach(this.processChannel)
+    );
 
     client.join(`server_${serverId}`);
     client.to(`server_${serverId}`).emit('new_member', {
@@ -231,6 +227,15 @@ export class SocketIOGateway implements OnGatewayConnection<Socket> {
     };
     client.to(`server_${payload.serverId}`).emit('new_group', group);
     return groupId;
+  }
+
+  private processChannel(channel: VoiceChannel) {
+    if (channel.type === ChannelType.Text) return;
+    const room = this.server.of('/').adapter.rooms.get(`channel_${channel.id}`);
+    channel.users = [];
+    if (room === undefined) return;
+    channel.users = Array.from(room)
+      .map(socketId => ({ socketId, userId: this.server.sockets.sockets.get(socketId).handshake.auth.sub }));
   }
 
 }

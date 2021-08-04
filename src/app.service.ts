@@ -26,46 +26,49 @@ export class AppService {
   private static processQuery(
     result: UserServersDataQueryResult,
   ): UserServersData {
-    const serversTable = result[0].map<[number, Server]>((server: Server) => [
-      server.id,
-      server,
-    ]);
-    const groupsTable = result[1].map<[number, Group]>((group: Group) => [
-      group.id,
-      group,
-    ]);
-    const channelsTable = result[2].map<[number, Channel]>(
-      (channel: Channel) => [channel.id, channel],
-    );
 
-    const membersTable: [number, Member][] = [];
-    const usersTable: [string, User][] = [];
+    const membersTable: Member[] = [];
+    const usersTable: User[] = [];
+    const channelsTable: Channel[] = [];
 
     result[3].forEach((member: Member & User) => {
-      membersTable.push([
-        member.id,
-        {
-          id: member.id,
-          userId: member.userId,
-          serverId: member.serverId,
-        },
-      ]);
-      usersTable.push([
-        member.userId,
-        {
-          id: member.userId,
-          username: member.username,
-          firstName: member.firstName,
-          lastName: member.lastName,
-        },
-      ]);
+      membersTable.push({
+        id: member.id,
+        userId: member.userId,
+        serverId: member.serverId,
+      });
+      usersTable.push({
+        id: member.userId,
+        username: member.username,
+        firstName: member.firstName,
+        lastName: member.lastName,
+      });
     });
+
+    const groupsTable: Group[] = result[1].map((group: Omit<Group, 'channels'>) => ({
+      ...group,
+      channels: [], // channels in a group
+    }));
+
+    result[2].forEach((channel: Channel) => {
+      if (channel.groupId === null)
+        channelsTable.push(channel);
+      else {
+        const group = groupsTable.find(group => group.id === channel.groupId);
+        if (group === undefined) return;
+        group.channels.push(channel);
+      }
+    });
+
+    const serversTable: Server[] = result[0].map((server: Omit<Server, 'channels' | 'groups' | 'members'>) => ({
+      ...server,
+      channels: channelsTable, // channels without a group
+      groups: groupsTable,
+      members: membersTable,
+    }));
 
     return {
       servers: serversTable,
-      channels: channelsTable,
-      groups: groupsTable,
-      members: membersTable,
       users: usersTable,
     };
   }
@@ -118,7 +121,6 @@ export class AppService {
       channelId,
       channelOrder,
     ]);
-    console.log(result);
     return true;
   }
 
