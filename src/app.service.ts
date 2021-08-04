@@ -27,45 +27,51 @@ export class AppService {
     result: UserServersDataQueryResult,
   ): UserServersData {
 
-    const membersTable: Member[] = [];
-    const usersTable: User[] = [];
-    const channelsTable: Channel[] = [];
-
-    result[3].forEach((member: Member & User) => {
-      membersTable.push({
-        id: member.id,
-        userId: member.userId,
-        serverId: member.serverId,
-      });
-      usersTable.push({
-        id: member.userId,
-        username: member.username,
-        firstName: member.firstName,
-        lastName: member.lastName,
-      });
-    });
-
-    const groupsTable: Group[] = result[1].map((group: Omit<Group, 'channels'>) => ({
-      ...group,
-      channels: [], // channels in a group
+    const serversTable: Server[] = result[0].map((server: Omit<Server, 'channels' | 'groups' | 'members'>) => ({
+      ...server,
+      channels: [],
+      groups: [],
+      members: [],
     }));
 
+    const usersTable: User[] = [];
+
+    result[3].forEach((member: Member & User) => {
+      const server = serversTable.find(server => server.id === member.serverId);
+      if (server === undefined) return;
+      if (server.members.findIndex(m1 => m1.id === member.id) === -1)
+        server.members.push({
+          id: member.id,
+          userId: member.userId,
+          serverId: member.serverId,
+        });
+      const existingUserIndex = usersTable.findIndex(usr => usr.id === member.userId);
+      if (existingUserIndex === -1)
+        usersTable.push({
+          id: member.userId,
+          username: member.username,
+          firstName: member.firstName,
+          lastName: member.lastName,
+        });
+    });
+
+    result[1].forEach((group: Omit<Group, 'channels'>) => {
+      const server = serversTable.find(server => server.id === group.serverId);
+      if (server === undefined) return;
+      server.groups.push({ ...group, channels: [] });
+    });
+
     result[2].forEach((channel: Channel) => {
+      const server = serversTable.find(server => server.id === channel.serverId);
       if (channel.groupId === null)
-        channelsTable.push(channel);
+        server.channels.push(channel);
       else {
-        const group = groupsTable.find(group => group.id === channel.groupId);
+        const group = server.groups.find(group => group.id === channel.groupId);
         if (group === undefined) return;
         group.channels.push(channel);
       }
     });
 
-    const serversTable: Server[] = result[0].map((server: Omit<Server, 'channels' | 'groups' | 'members'>) => ({
-      ...server,
-      channels: channelsTable, // channels without a group
-      groups: groupsTable,
-      members: membersTable,
-    }));
 
     return {
       servers: serversTable,
@@ -114,7 +120,7 @@ export class AppService {
     channelId: number,
     channelOrder: number,
   ): Promise<boolean> {
-    let result = await this.connection.query('CALL move_channel(?,?,?,?,?)', [
+    await this.connection.query('CALL move_channel(?,?,?,?,?)', [
       userId,
       serverId,
       groupId,
@@ -159,14 +165,14 @@ export class AppService {
     serverId: number,
     channelId: number,
     offset: number,
-  ): Promise<[number, Message][]> {
+  ): Promise<Message[]> {
     const result = await this.connection.query('CALL get_messages(?,?,?,?)', [
       userId,
       serverId,
       channelId,
       offset,
     ]);
-    return result[0].map((result) => [result.id, result]);
+    return result[0];
   }
 
   async joinServer(uid: string, invitation: string): Promise<UserServersData> {

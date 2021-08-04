@@ -6,9 +6,7 @@ import { AuthGuard, KeycloakConnectModule } from 'nest-keycloak-connect';
 import { APP_GUARD } from '@nestjs/core';
 import { ServerEntity } from './entities/server.entity';
 import { SocketIOGateway } from './socketio.gateway';
-import { ChannelsController } from './controllers/channels/channels.controller';
 import { UsersController } from './controllers/users/users.controller';
-import { InvitationsController } from './controllers/invitations/invitations.controller';
 import { createWorker } from 'mediasoup';
 import { Router } from 'mediasoup/lib/Router';
 
@@ -97,9 +95,7 @@ const mediaCodecs = [
   ],
   controllers: [
     ServersController,
-    ChannelsController,
     UsersController,
-    InvitationsController,
   ],
   providers: [
     {
