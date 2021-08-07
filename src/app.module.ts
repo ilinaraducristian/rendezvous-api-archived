@@ -1,14 +1,91 @@
-import { Module, Provider } from '@nestjs/common';
-import { ServersController } from './controllers/servers/servers.controller';
+import { DynamicModule, Module, Provider } from '@nestjs/common';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthGuard, KeycloakConnectModule } from 'nest-keycloak-connect';
 import { APP_GUARD } from '@nestjs/core';
-import { ServerEntity } from './entities/server.entity';
-import { SocketIOGateway } from './socketio.gateway';
-import { UsersController } from './controllers/users/users.controller';
 import { createWorker } from 'mediasoup';
 import { Router } from 'mediasoup/lib/Router';
+import { UserEntity } from './entities/user.entity';
+import { config } from 'dotenv';
+import { ServerGateway } from './gateways/server.gateway';
+import { MediasoupGateway } from './gateways/mediasoup.gateway';
+import { ChannelGateway } from './gateways/channel.gateway';
+
+@Module({
+  imports: [
+    ...AppModule.asyncImports(),
+  ],
+  controllers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+    AppModule.mediasoupProvider(),
+    AppService,
+    ServerGateway,
+    ChannelGateway,
+    MediasoupGateway,
+  ],
+})
+export class AppModule {
+
+  static envVariables: any;
+
+  static asyncImports(): DynamicModule[] {
+    const { parsed }: any = config();
+    AppModule.envVariables = parsed;
+    return [
+      ...AppModule.typeORM(),
+      KeycloakConnectModule.register({
+        authServerUrl: AppModule.envVariables.AUTH_SERVER_URL,
+        realm: AppModule.envVariables.REALM,
+        clientId: AppModule.envVariables.KEYCLOAK_CLIENT_ID,
+        secret: AppModule.envVariables.KEYCLOAK_CLIENT_SECRET,
+        // optional if you want to retrieve JWT from cookie
+        cookieKey: 'KEYCLOAK_JWT',
+        // optional loglevels. default is verbose
+        logLevels: ['warn'],
+      }),
+    ];
+  }
+
+  static typeORM(): DynamicModule[] {
+    const commonOptions = {
+      type: AppModule.envVariables.DB_TYPE as 'mysql' | 'mariadb',
+      host: AppModule.envVariables.DB_HOST,
+      port: parseInt(AppModule.envVariables.DB_PORT),
+      username: AppModule.envVariables.DB_USER,
+      password: AppModule.envVariables.DB_PASS,
+      synchronize: false,
+      retryAttempts: 500,
+    };
+    return [
+      TypeOrmModule.forRoot(
+        {
+          ...commonOptions,
+          database: AppModule.envVariables.DB_NAME,
+        }),
+      TypeOrmModule.forRoot(
+        {
+          ...commonOptions,
+          name: 'keycloakConnection',
+          entities: [UserEntity],
+          database: AppModule.envVariables.KEYCLOAK_DB_NAME,
+        }),
+      TypeOrmModule.forFeature([UserEntity], 'keycloakConnection'),
+    ];
+  }
+
+  static mediasoupProvider(): Provider {
+    return {
+      provide: Router,
+      // @ts-ignore
+      useFactory: () => createWorker().then(worker => worker.createRouter({ mediaCodecs })),
+    };
+  }
+
+}
 
 const mediaCodecs = [
   {
@@ -61,60 +138,3 @@ const mediaCodecs = [
       },
   },
 ];
-
-@Module({
-  imports: [
-    TypeOrmModule.forRootAsync({
-      useFactory: () => ({
-        type: process.env.DB_TYPE as 'mysql' | 'mariadb',
-        host: process.env.DB_HOST,
-        port: parseInt(process.env.DB_PORT),
-        username: process.env.DB_USER,
-        password: process.env.DB_PASS,
-        database: process.env.DB_NAME,
-        entities:
-          process.env.ENVIRONMENT === 'production'
-            ? ['./**/*.entity{.ts,.js}']
-            : ['dist/**/*.entity{.ts,.js}'],
-        synchronize: false,
-      }),
-    }),
-    TypeOrmModule.forFeature([ServerEntity]),
-    KeycloakConnectModule.registerAsync({
-      useFactory: () => ({
-        authServerUrl: process.env.AUTH_SERVER_URL,
-        realm: process.env.REALM,
-        clientId: process.env.KEYCLOAK_CLIENT_ID,
-        secret: process.env.KEYCLOAK_CLIENT_SECRET,
-        // optional if you want to retrieve JWT from cookie
-        cookieKey: 'KEYCLOAK_JWT',
-        // optional loglevels. default is verbose
-        logLevels: ['warn'],
-      }),
-    }),
-  ],
-  controllers: [
-    ServersController,
-    UsersController,
-  ],
-  providers: [
-    {
-      provide: APP_GUARD,
-      useClass: AuthGuard,
-    },
-    AppModule.mediasoupProvider(),
-    AppService,
-    SocketIOGateway,
-  ],
-})
-export class AppModule {
-
-  static mediasoupProvider(): Provider {
-    return {
-      provide: Router,
-      // @ts-ignore
-      useFactory: () => createWorker().then(worker => worker.createRouter({ mediaCodecs })),
-    };
-  }
-
-}

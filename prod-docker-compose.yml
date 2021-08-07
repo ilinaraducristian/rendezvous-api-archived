@@ -27,14 +27,13 @@ services:
   dbini:
     image: percona:8
     volumes:
-      - ./wait-for-it.sh:/tmp/wait-for-it.sh
       - ./schema.sql:/tmp/schema.sql
-      - ./dbini.sh:/tmp/dbini.sh
-    command: /tmp/wait-for-it.sh -t 120 auth:8080 -- "/tmp/dbini.sh"
+      - ./dbini.sh:/dbini.sh
+    command: /dbini.sh
   api:
     image: randevous-api:0.0.1
     ports:
-      - 8280:8280
+      - "8280:8280"
   frontend:
     image: randevous:0.1.0
   proxy:
@@ -42,7 +41,7 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
     ports:
-      - 8180:8180
+      - "8180:8180"
 volumes:
   percona:
     driver_opts:

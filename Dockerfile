@@ -1,4 +1,4 @@
-FROM node:16-slim
+FROM ilinaraducristian/node-mediasoup:16.6.1-alpine3.14-mediasoup3.8.0
 COPY dist /usr/src
 COPY prod.env /usr/src/.env
 COPY package.json /usr/src/package.json

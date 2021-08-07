@@ -27,14 +27,13 @@ services:
       - percona:/var/lib/mysql
       - ./my.cnf:/etc/my.cnf
     ports:
-      - 3306:3306
+      - "3306:3306"
   dbini:
     image: percona:8
     volumes:
-      - ./wait-for-it.sh:/tmp/wait-for-it.sh
       - ./schema.sql:/tmp/schema.sql
-      - ./dbini.sh:/tmp/dbini.sh
-    command: /tmp/wait-for-it.sh -t 120 auth:8080 -- "/tmp/dbini.sh"
+      - ./dbini.sh:/dbini.sh
+    command: /dbini.sh
 volumes:
   percona:
     driver_opts:

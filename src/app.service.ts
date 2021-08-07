@@ -1,25 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { Connection, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ServerEntity } from './entities/server.entity';
-import {
-  Channel,
-  ChannelType,
-  Group,
-  Member,
-  Message,
-  Server,
-  User,
-  UserServersData,
-  UserServersDataQueryResult,
-} from './types';
+import { UserEntity } from './entities/user.entity';
+import Server, { UserServersData, UserServersDataQueryResult } from './models/server.model';
+import User from './models/user.model';
+import Member from './models/member.model';
+import Group from './models/group.model';
+import Channel, { ChannelType } from './models/channel.model';
+import Message from './models/message.model';
 
 @Injectable()
 export class AppService {
   constructor(
     private connection: Connection,
-    @InjectRepository(ServerEntity)
-    private serverRepository: Repository<ServerEntity>,
+    @InjectRepository(UserEntity, 'keycloakConnection')
+    private keycloakRepository: Repository<UserEntity>,
   ) {
   }
 
@@ -36,7 +31,7 @@ export class AppService {
 
     const usersTable: User[] = [];
 
-    result[3].forEach((member: Member & User) => {
+    result[3].forEach((member: Member) => {
       const server = serversTable.find(server => server.id === member.serverId);
       if (server === undefined) return;
       if (server.members.findIndex(m1 => m1.id === member.id) === -1)
@@ -45,13 +40,17 @@ export class AppService {
           userId: member.userId,
           serverId: member.serverId,
         });
-      const existingUserIndex = usersTable.findIndex(usr => usr.id === member.userId);
+
+    });
+
+    result[4].forEach((user: UserEntity) => {
+      const existingUserIndex = usersTable.findIndex(usr => usr.id === user.ID);
       if (existingUserIndex === -1)
         usersTable.push({
-          id: member.userId,
-          username: member.username,
-          firstName: member.firstName,
-          lastName: member.lastName,
+          id: user.ID,
+          username: user.USERNAME,
+          firstName: user.FIRST_NAME,
+          lastName: user.LAST_NAME,
         });
     });
 
@@ -144,19 +143,24 @@ export class AppService {
   }
 
   async createServer(uid: string, name: string): Promise<UserServersData> {
-    let result = await this.connection.query('CALL create_server(?,?)', [
+    let result: UserServersDataQueryResult = await this.connection.query('CALL create_server(?,?)', [
       uid,
       name,
     ]);
+
+    await this.addUsersDetailsToResult(result);
+
     return AppService.processQuery(result);
   }
 
   async getUserServersData(userId: string): Promise<UserServersData> {
-    // get data from database
     let result: UserServersDataQueryResult = await this.connection.query(
       'CALL get_user_servers_data(?)',
       [userId],
     );
+
+    await this.addUsersDetailsToResult(result);
+
     return AppService.processQuery(result);
   }
 
@@ -180,6 +184,16 @@ export class AppService {
       'CALL join_server(?,?)',
       [uid, invitation],
     );
+    await this.addUsersDetailsToResult(result);
     return AppService.processQuery(result);
+  }
+
+  private async addUsersDetailsToResult(result: UserServersDataQueryResult) {
+    const usersIds = result[3].map(member => ({ ID: member.userId })).filter((user, index, array) => array.indexOf(user) === index);
+
+    result[4] = await this.keycloakRepository.find({
+      select: ['ID', 'USERNAME', 'FIRST_NAME', 'LAST_NAME'],
+      where: usersIds,
+    });
   }
 }

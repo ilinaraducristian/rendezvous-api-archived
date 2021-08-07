@@ -1,17 +1,7 @@
 import { NestFactory } from '@nestjs/core';
-import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from '@nestjs/platform-fastify';
+import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { AppModule } from './app.module';
 import { SocketIoAdapter } from './socket-io.adapter';
-import { config } from 'dotenv';
-
-const { error } = config();
-
-if (error) {
-  throw error;
-}
 
 bootstrap();
 
