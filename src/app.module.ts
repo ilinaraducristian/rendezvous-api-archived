@@ -10,6 +10,7 @@ import { config } from 'dotenv';
 import { ServerGateway } from './gateways/server.gateway';
 import { MediasoupGateway } from './gateways/mediasoup.gateway';
 import { ChannelGateway } from './gateways/channel.gateway';
+import { ChannelEntity } from './entities/channel.entity';
 
 @Module({
   imports: [
@@ -64,6 +65,7 @@ export class AppModule {
       TypeOrmModule.forRoot(
         {
           ...commonOptions,
+          entities: [ChannelEntity],
           database: AppModule.envVariables.DB_NAME,
         }),
       TypeOrmModule.forRoot(

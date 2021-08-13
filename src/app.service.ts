@@ -8,11 +8,14 @@ import Member from './models/member.model';
 import Group from './models/group.model';
 import Channel, { ChannelType } from './models/channel.model';
 import Message from './models/message.model';
+import { ChannelEntity } from './entities/channel.entity';
 
 @Injectable()
 export class AppService {
   constructor(
     private connection: Connection,
+    @InjectRepository(ChannelEntity)
+    private channelRepository: Repository<ChannelEntity>,
     @InjectRepository(UserEntity, 'keycloakConnection')
     private keycloakRepository: Repository<UserEntity>,
   ) {
@@ -112,21 +115,8 @@ export class AppService {
       .then((result) => Object.entries(result[0])[0][1] as number);
   }
 
-  async moveChannel(
-    userId: string,
-    serverId: number,
-    groupId: number | null,
-    channelId: number,
-    channelOrder: number,
-  ): Promise<boolean> {
-    await this.connection.query('CALL move_channel(?,?,?,?,?)', [
-      userId,
-      serverId,
-      groupId,
-      channelId,
-      channelOrder,
-    ]);
-    return true;
+  async moveChannel(userId: string, payload: any) {
+    await this.channelRepository.update(payload.channelId, { order: payload.order, group_id: payload.groupId });
   }
 
   async sendMessage(

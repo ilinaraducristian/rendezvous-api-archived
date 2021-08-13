@@ -32,7 +32,7 @@ CREATE TABLE channels
     group_id  int,
     type      enum ('text', 'voice') NOT NULL,
     name      varchar(255)           NOT NULL,
-    `order`   int                    NOT NULL,
+    `order`   int unsigned           NOT NULL,
     FOREIGN KEY (server_id) REFERENCES servers (id),
     FOREIGN KEY (group_id) REFERENCES `groups` (id)
 )$$
@@ -339,7 +339,13 @@ BEGIN
         END IF;
     END IF;
 
-    SELECT c.`order` INTO @lastChannelOrder FROM channels c WHERE server_id = serverId ORDER BY c.`order` DESC LIMIT 1;
+    SELECT c.`order`
+    INTO @lastChannelOrder
+    FROM channels c
+    WHERE server_id = serverId
+      AND group_id = c.group_id
+    ORDER BY c.`order` DESC
+    LIMIT 1;
 
     INSERT INTO channels (server_id, group_id, type, name, `order`)
     VALUES (serverId, groupId, channelType, channelName, @lastChannelOrder + 1);
@@ -348,21 +354,22 @@ BEGIN
 
 END $$
 
-CREATE PROCEDURE move_channel(userId char(36), serverId int, groupId int, channelId int, channelOrder int)
-BEGIN
-
-    SELECT is_member(userId, serverId);
-
-    START TRANSACTION;
-    UPDATE channels c SET c.`order` = channelOrder WHERE c.id = channelId;
-    SELECT (SUM(c.`order`) = COUNT(*) - 1) INTO @eq FROM channels c WHERE c.group_id = groupId;
-    IF @eq = FALSE THEN
-        ROLLBACK;
-    ELSE
-        COMMIT;
-    END IF;
-
-END $$
+# CREATE PROCEDURE move_channel(userId char(36), serverId int, groupId int, channelId int, channelOrder int)
+# BEGIN
+#
+#     SELECT is_member(userId, serverId);
+#
+#     START TRANSACTION;
+#     UPDATE channels c SET c.`order` = channelOrder WHERE c.id = channelId;
+#     SELECT (SUM(c.`order`) = COUNT(*) - 1) INTO @eq FROM channels c WHERE c.group_id = groupId;
+#     IF @eq = FALSE THEN
+#         ROLLBACK;
+#     ELSE
+#         COMMIT;
+#     END IF;
+#
+# END
+$$
 
 CREATE FUNCTION create_group(userId char(36), serverId int, groupName varchar(255)) RETURNS int DETERMINISTIC
     MODIFIES SQL DATA

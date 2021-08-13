@@ -48,8 +48,13 @@ export class ChannelGateway {
       payload.message,
     );
     client.to(`server_${message.serverId}`).emit('new_message', message);
-
     return message;
+  }
+
+  @SubscribeMessage('move_channel')
+  async moveChannel(client: Socket, payload: { serverId: number, channelId: number, groupId: number | null, order: number }) {
+    await this.appService.moveChannel(client.handshake.auth.token, payload);
+    client.to(`server_${payload.serverId}`).emit('channel_moved', payload);
   }
 
 }
