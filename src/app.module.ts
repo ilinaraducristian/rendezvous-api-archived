@@ -11,6 +11,8 @@ import { ServerGateway } from './gateways/server.gateway';
 import { MediasoupGateway } from './gateways/mediasoup.gateway';
 import { ChannelGateway } from './gateways/channel.gateway';
 import { ChannelEntity } from './entities/channel.entity';
+import { MessageEntity } from './entities/message.entity';
+import { MessageGateway } from './gateways/message.gateway';
 
 @Module({
   imports: [
@@ -26,6 +28,7 @@ import { ChannelEntity } from './entities/channel.entity';
     AppService,
     ServerGateway,
     ChannelGateway,
+    MessageGateway,
     MediasoupGateway,
   ],
 })
@@ -65,7 +68,7 @@ export class AppModule {
       TypeOrmModule.forRoot(
         {
           ...commonOptions,
-          entities: [ChannelEntity],
+          entities: [ChannelEntity, MessageEntity],
           database: AppModule.envVariables.DB_NAME,
         }),
       TypeOrmModule.forRoot(
@@ -75,6 +78,7 @@ export class AppModule {
           entities: [UserEntity],
           database: AppModule.envVariables.KEYCLOAK_DB_NAME,
         }),
+      TypeOrmModule.forFeature([ChannelEntity, MessageEntity]),
       TypeOrmModule.forFeature([UserEntity], 'keycloakConnection'),
     ];
   }

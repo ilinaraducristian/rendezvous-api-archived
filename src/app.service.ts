@@ -9,6 +9,7 @@ import Group from './models/group.model';
 import Channel, { ChannelType } from './models/channel.model';
 import Message from './models/message.model';
 import { ChannelEntity } from './entities/channel.entity';
+import { MessageEntity } from './entities/message.entity';
 
 @Injectable()
 export class AppService {
@@ -16,6 +17,8 @@ export class AppService {
     private connection: Connection,
     @InjectRepository(ChannelEntity)
     private channelRepository: Repository<ChannelEntity>,
+    @InjectRepository(MessageEntity)
+    private messageRepository: Repository<MessageEntity>,
     @InjectRepository(UserEntity, 'keycloakConnection')
     private keycloakRepository: Repository<UserEntity>,
   ) {
@@ -132,9 +135,9 @@ export class AppService {
     return result[0][0];
   }
 
-  async createServer(uid: string, name: string): Promise<UserServersData> {
+  async createServer(userId: string, name: string): Promise<UserServersData> {
     let result: UserServersDataQueryResult = await this.connection.query('CALL create_server(?,?)', [
-      uid,
+      userId,
       name,
     ]);
 
@@ -169,13 +172,21 @@ export class AppService {
     return result[0];
   }
 
-  async joinServer(uid: string, invitation: string): Promise<UserServersData> {
+  async joinServer(userId: string, invitation: string): Promise<UserServersData> {
     let result: UserServersDataQueryResult = await this.connection.query(
       'CALL join_server(?,?)',
-      [uid, invitation],
+      [userId, invitation],
     );
     await this.addUsersDetailsToResult(result);
     return AppService.processQuery(result);
+  }
+
+  editMessage(userId: string, messageId: number, text: string) {
+    return this.messageRepository.update(messageId, { text });
+  }
+
+  deleteMessage(userId: string, messageId: number) {
+    return this.messageRepository.delete(messageId);
   }
 
   private async addUsersDetailsToResult(result: UserServersDataQueryResult) {
