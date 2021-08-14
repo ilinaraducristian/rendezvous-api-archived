@@ -53,8 +53,11 @@ CREATE TABLE messages
     user_id    char(36)     NOT NULL,
     timestamp  datetime     NOT NULL DEFAULT NOW(),
     text       varchar(255) NOT NULL,
+    is_reply   boolean      NOT NULL,
+    reply_id   int,
     FOREIGN KEY (server_id) REFERENCES servers (id),
-    FOREIGN KEY (channel_id) REFERENCES channels (id)
+    FOREIGN KEY (channel_id) REFERENCES channels (id),
+    FOREIGN KEY (reply_id) REFERENCES messages (id) ON DELETE SET NULL
 )$$
 
 CREATE UNIQUE INDEX unique_member
@@ -145,7 +148,9 @@ SELECT m.id,
        m.channel_id as channelId,
        m.user_id    as userId,
        m.timestamp,
-       m.text
+       m.text,
+       m.is_reply   as isReply,
+       m.reply_id   as replyId
 FROM messages m;
 
 CREATE FUNCTION is_member(userId char(36), serverId int) RETURNS BOOLEAN DETERMINISTIC
@@ -247,7 +252,7 @@ BEGIN
     WHERE m2.user_id = userId;
 END $$
 
-CREATE PROCEDURE send_message(userId char(36), channelId int, message varchar(255))
+CREATE PROCEDURE send_message(userId char(36), channelId int, message varchar(255), isReply boolean, replyId int)
 BEGIN
 
     SELECT c.server_id INTO @serverId FROM channels c WHERE c.id = channelId;
@@ -268,7 +273,8 @@ BEGIN
             SET MESSAGE_TEXT = 'User is not a member of this server';
     END IF;
 
-    INSERT INTO messages (server_id, channel_id, user_id, text) VALUES (@serverId, channelId, userId, message);
+    INSERT INTO messages (server_id, channel_id, user_id, text, is_reply, reply_id)
+    VALUES (@serverId, channelId, userId, message, isReply, replyId);
 
     SELECT * FROM messages_view m WHERE m.id = LAST_INSERT_ID();
 
@@ -403,7 +409,14 @@ BEGIN
             SET MESSAGE_TEXT = 'User is not a member of this server';
     END IF;
 
-    SELECT m.id, m.serverId, m.channelId, m.userId, m.timestamp, m.text
+    SELECT m.id,
+           m.serverId,
+           m.channelId,
+           m.userId,
+           m.timestamp,
+           m.text,
+           m.isReply,
+           m.replyId
     FROM messages_view m
              JOIN channels c ON m.channelId = c.id
     WHERE c.id = channelId

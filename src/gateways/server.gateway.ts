@@ -49,7 +49,6 @@ export class ServerGateway implements OnGatewayConnection<Socket> {
       client.handshake.auth.sub,
       payload.name,
     );
-
     client.join(`server_${result.servers[0].id}`);
     return result;
   }

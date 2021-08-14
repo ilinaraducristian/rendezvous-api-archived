@@ -21,4 +21,10 @@ export class MessageEntity {
   @Column({ nullable: false })
   text: string;
 
+  @Column({ nullable: false })
+  is_reply: boolean;
+
+  @Column()
+  replyId: number | null;
+
 }

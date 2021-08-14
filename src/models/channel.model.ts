@@ -11,7 +11,7 @@ type Channel = {
   groupId: number,
   type: ChannelType,
   name: string,
-  order: number,
+  order: number
 }
 
 export type VoiceChannel = Channel & {

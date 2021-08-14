@@ -6,7 +6,7 @@ import Server, { UserServersData, UserServersDataQueryResult } from './models/se
 import User from './models/user.model';
 import Member from './models/member.model';
 import Group from './models/group.model';
-import Channel, { ChannelType } from './models/channel.model';
+import { ChannelType, TextChannel, VoiceChannel } from './models/channel.model';
 import Message from './models/message.model';
 import { ChannelEntity } from './entities/channel.entity';
 import { MessageEntity } from './entities/message.entity';
@@ -66,7 +66,10 @@ export class AppService {
       server.groups.push({ ...group, channels: [] });
     });
 
-    result[2].forEach((channel: Channel) => {
+    result[2].forEach((channel: TextChannel | VoiceChannel) => {
+      if (channel.type === ChannelType.Text) {
+        (channel as TextChannel).messages = [];
+      }
       const server = serversTable.find(server => server.id === channel.serverId);
       if (channel.groupId === null)
         server.channels.push(channel);
@@ -126,11 +129,15 @@ export class AppService {
     userId: string,
     channelId: number,
     message: string,
+    isReply: boolean,
+    replyId: number | null,
   ): Promise<Message> {
-    const result = await this.connection.query('CALL send_message(?,?,?)', [
+    const result = await this.connection.query('CALL send_message(?,?,?,?,?)', [
       userId,
       channelId,
       message,
+      isReply,
+      replyId,
     ]);
     return result[0][0];
   }
