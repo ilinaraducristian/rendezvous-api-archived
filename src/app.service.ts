@@ -153,9 +153,9 @@ export class AppService {
     return AppService.processQuery(result);
   }
 
-  async getUserServersData(userId: string): Promise<UserServersData> {
+  async getUserData(userId: string): Promise<UserServersData> {
     let result: UserServersDataQueryResult = await this.connection.query(
-      'CALL get_user_servers_data(?)',
+      'CALL get_user_data(?)',
       [userId],
     );
 

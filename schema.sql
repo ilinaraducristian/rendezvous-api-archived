@@ -165,7 +165,7 @@ BEGIN
     RETURN TRUE;
 END $$
 
-CREATE PROCEDURE get_user_servers_data(userId char(36))
+CREATE PROCEDURE get_user_data(userId char(36))
 BEGIN
     SELECT s.id, s.name, s.userId, s.invitation, s.invitationExp
     FROM servers_view s

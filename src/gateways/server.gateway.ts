@@ -16,7 +16,7 @@ export class ServerGateway implements OnGatewayConnection<Socket> {
   }
 
   async handleConnection(client: Socket, ...args: any[]) {
-    const response = await this.appService.getUserServersData(
+    const response = await this.appService.getUserData(
       client.handshake.auth.sub,
     );
     client.data = { recvTransports: [], consumers: [] };
@@ -27,9 +27,9 @@ export class ServerGateway implements OnGatewayConnection<Socket> {
 
   }
 
-  @SubscribeMessage('get_user_servers_data')
-  async getUserServersData(client: Socket): Promise<UserServersData> {
-    const response = await this.appService.getUserServersData(client.handshake.auth.sub);
+  @SubscribeMessage('get_user_data')
+  async getUserData(client: Socket): Promise<UserServersData> {
+    const response = await this.appService.getUserData(client.handshake.auth.sub);
 
     response.servers.forEach(server => {
       server.channels.forEach(this.processChannel(this.server));
