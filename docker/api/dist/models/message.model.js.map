@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "message.model.js",
+  "sourceRoot": "",
+  "sources": [
+    "../../src/models/message.model.ts"
+  ],
+  "names": [],
+  "mappings": ""
+}
