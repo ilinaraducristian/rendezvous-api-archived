@@ -16,13 +16,13 @@ spec:
     spec:
       containers:
         - name: api
-          image: ilinaraducristian/rendezvous-api:0.0.4
+          image: ilinaraducristian/rendezvous-api:0.0.1
+          ports:
+            - containerPort: 8081
+        - name: web
+          image: ilinaraducristian/rendezvous:0.0.2
           ports:
             - containerPort: 80
-        #        - name: web
-        #            image: randevous:0.0.1
-        #            ports:
-        #              - containerPort: 80
         - name: database
           image: ilinaraducristian/rendezvous-database:0.0.1
           env:
@@ -36,34 +36,26 @@ spec:
               value: "capp"
           ports:
             - containerPort: 3306
-#        - name: iam
-#            image: randevous:0.0.1
-#            env:
-#              - name: DB_VENDOR
-#                value: "MYSQL"
-#              - name: DB_ADDR
-#                value: "db"
-#              - name: DB_DATABASE
-#                value: "keycloak"
-#              - name: DB_USER
-#                value: "root"
-#              - name: DB_PASSWORD
-#                value: "root"
-#              - name: KEYCLOAK_USER
-#                value: "admin"
-#              - name: KEYCLOAK_PASSWORD
-#                value: "admin"
-#              - name: KEYCLOAK_IMPORT
-#                value: "/tmp/capp.json"
-#              - name: PROXY_ADDRESS_FORWARDING
-#                value: "true"
-#            ports:
-#              - containerPort: 80
-#        - name: api
-#          image: randevous-api:0.0.1
-#          ports:
-#            - containerPort: 80
-#        - name: proxy
-#            image: randevous:0.0.1
-#            ports:
-#              - containerPort: 80
+        - name: iam
+          image: ilinaraducristian/rendezvous-iam:0.0.2
+          env:
+            - name: DB_VENDOR
+              value: "MYSQL"
+            - name: DB_ADDR
+              value: "127.0.0.1"
+            - name: DB_DATABASE
+              value: "keycloak"
+            - name: DB_USER
+              value: "root"
+            - name: DB_PASSWORD
+              value: "root"
+            - name: KEYCLOAK_USER
+              value: "admin"
+            - name: KEYCLOAK_PASSWORD
+              value: "admin"
+            - name: KEYCLOAK_IMPORT
+              value: "/tmp/capp.json"
+            - name: PROXY_ADDRESS_FORWARDING
+              value: "true"
+          ports:
+            - containerPort: 8080

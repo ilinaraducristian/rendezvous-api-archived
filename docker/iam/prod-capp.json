@@ -5507,7 +5507,7 @@
     "clientOfflineSessionMaxLifespan": "0",
     "clientSessionIdleTimeout": "0",
     "clientSessionMaxLifespan": "0",
-    "frontendUrl": "http://randevous.go.ro:8180/auth",
+    "frontendUrl": "http://78.46.218.124:30002/auth",
     "clientOfflineSessionIdleTimeout": "0"
   },
   "keycloakVersion": "12.0.4",

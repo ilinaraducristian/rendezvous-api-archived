@@ -8,5 +8,14 @@ spec:
     app: rendezvous
   ports:
     - protocol: TCP
-      port: 3306
-      nodePort: 30306
+      port: 80
+      nodePort: 30000
+      name: web
+    - protocol: TCP
+      port: 8080
+      nodePort: 30002
+      name: iam
+    - protocol: TCP
+      port: 8081
+      nodePort: 30001
+      name: api

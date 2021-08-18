@@ -1,4 +1,4 @@
-FROM ilinaraducristian/node-mediasoup:16.6.1-alpine3.14-mediasoup3.8.0
+FROM ilinaraducristian/node-mediasoup:latest
 COPY package.json /usr/src/package.json
 COPY yarn.lock /usr/src/yarn.lock
 WORKDIR /usr/src
