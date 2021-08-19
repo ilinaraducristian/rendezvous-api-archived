@@ -1,10 +1,7 @@
 {
   "name": "randevous-api",
-  "version": "0.0.5",
-  "description": "",
-  "author": "",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
