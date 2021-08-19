@@ -15,5 +15,4 @@ jobs:
           email: "ilinaraducristian@protonmai.com"
           api_key: ${{secrets.HEROKU_API_KEY}}
           app_name: "rendezvous-api-radu"
-          dockerfile_path: ''
-          options: '' # Docker Build Options
+          dockerfile: ''
