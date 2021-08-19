@@ -38,7 +38,10 @@ export class AppModule {
 
   static asyncImports(): DynamicModule[] {
     const { parsed }: any = config();
-    AppModule.envVariables = parsed;
+    if (parsed === undefined)
+      AppModule.envVariables = process.env;
+    else
+      AppModule.envVariables = parsed;
     return [
       ...AppModule.typeORM(),
       KeycloakConnectModule.register({
