@@ -17,12 +17,13 @@ jobs:
       - run: npm i
       - run: npm run build:prod
       - run: cp grant-manager.js node_modules/keycloak-connect/middleware/auth-utils/grant-manager.js
-      - uses: CDNievas/heroku-action@v1.0 # This is the action
+      - run: sed -i 's/\/dist//g' .gitignore
+      - uses: CDNievas/heroku-action@v1.0
         with:
           heroku_email: "ilinaraducristian@protonmai.com"
           heroku_api_key: ${{secrets.HEROKU_API_KEY}}
           heroku_app_name: "rendezvous-api-radu"
           branch: "main"
           appdir: "dist"
-          procfile: "web: npm start:prod"
+          procfile: "web: npm run start:prod"
           dynamicFiles: true
