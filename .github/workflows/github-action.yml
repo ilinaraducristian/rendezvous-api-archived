@@ -17,6 +17,7 @@ jobs:
       - run: npm i
       - run: npm run build:prod
       - run: cp grant-manager.js node_modules/keycloak-connect/middleware/auth-utils/grant-manager.js
+      - run: cp package.json dist/package.json
       - run: sed -i 's/\/dist//g' .gitignore
       - uses: CDNievas/heroku-action@v1.0
         with:
