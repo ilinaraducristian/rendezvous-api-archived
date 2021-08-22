@@ -34,19 +34,33 @@ export class AppService {
       accessKey: process.env.MINIO_ACCESS_KEY,
       secretKey: process.env.MINIO_SECRET_KEY,
     });
-    this.minioClient.bucketExists('images').then((exists) =>
-      exists || this.minioClient.makeBucket('images', 'us-east-1') as any,
-    );
+
   }
 
-  private _tokens: string[] = [];
-
-  get tokens(): string[] {
-    return this._tokens;
-  }
-
-  removeToken(token: string) {
-    this._tokens.splice(this._tokens.indexOf(token), 1);
+  async sendMessage(
+    userId: string,
+    channelId: number,
+    message: string,
+    isReply: boolean,
+    replyId: number | null,
+    image: string | null,
+  ): Promise<Omit<Message, 'imageMd5'> & { image: string | null }> {
+    let imageMd5;
+    if (image !== null) {
+      imageMd5 = await this.putImage(image);
+    }
+    const result = await this.connection.query('CALL send_message(?,?,?,?,?,?)', [
+      userId,
+      channelId,
+      message,
+      isReply,
+      replyId,
+      image === null ? null : imageMd5,
+    ]);
+    const storedMessage = result[0][0];
+    storedMessage.image = image;
+    delete storedMessage.imageMd5;
+    return storedMessage;
   }
 
   private static processQuery(
@@ -112,10 +126,6 @@ export class AppService {
     };
   }
 
-  addToken(token: string) {
-    this._tokens.push(token);
-  }
-
   async createInvitation(userId: string, serverId: number): Promise<string> {
     return this.connection
       .query('SELECT create_invitation(?,?)', [userId, serverId])
@@ -154,27 +164,10 @@ export class AppService {
     await this.channelRepository.update(payload.channelId, { order: payload.order, group_id: payload.groupId });
   }
 
-  async sendMessage(
-    userId: string,
-    channelId: number,
-    message: string,
-    isReply: boolean,
-    replyId: number | null,
-    image: string | null,
-  ): Promise<Message> {
-    let imageMd5;
-    if (image !== null) {
-      imageMd5 = await this.putImage(image);
-    }
-    const result = await this.connection.query('CALL send_message(?,?,?,?,?,?)', [
-      userId,
-      channelId,
-      message,
-      isReply,
-      replyId,
-      image === null ? null : imageMd5,
-    ]);
-    return result[0][0];
+  private ensureBucketExists() {
+    return this.minioClient.bucketExists('images').then((exists) =>
+      exists || this.minioClient.makeBucket('images', 'us-east-1') as any,
+    );
   }
 
   async createServer(userId: string, name: string): Promise<UserServersData> {
@@ -245,11 +238,13 @@ export class AppService {
   }
 
   private async putImage(image: string) {
+    await this.ensureBucketExists();
     const imageMd5 = md5(image);
     return this.minioClient.putObject('images', imageMd5, image).then(() => imageMd5);
   }
 
   private async getImage(md5: string) {
+    await this.ensureBucketExists();
     const dataStream = await this.minioClient.getObject('images', md5);
     return new Promise((resolve, reject) => {
       let data = '';

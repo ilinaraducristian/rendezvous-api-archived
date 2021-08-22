@@ -26,7 +26,9 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 9000
+              name: port1
             - containerPort: 9001
+              name: port2
         - name: database
           image: ilinaraducristian/rendezvous-database:0.0.1
           imagePullPolicy: Always

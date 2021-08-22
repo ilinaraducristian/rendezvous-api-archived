@@ -16,6 +16,10 @@ spec:
       nodePort: 30002
       name: store
     - protocol: TCP
+      port: 9001
+      nodePort: 30003
+      name: store2
+    - protocol: TCP
       port: 3306
       nodePort: 30001
       name: database

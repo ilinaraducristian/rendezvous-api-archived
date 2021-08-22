@@ -18,7 +18,7 @@ export class MessageGateway {
   async sendMessage(
     client: Socket,
     payload: { channelId: number; message: string, isReply: boolean, replyId: number | null, image: string | null },
-  ): Promise<Message> {
+  ): Promise<Omit<Message, 'imageMd5'> & { image: string | null }> {
     const message = await this.appService.sendMessage(
       client.handshake.auth.sub,
       payload.channelId,
