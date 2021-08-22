@@ -1,16 +1,18 @@
 import { INestApplicationContext } from '@nestjs/common';
+import { Inject } from '@nestjs/common';
 import { isFunction, isNil } from '@nestjs/common/utils/shared.utils';
-import {
-  AbstractWsAdapter,
-  MessageMappingProperties,
-} from '@nestjs/websockets';
+import { AbstractWsAdapter, MessageMappingProperties } from '@nestjs/websockets';
 import { DISCONNECT_EVENT } from '@nestjs/websockets/constants';
 import { fromEvent, Observable } from 'rxjs';
 import { filter, first, map, mergeMap, share, takeUntil } from 'rxjs/operators';
 import { Server } from 'socket.io';
-import fetch from 'node-fetch';
+import { AppService } from 'src/app.service';
 
 export class SocketIoAdapter extends AbstractWsAdapter {
+
+  @Inject('AppService')
+  private readonly appService: AppService;
+
   constructor(
     appOrHttpServer?: INestApplicationContext | any,
     private readonly corsOrigins: any[] | boolean = [],
@@ -53,13 +55,23 @@ export class SocketIoAdapter extends AbstractWsAdapter {
       server = new Server(port, options);
     }
 
-    server.use(
-      this.socketIOKeycloakAuth({
-        tokenIntrospectionEndpoint: process.env.TOKEN_INTROSPECTION_ENDPOINT,
-        clientId: process.env.KEYCLOAK_CLIENT_ID,
-        secret: process.env.KEYCLOAK_CLIENT_SECRET,
-      }),
-    );
+    server.use((socket, next) => {
+      const token = socket.handshake.auth.token;
+      if (this.appService.tokens.includes(token)) {
+        this.appService.removeToken(token);
+        next();
+      } else {
+        next(new Error('Invalid token'));
+      }
+    });
+
+    // server.use(
+    //   this.socketIOKeycloakAuth({
+    //     tokenIntrospectionEndpoint: process.env.TOKEN_INTROSPECTION_ENDPOINT,
+    //     clientId: process.env.KEYCLOAK_CLIENT_ID,
+    //     secret: process.env.KEYCLOAK_CLIENT_SECRET,
+    //   }),
+    // );
     return server;
   }
 
@@ -109,33 +121,33 @@ export class SocketIoAdapter extends AbstractWsAdapter {
     return { data: payload };
   }
 
-  private socketIOKeycloakAuth(options: any) {
-    return async (socket, next) => {
-      const token = socket.handshake.auth.token;
-      try {
-        let response: any = await fetch(
-          process.env.TOKEN_INTROSPECTION_ENDPOINT,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `token=${token}&client_id=${options.clientId}&client_secret=${options.secret}`,
-          },
-        );
-        response = await response.json();
-        if (!response.active) {
-          console.log('invalid token');
-          return next(new Error('Invalid token'));
-        }
-        socket.handshake.auth.username = response.username;
-        socket.handshake.auth.sub = response.sub;
-        next();
-      } catch (err) {
-        console.log('Keycloak token introspection error:');
-        console.log(err);
-        next(new Error('500 Internal Server Error'));
-      }
-    };
-  }
+  // private socketIOKeycloakAuth(options: any) {
+  //   return async (socket, next) => {
+  //     const token = socket.handshake.auth.token;
+  //     try {
+  //       let response: any = await fetch(
+  //         process.env.TOKEN_INTROSPECTION_ENDPOINT,
+  //         {
+  //           method: 'POST',
+  //           headers: {
+  //             'Content-Type': 'application/x-www-form-urlencoded',
+  //           },
+  //           body: `token=${token}&client_id=${options.clientId}&client_secret=${options.secret}`,
+  //         },
+  //       );
+  //       response = await response.json();
+  //       if (!response.active) {
+  //         console.log('invalid token');
+  //         return next(new Error('Invalid token'));
+  //       }
+  //       socket.handshake.auth.username = response.username;
+  //       socket.handshake.auth.sub = response.sub;
+  //       next();
+  //     } catch (err) {
+  //       console.log('Keycloak token introspection error:');
+  //       console.log(err);
+  //       next(new Error('500 Internal Server Error'));
+  //     }
+  //   };
+  // }
 }

@@ -44,6 +44,9 @@ spec:
         - name: iam
           image: ilinaraducristian/rendezvous-iam:0.0.1
           imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: true
+            runAsUser: 0
           env:
             - name: DB_VENDOR
               value: "MYSQL"

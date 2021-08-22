@@ -13,12 +13,13 @@ import { ChannelGateway } from './gateways/channel.gateway';
 import { ChannelEntity } from './entities/channel.entity';
 import { MessageEntity } from './entities/message.entity';
 import { MessageGateway } from './gateways/message.gateway';
+import { AppController } from 'src/app.controller';
 
 @Module({
   imports: [
     ...AppModule.asyncImports(),
   ],
-  controllers: [],
+  controllers: [AppController],
   providers: [
     {
       provide: APP_GUARD,

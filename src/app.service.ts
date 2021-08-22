@@ -39,6 +39,16 @@ export class AppService {
     );
   }
 
+  private _tokens: string[] = [];
+
+  get tokens(): string[] {
+    return this._tokens;
+  }
+
+  removeToken(token: string) {
+    this._tokens.splice(this._tokens.indexOf(token), 1);
+  }
+
   private static processQuery(
     result: UserServersDataQueryResult,
   ): UserServersData {
@@ -100,6 +110,10 @@ export class AppService {
       servers: serversTable,
       users: usersTable,
     };
+  }
+
+  addToken(token: string) {
+    this._tokens.push(token);
   }
 
   async createInvitation(userId: string, serverId: number): Promise<string> {
