@@ -10,9 +10,14 @@ import { ChannelType, TextChannel, VoiceChannel } from './models/channel.model';
 import Message from './models/message.model';
 import { ChannelEntity } from './entities/channel.entity';
 import { MessageEntity } from './entities/message.entity';
+import { Client as Minio } from 'minio';
+import md5 from './util/md5';
 
 @Injectable()
 export class AppService {
+
+  private readonly minioClient: Minio;
+
   constructor(
     private connection: Connection,
     @InjectRepository(ChannelEntity)
@@ -22,6 +27,16 @@ export class AppService {
     @InjectRepository(UserEntity, 'keycloakConnection')
     private keycloakRepository: Repository<UserEntity>,
   ) {
+    this.minioClient = new Minio({
+      endPoint: process.env.MINIO_ENDPOINT,
+      port: parseInt(process.env.MINIO_PORT),
+      useSSL: false,
+      accessKey: process.env.MINIO_ACCESS_KEY,
+      secretKey: process.env.MINIO_SECRET_KEY,
+    });
+    this.minioClient.bucketExists('images').then((exists) =>
+      exists || this.minioClient.makeBucket('images', 'us-east-1') as any,
+    );
   }
 
   private static processQuery(
@@ -131,13 +146,20 @@ export class AppService {
     message: string,
     isReply: boolean,
     replyId: number | null,
+    image: string | null,
   ): Promise<Message> {
-    const result = await this.connection.query('CALL send_message(?,?,?,?,?)', [
+    // console.log(image);
+    let imageMd5;
+    if (image !== null) {
+      imageMd5 = await this.putImage(image);
+    }
+    const result = await this.connection.query('CALL send_message(?,?,?,?,?,?)', [
       userId,
       channelId,
       message,
       isReply,
       replyId,
+      image === null ? null : imageMd5,
     ]);
     return result[0][0];
   }
@@ -169,14 +191,27 @@ export class AppService {
     serverId: number,
     channelId: number,
     offset: number,
-  ): Promise<Message[]> {
+  ): Promise<Omit<Message, 'imageMd5'> & { image: string | null }[]> {
     const result = await this.connection.query('CALL get_messages(?,?,?,?)', [
       userId,
       serverId,
       channelId,
       offset,
     ]);
-    return result[0];
+    const messages = result[0].map((message) => {
+      message.image = message.imageMd5;
+      delete message.imageMd5;
+      return message;
+    });
+    const promises = [];
+    messages.forEach(message => {
+      if (message.image === null) return;
+      promises.push(this.getImage(message.image).then(data => {
+        message.image = data;
+      }));
+    });
+    await Promise.all(promises);
+    return messages;
   }
 
   async joinServer(userId: string, invitation: string): Promise<UserServersData> {
@@ -194,6 +229,31 @@ export class AppService {
 
   deleteMessage(userId: string, messageId: number) {
     return this.messageRepository.delete(messageId);
+  }
+
+  private async putImage(image: string) {
+    const imageMd5 = md5(image);
+    return this.minioClient.putObject('images', imageMd5, image).then(() => imageMd5);
+  }
+
+  private async getImage(md5: string) {
+    const dataStream = await this.minioClient.getObject('images', md5);
+    return new Promise((resolve, reject) => {
+      let data = '';
+      dataStream.on('readable', () => {
+        let chunk;
+        while (null !== (chunk = dataStream.read())) {
+          data += chunk;
+        }
+      });
+      dataStream.on('end', () => {
+        resolve(data);
+      });
+      dataStream.on('error', err => {
+        reject(err);
+      });
+
+    });
   }
 
   private async addUsersDetailsToResult(result: UserServersDataQueryResult) {

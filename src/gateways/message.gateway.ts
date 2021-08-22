@@ -17,7 +17,7 @@ export class MessageGateway {
   @SubscribeMessage('send_message')
   async sendMessage(
     client: Socket,
-    payload: { channelId: number; message: string, isReply: boolean, replyId: number | null },
+    payload: { channelId: number; message: string, isReply: boolean, replyId: number | null, image: string | null },
   ): Promise<Message> {
     const message = await this.appService.sendMessage(
       client.handshake.auth.sub,
@@ -25,14 +25,15 @@ export class MessageGateway {
       payload.message,
       payload.isReply,
       payload.replyId,
+      payload.image,
     );
     client.to(`server_${message.serverId}`).emit('new_message', message);
     return message;
   }
 
   @SubscribeMessage('get_messages')
-  async getMessages(client: Socket, { channelId, serverId, offset }) {
-    return await this.appService.getMessages(client.handshake.auth.sub, serverId, channelId, offset);
+  getMessages(client: Socket, { channelId, serverId, offset }) {
+    return this.appService.getMessages(client.handshake.auth.sub, serverId, channelId, offset);
   }
 
   @SubscribeMessage('edit_message')

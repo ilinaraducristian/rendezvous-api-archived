@@ -25,6 +25,9 @@ export class MessageEntity {
   is_reply: boolean;
 
   @Column()
+  image_md5: string;
+
+  @Column()
   replyId: number | null;
 
 }

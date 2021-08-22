@@ -5507,7 +5507,7 @@
     "clientOfflineSessionMaxLifespan": "0",
     "clientSessionIdleTimeout": "0",
     "clientSessionMaxLifespan": "0",
-    "frontendUrl": "http://78.46.218.124:30002/auth",
+    "frontendUrl": "https://rendezvous.myddns.me:30000/auth",
     "clientOfflineSessionIdleTimeout": "0"
   },
   "keycloakVersion": "12.0.4",

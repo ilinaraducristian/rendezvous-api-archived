@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: rendezvous-api-deployment
+  name: rendezvous-deployment
   labels:
     app: rendezvous
 spec:
@@ -15,16 +15,21 @@ spec:
         app: rendezvous
     spec:
       containers:
-        - name: api
-          image: ilinaraducristian/rendezvous-api:0.0.1
-          ports:
-            - containerPort: 8081
-        - name: web
-          image: ilinaraducristian/rendezvous:0.0.2
+        - name: proxy
+          image: ilinaraducristian/rendezvous-proxy:0.0.1
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
+            - containerPort: 443
+        - name: object-store
+          image: ilinaraducristian/rendezvous-object-store:0.0.1
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9000
+            - containerPort: 9001
         - name: database
           image: ilinaraducristian/rendezvous-database:0.0.1
+          imagePullPolicy: Always
           env:
             - name: MYSQL_ROOT_PASSWORD
               value: "root"
@@ -37,7 +42,8 @@ spec:
           ports:
             - containerPort: 3306
         - name: iam
-          image: ilinaraducristian/rendezvous-iam:0.0.2
+          image: ilinaraducristian/rendezvous-iam:0.0.1
+          imagePullPolicy: Always
           env:
             - name: DB_VENDOR
               value: "MYSQL"

@@ -55,6 +55,7 @@ CREATE TABLE messages
     text       varchar(255) NOT NULL,
     is_reply   boolean      NOT NULL,
     reply_id   int,
+    image_md5  char(32),
     FOREIGN KEY (server_id) REFERENCES servers (id),
     FOREIGN KEY (channel_id) REFERENCES channels (id),
     FOREIGN KEY (reply_id) REFERENCES messages (id) ON DELETE SET NULL
@@ -113,7 +114,7 @@ BEGIN
     ELSEIF (@TYPE = 'voice') THEN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'Voice channels can\'t contain text messages';
-    ELSEIF (LENGTH(TRIM(NEW.text)) = 0) THEN
+    ELSEIF (LENGTH(TRIM(NEW.text)) = 0 AND NEW.image_md5 IS NULL) THEN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'Message text must not be empty';
     END IF;
@@ -150,7 +151,8 @@ SELECT m.id,
        m.timestamp,
        m.text,
        m.is_reply   as isReply,
-       m.reply_id   as replyId
+       m.reply_id   as replyId,
+       m.image_md5  as imageMd5
 FROM messages m;
 
 CREATE FUNCTION is_member(userId char(36), serverId int) RETURNS BOOLEAN DETERMINISTIC
@@ -252,7 +254,8 @@ BEGIN
     WHERE m2.user_id = userId;
 END $$
 
-CREATE PROCEDURE send_message(userId char(36), channelId int, message varchar(255), isReply boolean, replyId int)
+CREATE PROCEDURE send_message(userId char(36), channelId int, message varchar(255), isReply boolean, replyId int,
+                              imageMd5 char(32))
 BEGIN
 
     SELECT c.server_id INTO @serverId FROM channels c WHERE c.id = channelId;
@@ -273,8 +276,8 @@ BEGIN
             SET MESSAGE_TEXT = 'User is not a member of this server';
     END IF;
 
-    INSERT INTO messages (server_id, channel_id, user_id, text, is_reply, reply_id)
-    VALUES (@serverId, channelId, userId, message, isReply, replyId);
+    INSERT INTO messages (server_id, channel_id, user_id, text, is_reply, reply_id, image_md5)
+    VALUES (@serverId, channelId, userId, message, isReply, replyId, imageMd5);
 
     SELECT * FROM messages_view m WHERE m.id = LAST_INSERT_ID();
 
@@ -416,7 +419,8 @@ BEGIN
            m.timestamp,
            m.text,
            m.isReply,
-           m.replyId
+           m.replyId,
+           m.imageMd5
     FROM messages_view m
              JOIN channels c ON m.channelId = c.id
     WHERE c.id = channelId
