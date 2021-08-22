@@ -8,23 +8,21 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Use Node.js 12.x
+      - name: Use Node.js 16.x
         uses: actions/setup-node@v2
         with:
-          node-version: 12.x
-          cache: 'npm'
-      - run: npm i -g @nestjs/cli
-      - run: npm i
+          node-version: 16.x
+          cache: 'yarn'
+      - run: yarn add global @nestjs/cli
+      - run: yarn add
       - run: npm run build
-      - run: cp grant-manager.js node_modules/keycloak-connect/middleware/auth-utils/grant-manager.js
-      - run: cp package.json dist/package.json
-      - run: sed -i 's/\/dist//g' .gitignore
-      - uses: CDNievas/heroku-action@v1.0
+      #      - run: cp package.json dist/package.json
+      #      - run: sed -i 's/\/dist//g' .gitignore
+      - name: Build, Push and Deploy to Heroku #set the whatever name you want to this step
+        id: heroku
+        uses: jctaveras/heroku-deploy@v1.0.0  # use the latest version of the action
         with:
-          heroku_email: "ilinaraducristian@protonmai.com"
-          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-          heroku_app_name: "rendezvous-api-radu"
-          branch: "main"
-          appdir: "dist"
-          procfile: "web: npm run start:prod"
-          dynamicFiles: true
+          email: ${{ secrets.HEROKU_EMAIL }} # your heroku email
+          api_key: ${{ secrets.HEROKU_API_KEY }} # your heroku api key
+          app_name: ${{ secrets.HEROKU_APP_NAME }} # your application name
+          dockerfile_path: '' # set the path to the folder where the Dockerfile is located
