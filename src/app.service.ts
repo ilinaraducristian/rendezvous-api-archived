@@ -162,7 +162,6 @@ export class AppService {
     replyId: number | null,
     image: string | null,
   ): Promise<Message> {
-    // console.log(image);
     let imageMd5;
     if (image !== null) {
       imageMd5 = await this.putImage(image);

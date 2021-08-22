@@ -7,6 +7,7 @@ import { fromEvent, Observable } from 'rxjs';
 import { filter, first, map, mergeMap, share, takeUntil } from 'rxjs/operators';
 import { Server } from 'socket.io';
 import { AppService } from 'src/app.service';
+import tokens from 'src/tokens';
 
 export class SocketIoAdapter extends AbstractWsAdapter {
 
@@ -31,8 +32,8 @@ export class SocketIoAdapter extends AbstractWsAdapter {
     return server && isFunction(server.of)
       ? server.of(namespace)
       : namespace
-      ? this.createIOServer(port, opt).of(namespace)
-      : this.createIOServer(port, opt);
+        ? this.createIOServer(port, opt).of(namespace)
+        : this.createIOServer(port, opt);
   }
 
   public createIOServer(port: number, options?: any): any {
@@ -57,21 +58,13 @@ export class SocketIoAdapter extends AbstractWsAdapter {
 
     server.use((socket, next) => {
       const token = socket.handshake.auth.token;
-      if (this.appService.tokens.includes(token)) {
-        this.appService.removeToken(token);
-        next();
-      } else {
-        next(new Error('Invalid token'));
-      }
+      const tokenIndex = tokens.findIndex(_token => _token[0] === token);
+      if (tokenIndex === -1)
+        return next(new Error('Invalid token'));
+      socket.handshake.auth.sub = tokens[tokenIndex][1];
+      tokens.splice(tokenIndex, 1);
+      next();
     });
-
-    // server.use(
-    //   this.socketIOKeycloakAuth({
-    //     tokenIntrospectionEndpoint: process.env.TOKEN_INTROSPECTION_ENDPOINT,
-    //     clientId: process.env.KEYCLOAK_CLIENT_ID,
-    //     secret: process.env.KEYCLOAK_CLIENT_SECRET,
-    //   }),
-    // );
     return server;
   }
 
@@ -120,34 +113,4 @@ export class SocketIoAdapter extends AbstractWsAdapter {
     }
     return { data: payload };
   }
-
-  // private socketIOKeycloakAuth(options: any) {
-  //   return async (socket, next) => {
-  //     const token = socket.handshake.auth.token;
-  //     try {
-  //       let response: any = await fetch(
-  //         process.env.TOKEN_INTROSPECTION_ENDPOINT,
-  //         {
-  //           method: 'POST',
-  //           headers: {
-  //             'Content-Type': 'application/x-www-form-urlencoded',
-  //           },
-  //           body: `token=${token}&client_id=${options.clientId}&client_secret=${options.secret}`,
-  //         },
-  //       );
-  //       response = await response.json();
-  //       if (!response.active) {
-  //         console.log('invalid token');
-  //         return next(new Error('Invalid token'));
-  //       }
-  //       socket.handshake.auth.username = response.username;
-  //       socket.handshake.auth.sub = response.sub;
-  //       next();
-  //     } catch (err) {
-  //       console.log('Keycloak token introspection error:');
-  //       console.log(err);
-  //       next(new Error('500 Internal Server Error'));
-  //     }
-  //   };
-  // }
 }

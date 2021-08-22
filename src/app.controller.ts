@@ -1,20 +1,18 @@
 import { Controller } from '@nestjs/common';
-import { Post } from '@nestjs/common';
-import { AppService } from 'src/app.service';
+import { Get } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
+import { AuthenticatedUser } from 'nest-keycloak-connect';
+import { KeycloakUser } from 'src/models/user.model';
+import tokens from 'src/tokens';
 
 @Controller('login')
 export class AppController {
 
-  constructor(private readonly appService: AppService) {
-  }
-
-  @Post()
-  login(): string {
-    console.log('it worked');
+  @Get()
+  login(@AuthenticatedUser() user: KeycloakUser): { token: string } {
     const token = uuid();
-    this.appService.addToken(token);
-    return token;
+    tokens.push([token, user.sub]);
+    return { token };
   }
 
 }
