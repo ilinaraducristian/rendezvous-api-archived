@@ -6,7 +6,7 @@ import { DISCONNECT_EVENT } from '@nestjs/websockets/constants';
 import { fromEvent, Observable } from 'rxjs';
 import { filter, first, map, mergeMap, share, takeUntil } from 'rxjs/operators';
 import { Server } from 'socket.io';
-import { AppService } from 'src/app.service';
+import { AppService } from 'src/services/app/app.service';
 import tokens from 'src/tokens';
 
 export class SocketIoAdapter extends AbstractWsAdapter {

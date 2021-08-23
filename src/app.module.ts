@@ -1,5 +1,5 @@
 import { DynamicModule, Module, Provider } from '@nestjs/common';
-import { AppService } from './app.service';
+import { AppService } from 'src/services/app/app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthGuard, KeycloakConnectModule } from 'nest-keycloak-connect';
 import { APP_GUARD } from '@nestjs/core';
@@ -14,6 +14,13 @@ import { ChannelEntity } from './entities/channel.entity';
 import { MessageEntity } from './entities/message.entity';
 import { MessageGateway } from './gateways/message.gateway';
 import { AppController } from 'src/app.controller';
+import { UserService } from './services/user/user.service';
+import { ServerService } from './services/server/server.service';
+import { DatabaseService } from './services/database/database.service';
+import { MessageService } from './services/message/message.service';
+import { ChannelService } from './services/channel/channel.service';
+import { GroupService } from './services/group/group.service';
+import { ObjectStoreService } from './services/object-store/object-store.service';
 
 @Module({
   imports: [
@@ -26,16 +33,29 @@ import { AppController } from 'src/app.controller';
       useClass: AuthGuard,
     },
     AppModule.mediasoupProvider(),
-    AppService,
-    ServerGateway,
-    ChannelGateway,
-    MessageGateway,
-    MediasoupGateway,
+    ...AppModule.services,
+    ...AppModule.gateways,
   ],
 })
 export class AppModule {
 
-  static envVariables: any;
+  static envVariables: { [key: string]: string };
+  static services = [
+    AppService,
+    UserService,
+    ServerService,
+    DatabaseService,
+    MessageService,
+    ChannelService,
+    GroupService,
+    ObjectStoreService,
+  ];
+  static gateways = [
+    ServerGateway,
+    ChannelGateway,
+    MessageGateway,
+    MediasoupGateway,
+  ];
 
   static asyncImports(): DynamicModule[] {
     const { parsed }: any = config();

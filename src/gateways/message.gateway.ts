@@ -1,7 +1,7 @@
 import { SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { AppService } from '../app.service';
 import Message from '../models/message.model';
+import { MessageService } from 'src/services/message/message.service';
 
 @WebSocketGateway()
 export class MessageGateway {
@@ -10,7 +10,7 @@ export class MessageGateway {
   server: Server;
 
   constructor(
-    private readonly appService: AppService,
+    private readonly messageService: MessageService,
   ) {
   }
 
@@ -19,7 +19,7 @@ export class MessageGateway {
     client: Socket,
     payload: { channelId: number; message: string, isReply: boolean, replyId: number | null, image: string | null },
   ): Promise<Omit<Message, 'imageMd5'> & { image: string | null }> {
-    const message = await this.appService.sendMessage(
+    const message = await this.messageService.sendMessage(
       client.handshake.auth.sub,
       payload.channelId,
       payload.message,
@@ -33,7 +33,7 @@ export class MessageGateway {
 
   @SubscribeMessage('get_messages')
   getMessages(client: Socket, { channelId, serverId, offset }) {
-    return this.appService.getMessages(client.handshake.auth.sub, serverId, channelId, offset);
+    return this.messageService.getMessages(client.handshake.auth.sub, serverId, channelId, offset);
   }
 
   @SubscribeMessage('edit_message')
@@ -43,7 +43,7 @@ export class MessageGateway {
     messageId,
     text,
   }: { serverId: number, channelId: number, messageId: number, text: string }) {
-    const response = await this.appService.editMessage(client.handshake.auth.sub, messageId, text);
+    const response = await this.messageService.editMessage(client.handshake.auth.sub, messageId, text);
     client.to(`server_${serverId}`).emit('message_edited', { serverId, channelId, messageId, text });
     return response;
   }
@@ -54,7 +54,7 @@ export class MessageGateway {
     channelId,
     messageId,
   }: { serverId: number, channelId: number, messageId: number }) {
-    const response = await this.appService.deleteMessage(client.handshake.auth.sub, messageId);
+    const response = await this.messageService.deleteMessage(client.handshake.auth.sub, messageId);
     client.to(`server_${serverId}`).emit('message_deleted', { serverId, channelId, messageId });
     return response;
   }

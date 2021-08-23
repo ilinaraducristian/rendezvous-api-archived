@@ -1,6 +1,7 @@
 import { SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { AppService } from '../app.service';
+import { ChannelService } from 'src/services/channel/channel.service';
+import { ChannelType } from 'src/models/channel.model';
 
 @WebSocketGateway()
 export class ChannelGateway {
@@ -9,7 +10,7 @@ export class ChannelGateway {
   server: Server;
 
   constructor(
-    private readonly appService: AppService,
+    private readonly channelService: ChannelService,
   ) {
   }
 
@@ -31,9 +32,32 @@ export class ChannelGateway {
       }));
   }
 
+  @SubscribeMessage('create_channel')
+  async createChannel(
+    client: Socket,
+    payload: { serverId: number; groupId: number | null; channelName: string },
+  ): Promise<{ channelId: number }> {
+    const channelId = await this.channelService.createChannel(
+      client.handshake.auth.sub,
+      payload.serverId,
+      payload.groupId,
+      ChannelType.Text,
+      payload.channelName,
+    );
+    const channel = {
+      id: channelId,
+      serverId: payload.serverId,
+      groupId: payload.groupId,
+      type: ChannelType.Text,
+      name: payload.channelName,
+    };
+    client.to(`server_${payload.serverId}`).emit('new_channel', channel);
+    return { channelId };
+  }
+
   @SubscribeMessage('move_channel')
   async moveChannel(client: Socket, payload: { serverId: number, channelId: number, groupId: number | null, order: number }) {
-    await this.appService.moveChannel(client.handshake.auth.token, payload);
+    await this.channelService.moveChannel(client.handshake.auth.token, payload);
     client.to(`server_${payload.serverId}`).emit('channel_moved', payload);
   }
 
