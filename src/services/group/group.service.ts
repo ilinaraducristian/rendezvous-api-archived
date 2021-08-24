@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { DatabaseService } from 'src/services/database/database.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ChannelEntity } from 'src/entities/channel.entity';
 import { Repository } from 'typeorm';
+import { DatabaseService } from '../database/database.service';
+import { ChannelEntity } from '../../entities/channel.entity';
 
 @Injectable()
 export class GroupService {
@@ -20,7 +20,7 @@ export class GroupService {
     name: string,
   ): Promise<number> {
     return this.databaseService.create_group(userId, serverId, name)
-      .then((result) => Object.entries(result[0])[0][1] as number);
+      .then((result) => Object.values(result[0])[0]);
   }
 
   async moveGroup() {

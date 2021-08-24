@@ -1,12 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { DatabaseService } from 'src/services/database/database.service';
-import { ChannelType } from 'src/models/channel.model';
-import { VoiceChannel } from 'src/models/channel.model';
-import { TextChannel } from 'src/models/channel.model';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ChannelEntity } from 'src/entities/channel.entity';
 import { Repository } from 'typeorm';
 import { Server } from 'socket.io';
+import { DatabaseService } from '../database/database.service';
+import { ChannelEntity } from '../../entities/channel.entity';
+import { ChannelType, TextChannel, VoiceChannel } from '../../models/channel.model';
 
 @Injectable()
 export class ChannelService {
@@ -32,7 +30,7 @@ export class ChannelService {
       type,
       name,
     )
-      .then((result) => Object.entries(result[0])[0][1] as number);
+      .then((result) => Object.values(result[0])[0]);
   }
 
   async moveChannel(userId: string, payload: any) {

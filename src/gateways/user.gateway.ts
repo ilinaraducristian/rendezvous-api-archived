@@ -1,8 +1,8 @@
 import { OnGatewayConnection, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { UserServersData } from '../models/server.model';
-import { ChannelService } from 'src/services/channel/channel.service';
-import { UserService } from 'src/services/user/user.service';
+import { UserService } from '../services/user/user.service';
+import { ChannelService } from '../services/channel/channel.service';
 
 @WebSocketGateway()
 export class UserGateway implements OnGatewayConnection<Socket> {

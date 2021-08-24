@@ -1,5 +1,4 @@
 import { DynamicModule, Module, Provider } from '@nestjs/common';
-import { AppService } from 'src/services/app/app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthGuard, KeycloakConnectModule } from 'nest-keycloak-connect';
 import { APP_GUARD } from '@nestjs/core';
@@ -13,7 +12,6 @@ import { ChannelGateway } from './gateways/channel.gateway';
 import { ChannelEntity } from './entities/channel.entity';
 import { MessageEntity } from './entities/message.entity';
 import { MessageGateway } from './gateways/message.gateway';
-import { AppController } from 'src/app.controller';
 import { UserService } from './services/user/user.service';
 import { ServerService } from './services/server/server.service';
 import { DatabaseService } from './services/database/database.service';
@@ -21,6 +19,8 @@ import { MessageService } from './services/message/message.service';
 import { ChannelService } from './services/channel/channel.service';
 import { GroupService } from './services/group/group.service';
 import { ObjectStoreService } from './services/object-store/object-store.service';
+import { AppService } from './services/app/app.service';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [

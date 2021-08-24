@@ -1,7 +1,6 @@
 import Member from './member.model';
 import Group from './group.model';
 import Channel from './channel.model';
-import { UserEntity } from '../entities/user.entity';
 import User from './user.model';
 
 type Server = {
@@ -19,10 +18,6 @@ export type UserServersData = {
   servers: Server[],
   users: User[]
 }
-
-export type UserServersDataQueryResult = [
-  Omit<Server, 'channels' | 'groups' | 'members'>[], Omit<Group, 'channels'>[], Channel[], Member[], UserEntity[]
-]
 
 export type NewServer = {
   id: number,

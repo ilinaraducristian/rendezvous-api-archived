@@ -1,6 +1,6 @@
 import { SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { AppService } from 'src/services/app/app.service';
+import { AppService } from '../services/app/app.service';
 import { Router } from 'mediasoup/lib/Router';
 import { DtlsParameters } from 'mediasoup/lib/WebRtcTransport';
 

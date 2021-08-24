@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import Message from 'src/models/message.model';
-import { DatabaseService } from 'src/services/database/database.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MessageEntity } from 'src/entities/message.entity';
 import { Repository } from 'typeorm';
-import { ObjectStoreService } from 'src/services/object-store/object-store.service';
+import { DatabaseService } from '../database/database.service';
+import { MessageEntity } from '../../entities/message.entity';
+import { ObjectStoreService } from '../object-store/object-store.service';
+import { FrontendMessage } from '../../models/message.model';
 
 @Injectable()
 export class MessageService {
@@ -24,7 +24,7 @@ export class MessageService {
     isReply: boolean,
     replyId: number | null,
     image: string | null,
-  ): Promise<Omit<Message, 'imageMd5'> & { image: string | null }> {
+  ): Promise<FrontendMessage> {
     let imageMd5;
     if (image !== null) {
       imageMd5 = await this.objectStoreService.putImage(image);
@@ -37,7 +37,8 @@ export class MessageService {
       replyId,
       image === null ? null : imageMd5,
     );
-    const storedMessage = result[0][0];
+
+    const storedMessage = Object.assign({ image: null }, result[0][0]);
     storedMessage.image = image;
     delete storedMessage.imageMd5;
     return storedMessage;
@@ -48,7 +49,7 @@ export class MessageService {
     serverId: number,
     channelId: number,
     offset: number,
-  ): Promise<Omit<Message, 'imageMd5'> & { image: string | null }[]> {
+  ): Promise<FrontendMessage[]> {
     const result = await this.databaseService.get_messages(
       userId,
       serverId,
@@ -56,15 +57,17 @@ export class MessageService {
       offset,
     );
     const messages = result[0].map((message) => {
-      message.image = message.imageMd5;
-      delete message.imageMd5;
-      return message;
+      const newMessage = Object.assign({ image: null }, message);
+      newMessage.image = message.imageMd5;
+      delete newMessage.imageMd5;
+      return newMessage;
     });
     const promises = [];
     messages.forEach(message => {
-      if (message.image === null) return;
-      promises.push(this.objectStoreService.getImage(message.image).then(data => {
-        message.image = data;
+      const newMessage = Object.assign({ image: null }, message);
+      if (newMessage.image === null) return;
+      promises.push(this.objectStoreService.getImage(newMessage.image).then(data => {
+        newMessage.image = data;
       }));
     });
     await Promise.all(promises);

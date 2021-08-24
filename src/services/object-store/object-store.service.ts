@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Client as Minio } from 'minio';
-import md5 from 'src/util/md5';
+import md5 from '../../util/md5';
 
 @Injectable()
 export class ObjectStoreService {

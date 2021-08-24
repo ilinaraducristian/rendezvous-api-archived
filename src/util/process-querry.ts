@@ -1,16 +1,14 @@
-import { UserServersDataQueryResult } from 'src/models/server.model';
-import { UserServersData } from 'src/models/server.model';
-import Server from 'src/models/server.model';
-import User from 'src/models/user.model';
-import Member from 'src/models/member.model';
-import { UserEntity } from 'src/entities/user.entity';
-import Group from 'src/models/group.model';
-import { TextChannel } from 'src/models/channel.model';
-import { VoiceChannel } from 'src/models/channel.model';
-import { ChannelType } from 'src/models/channel.model';
+import Server, { UserServersData } from '../models/server.model';
+import User from '../models/user.model';
+import Member from '../models/member.model';
+import { UserEntity } from '../entities/user.entity';
+import Group from '../models/group.model';
+import { ChannelType, TextChannel, VoiceChannel } from '../models/channel.model';
+import { ProcedureUserDataResponseType } from '../models/database-response.model';
+
 
 function processQuery(
-  result: UserServersDataQueryResult,
+  result: ProcedureUserDataResponseType,
 ): UserServersData {
 
   const serversTable: Server[] = result[0].map((server: Omit<Server, 'channels' | 'groups' | 'members'>) => ({

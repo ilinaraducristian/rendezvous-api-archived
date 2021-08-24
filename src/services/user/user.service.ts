@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { DatabaseService } from 'src/services/database/database.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
-import { UserServersData } from 'src/models/server.model';
-import { UserServersDataQueryResult } from 'src/models/server.model';
-import processQuery from 'src/util/process-querry';
+import { UserServersData } from '../../models/server.model';
+import { UserEntity } from '../../entities/user.entity';
+import { DatabaseService } from '../database/database.service';
+import processQuery from '../../util/process-querry';
+
 
 @Injectable()
 export class UserService {
@@ -18,7 +18,7 @@ export class UserService {
   }
 
   async getUserData(userId: string): Promise<UserServersData> {
-    let result: UserServersDataQueryResult = await this.databaseService.get_user_data(userId);
+    let result = await this.databaseService.get_user_data(userId);
 
     const usersIds = result[3].map(member => ({ ID: member.userId }))
       .filter((user, index, array) => array.indexOf(user) === index);

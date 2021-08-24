@@ -10,4 +10,6 @@ type Message = {
   imageMd5: string | null,
 }
 
+export type FrontendMessage = Omit<Message, 'imageMd5'> & { image: string | null };
+
 export default Message;

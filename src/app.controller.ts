@@ -1,9 +1,8 @@
-import { Controller } from '@nestjs/common';
-import { Get } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
 import { AuthenticatedUser } from 'nest-keycloak-connect';
-import { KeycloakUser } from 'src/models/user.model';
-import tokens from 'src/tokens';
+import { KeycloakUser } from './models/user.model';
+import tokens from './tokens';
 
 @Controller('login')
 export class AppController {

@@ -1,8 +1,8 @@
 import { SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { UserServersData } from '../models/server.model';
-import { ServerService } from 'src/services/server/server.service';
-import { ChannelService } from 'src/services/channel/channel.service';
+import { ServerService } from '../services/server/server.service';
+import { ChannelService } from '../services/channel/channel.service';
 
 @WebSocketGateway()
 export class ServerGateway {

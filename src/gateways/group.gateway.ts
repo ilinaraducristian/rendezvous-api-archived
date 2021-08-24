@@ -1,6 +1,6 @@
 import { SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { GroupService } from 'src/services/group/group.service';
+import { GroupService } from '../services/group/group.service';
 
 @WebSocketGateway()
 export class GroupGateway {

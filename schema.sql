@@ -37,6 +37,22 @@ CREATE TABLE channels
     FOREIGN KEY (group_id) REFERENCES `groups` (id)
 )$$
 
+CREATE TABLE friendships
+(
+    id       int PRIMARY KEY AUTO_INCREMENT,
+    user1_id int NOT NULL,
+    user2_id int NOT NULL
+)$$
+
+CREATE TABLE friendships_invitations
+(
+#     user1 sends a friend request to user2
+    id       int PRIMARY KEY AUTO_INCREMENT,
+    user1_id int NOT NULL,
+    user2_id int NOT NULL,
+    status   enum ('pending', 'accepted', 'denied')
+)$$
+
 CREATE TABLE members
 (
     id        int PRIMARY KEY AUTO_INCREMENT,
@@ -167,6 +183,60 @@ BEGIN
     RETURN TRUE;
 END $$
 
+CREATE PROCEDURE send_friend_request(userId char(36), user2Id char(36))
+BEGIN
+    IF (userId = user2Id) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'You cant be friend with yourself';
+    END IF;
+    SELECT f.id INTO @friendshipId FROM friendships f WHERE user1_id = userId OR user2_id = user2Id;
+    IF (@friendshipId IS NOT NULL) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'You are already friends';
+    END IF;
+    SELECT f.id, f.status
+    INTO @friendshipInvitationId1, @friendshipInvitationStatus1
+    FROM friendships_invitations f
+    WHERE user1_id = userId;
+    SELECT f.id, f.status
+    INTO @friendshipInvitationId2, @friendshipInvitationStatus2
+    FROM friendships_invitations f
+    WHERE user2_id = userId;
+    IF (@friendshipInvitationId1 IS NOT NULL OR @friendshipInvitationId2 IS NOT NULL) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Invitation has already been sent or received';
+    END IF
+    $$
+    INSERT INTO friendships_invitations (user1_id, user2_id, status) VALUES (userId, user2Id, 'pending');
+    SELECT f.id, f.user1_id as user1Id, f.user2_id as user2Id, f.status
+    FROM friendships_invitations f
+    WHERE id = LAST_INSERT_ID();
+END $$
+
+CREATE FUNCTION accept_friend_request(userId char(36), friendRequestId int) RETURNS int NOT DETERMINISTIC
+    MODIFIES SQL DATA
+BEGIN
+    SELECT f.user1_id, f.user2_id, f.status
+    INTO @user1Id, @user2Id, @status
+    FROM friendships_invitations f
+    WHERE id = friendRequestId;
+    IF (@user2Id IS NULL) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Friend request doesnt exist';
+    ELSEIF (@user1Id = userId) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'The accepting party must be the second user';
+    ELSEIF (@status = 'accepted') THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Invitation already accepted';
+    ELSEIF (@status = 'denied') THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Invitation already denied';
+    END IF;
+    UPDATE friendships_invitations SET status = 'accepted' WHERE id = friendRequestId;
+    INSERT INTO friendships (user1_id, user2_id) VALUES (@user1Id, @user2Id);
+END $$
+
 CREATE PROCEDURE get_user_data(userId char(36))
 BEGIN
     SELECT s.id, s.name, s.userId, s.invitation, s.invitationExp
@@ -188,7 +258,13 @@ BEGIN
     FROM members_view m1
              JOIN members m2 ON m1.serverId = m2.server_id
     WHERE m2.user_id = userId;
-END $$
+
+    SELECT f.id, f.user1_id as user1Id, f.user2_id as user2Id, f.status
+    FROM friendships_invitations f
+    WHERE user1_id = userId
+       OR user2_id = userId;
+END
+$$
 
 CREATE FUNCTION create_invitation(userId char(36), serverId int) RETURNS char(36)
     MODIFIES SQL DATA DETERMINISTIC
@@ -212,7 +288,8 @@ BEGIN
         invitation_exp = DATE_ADD(NOW(), INTERVAL 7 DAY)
     WHERE serverId = s.id;
     RETURN @INVITATION;
-END $$
+END
+$$
 
 CREATE PROCEDURE join_server(userId char(36), invitation char(36))
 BEGIN
@@ -252,7 +329,8 @@ BEGIN
     FROM members_view m1
              JOIN members m2 ON m1.serverId = @serverId
     WHERE m2.user_id = userId;
-END $$
+END
+$$
 
 CREATE PROCEDURE send_message(userId char(36), channelId int, message varchar(255), isReply boolean, replyId int,
                               imageMd5 char(32))
@@ -281,7 +359,8 @@ BEGIN
 
     SELECT * FROM messages_view m WHERE m.id = LAST_INSERT_ID();
 
-END $$
+END
+$$
 
 CREATE PROCEDURE create_server(userId char(36), serverName varchar(255))
 BEGIN
@@ -324,7 +403,8 @@ BEGIN
     FROM members_view m1
     WHERE m1.serverId = @serverId;
 
-END $$
+END
+$$
 
 CREATE FUNCTION create_channel(userId char(36), serverId int, groupId int, channelType enum ('text', 'voice'),
                                channelName varchar(255)) RETURNS int DETERMINISTIC
@@ -361,7 +441,8 @@ BEGIN
 
     RETURN LAST_INSERT_ID();
 
-END $$
+END
+$$
 
 # CREATE PROCEDURE move_channel(userId char(36), serverId int, groupId int, channelId int, channelOrder int)
 # BEGIN
@@ -396,7 +477,8 @@ BEGIN
 
     RETURN LAST_INSERT_ID();
 
-END $$
+END
+$$
 
 CREATE PROCEDURE get_messages(userId char(36), serverId int, channelId int, offset int)
 BEGIN
@@ -427,4 +509,5 @@ BEGIN
     ORDER BY timestamp DESC, m.id DESC
     LIMIT 30 OFFSET offset;
 
-END $$
+END
+$$

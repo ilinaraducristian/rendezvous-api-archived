@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { Connection } from 'typeorm';
-import { ChannelType } from 'src/models/channel.model';
+import { ChannelType } from '../../models/channel.model';
+import {
+  FunctionIntReturnType,
+  FunctionStringReturnType,
+  ProcedureMessagesType,
+  ProcedureUserDataResponseType,
+} from '../../models/database-response.model';
 
 @Injectable()
 export class DatabaseService {
@@ -8,11 +14,11 @@ export class DatabaseService {
   constructor(private readonly connection: Connection) {
   }
 
-  join_server(userId: string, invitation: string) {
+  join_server(userId: string, invitation: string): Promise<ProcedureUserDataResponseType> {
     return this.connection.query('CALL join_server(?,?)', [userId, invitation]);
   }
 
-  create_server(userId: string, name: string) {
+  create_server(userId: string, name: string): Promise<ProcedureUserDataResponseType> {
     return this.connection.query('CALL create_server(?,?)', [
       userId,
       name,
@@ -26,7 +32,7 @@ export class DatabaseService {
     isReply: boolean,
     replyId: number | null,
     imageMd5: string | null,
-  ) {
+  ): Promise<ProcedureMessagesType> {
     return this.connection.query('CALL send_message(?,?,?,?,?,?)', [
       userId,
       channelId,
@@ -37,11 +43,11 @@ export class DatabaseService {
     ]);
   }
 
-  create_invitation(userId: string, serverId: number) {
+  create_invitation(userId: string, serverId: number): Promise<FunctionStringReturnType> {
     return this.connection.query('SELECT create_invitation(?,?)', [userId, serverId]);
   }
 
-  create_group(userId: string, serverId: number, name: string) {
+  create_group(userId: string, serverId: number, name: string): Promise<FunctionIntReturnType> {
     return this.connection
       .query('SELECT create_group(?,?,?)', [userId, serverId, name]);
   }
@@ -52,7 +58,7 @@ export class DatabaseService {
     groupId: number | null,
     type: ChannelType,
     name: string,
-  ) {
+  ): Promise<FunctionIntReturnType> {
     return this.connection
       .query('SELECT create_channel(?,?,?,?,?)', [
         userId,
@@ -63,7 +69,7 @@ export class DatabaseService {
       ]);
   }
 
-  get_user_data(userId: string) {
+  get_user_data(userId: string): Promise<ProcedureUserDataResponseType> {
     return this.connection.query(
       'CALL get_user_data(?)',
       [userId],
@@ -75,13 +81,21 @@ export class DatabaseService {
     serverId: number,
     channelId: number,
     offset: number,
-  ) {
+  ): Promise<ProcedureMessagesType> {
     return this.connection.query('CALL get_messages(?,?,?,?)', [
       userId,
       serverId,
       channelId,
       offset,
     ]);
+  }
+
+  send_friend_request(userId: string, user2Id: string) {
+    return this.connection.query('CALL send_friend_request(?,?)',
+      [
+        userId,
+        user2Id,
+      ]);
   }
 
 }

@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { UserServersData } from 'src/models/server.model';
-import { UserServersDataQueryResult } from 'src/models/server.model';
-import processQuery from 'src/util/process-querry';
-import { DatabaseService } from 'src/services/database/database.service';
-import { UserService } from 'src/services/user/user.service';
+import { DatabaseService } from '../database/database.service';
+import { UserService } from '../user/user.service';
+import { UserServersData } from '../../models/server.model';
+import processQuery from '../../util/process-querry';
 
 @Injectable()
 export class ServerService {
@@ -15,7 +14,7 @@ export class ServerService {
   }
 
   async joinServer(userId: string, invitation: string): Promise<UserServersData> {
-    let result: UserServersDataQueryResult = await this.databaseService.join_server(userId, invitation);
+    let result = await this.databaseService.join_server(userId, invitation);
     const usersIds = result[3].map(member => ({ ID: member.userId }))
       .filter((user, index, array) => array.indexOf(user) === index);
 
@@ -24,7 +23,7 @@ export class ServerService {
   }
 
   async createServer(userId: string, name: string): Promise<UserServersData> {
-    let result: UserServersDataQueryResult = await this.databaseService.create_server(userId, name);
+    let result = await this.databaseService.create_server(userId, name);
 
     const usersIds = result[3].map(member => ({ ID: member.userId }))
       .filter((user, index, array) => array.indexOf(user) === index);
@@ -36,7 +35,7 @@ export class ServerService {
 
   async createInvitation(userId: string, serverId: number): Promise<string> {
     return this.databaseService.create_invitation(userId, serverId)
-      .then((result) => Object.entries(result[0])[0][1] as string);
+      .then((result) => Object.values(result[0])[0]);
   }
 
 }
