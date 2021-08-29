@@ -5,6 +5,7 @@ import {
   FunctionIntReturnType,
   FunctionStringReturnType,
   ProcedureMessagesType,
+  ProcedureServerResponseType,
   ProcedureUserDataResponseType,
 } from '../../models/database-response.model';
 
@@ -14,11 +15,11 @@ export class DatabaseService {
   constructor(private readonly connection: Connection) {
   }
 
-  join_server(userId: string, invitation: string): Promise<ProcedureUserDataResponseType> {
+  join_server(userId: string, invitation: string): Promise<ProcedureServerResponseType> {
     return this.connection.query('CALL join_server(?,?)', [userId, invitation]);
   }
 
-  create_server(userId: string, name: string): Promise<ProcedureUserDataResponseType> {
+  create_server(userId: string, name: string): Promise<ProcedureServerResponseType> {
     return this.connection.query('CALL create_server(?,?)', [
       userId,
       name,
@@ -90,11 +91,20 @@ export class DatabaseService {
     ]);
   }
 
-  send_friend_request(userId: string, user2Id: string) {
-    return this.connection.query('CALL send_friend_request(?,?)',
+  send_friend_request(userId: string, user2Id: string): Promise<FunctionIntReturnType> {
+    return this.connection.query('SELECT send_friend_request(?,?)',
       [
         userId,
         user2Id,
+      ]);
+  }
+
+  change_friend_request(userId: string, friendRequestId: number, accept: boolean = true): Promise<void> {
+    return this.connection.query('CALL change_friend_request(?,?,?)',
+      [
+        userId,
+        friendRequestId,
+        accept,
       ]);
   }
 

@@ -7,7 +7,7 @@ services:
       - "9001:9001"
     command: [ "server", "/data", "--console-address", ":9001" ]
   iam:
-    image: ilinaraducristian/rendezvous-iam:0.0.1
+    image: jboss/keycloak:15.0.0
     restart: unless-stopped
     environment:
       - DB_VENDOR=mysql
@@ -25,14 +25,8 @@ services:
       - "./create-test-realm.sh:/tmp/create-test-realm.sh"
     ports:
       - "8080:8080"
-  proxy:
-    image: ilinaraducristian/rendezvous-proxy:0.0.1
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
   db:
-    image: ilinaraducristian/rendezvous-database:0.0.1
+    image: percona:8
     restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root
@@ -42,6 +36,7 @@ services:
     volumes:
       - percona:/var/lib/mysql
       - ./my.cnf:/etc/my.cnf
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
     ports:
       - "3306:3306"
 volumes:

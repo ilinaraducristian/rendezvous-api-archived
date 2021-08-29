@@ -7,7 +7,7 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
-    "start:dev": "nest start --watch",
+    "start:dev": "nest start --watch -e \"node --trace-warnings\"",
     "start:debug": "nest start --debug --watch",
     "start:prod": "NODE_PATH=/usr/local/share/.config/yarn/global/node_modules node main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",

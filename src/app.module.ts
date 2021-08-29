@@ -21,6 +21,9 @@ import { GroupService } from './services/group/group.service';
 import { ObjectStoreService } from './services/object-store/object-store.service';
 import { AppService } from './services/app/app.service';
 import { AppController } from './app.controller';
+import { UserGateway } from './gateways/user.gateway';
+import { GroupGateway } from './gateways/group.gateway';
+import { ServerEntity } from './entities/server.entity';
 
 @Module({
   imports: [
@@ -53,8 +56,10 @@ export class AppModule {
   static gateways = [
     ServerGateway,
     ChannelGateway,
+    GroupGateway,
     MessageGateway,
     MediasoupGateway,
+    UserGateway,
   ];
 
   static asyncImports(): DynamicModule[] {
@@ -92,7 +97,7 @@ export class AppModule {
       TypeOrmModule.forRoot(
         {
           ...commonOptions,
-          entities: [ChannelEntity, MessageEntity],
+          entities: [ChannelEntity, MessageEntity, ServerEntity],
           database: AppModule.envVariables.DB_NAME,
         }),
       TypeOrmModule.forRoot(
@@ -102,7 +107,7 @@ export class AppModule {
           entities: [UserEntity],
           database: AppModule.envVariables.KEYCLOAK_DB_NAME,
         }),
-      TypeOrmModule.forFeature([ChannelEntity, MessageEntity]),
+      TypeOrmModule.forFeature([ChannelEntity, MessageEntity, ServerEntity]),
       TypeOrmModule.forFeature([UserEntity], 'keycloakConnection'),
     ];
   }

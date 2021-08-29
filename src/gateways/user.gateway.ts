@@ -17,15 +17,13 @@ export class UserGateway implements OnGatewayConnection<Socket> {
   }
 
   async handleConnection(client: Socket, ...args: any[]) {
-    const response = await this.userService.getUserData(
+    const userServersIds = await this.userService.getUserServersIds(
       client.handshake.auth.sub,
     );
     client.data = { recvTransports: [], consumers: [] };
-
-    await Promise.all(response.servers.map((server) =>
-      client.join(`server_${server.id}`),
+    await Promise.all(userServersIds.map((id) =>
+      client.join(`server_${id}`),
     ));
-
   }
 
   @SubscribeMessage('get_user_data')
@@ -38,7 +36,37 @@ export class UserGateway implements OnGatewayConnection<Socket> {
         group.channels.forEach(this.channelService.processChannel(this.server)),
       );
     });
+
     return response;
+  }
+
+  @SubscribeMessage('send_friend_request')
+  async sendFriendRequest(client: Socket, payload: { username: string }): Promise<{ id: number, userId: string }> {
+    const userId = await this.userService.getUserIdByUsername(payload.username);
+    if (userId === undefined) throw new Error('User not found');
+    const response = await this.userService.sendFriendRequest(client.handshake.auth.sub, userId);
+    const sockets = this.server.sockets.sockets.entries();
+    for (const [, socket] of sockets) {
+      if (socket.handshake.auth.sub === userId) {
+        client.to(socket.id).emit('new_friend_request', { userId: client.handshake.auth.sub });
+        break;
+      }
+    }
+    return { id: response, userId };
+  }
+
+  @SubscribeMessage('accept_friend_request')
+  async acceptFriendRequest(client: Socket, payload: { friendRequestId: number }) {
+    const userId = client.handshake.auth.sub;
+    await this.userService.acceptFriendRequest(userId, payload.friendRequestId);
+    const sockets = this.server.sockets.sockets.entries();
+    for (const [, socket] of sockets) {
+      if (socket.handshake.auth.sub === userId) {
+        client.to(socket.id).emit('friend_request_accepted', { friendRequestId: payload.friendRequestId });
+        break;
+      }
+    }
+    return 0;
   }
 
 }

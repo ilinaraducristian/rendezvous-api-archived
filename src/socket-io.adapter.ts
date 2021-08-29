@@ -1,5 +1,4 @@
-import { INestApplicationContext } from '@nestjs/common';
-import { Inject } from '@nestjs/common';
+import { INestApplicationContext, Inject } from '@nestjs/common';
 import { isFunction, isNil } from '@nestjs/common/utils/shared.utils';
 import { AbstractWsAdapter, MessageMappingProperties } from '@nestjs/websockets';
 import { DISCONNECT_EVENT } from '@nestjs/websockets/constants';
@@ -55,6 +54,10 @@ export class SocketIoAdapter extends AbstractWsAdapter {
     } else {
       server = new Server(port, options);
     }
+
+    server.on('connect', (socket) => {
+      socket.setMaxListeners(12);
+    });
 
     server.use((socket, next) => {
       const token = socket.handshake.auth.token;

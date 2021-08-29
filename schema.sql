@@ -8,7 +8,7 @@ CREATE TABLE servers
 (
     id             int PRIMARY KEY AUTO_INCREMENT,
     name           varchar(255) NOT NULL,
-    user_id        char(36)     NOT NULL COMMENT 'owner',
+    user_id        char(36)     NOT NULL COMMENT ' owner ',
     invitation     char(36),
     invitation_exp datetime,
     CHECK (
@@ -40,17 +40,17 @@ CREATE TABLE channels
 CREATE TABLE friendships
 (
     id       int PRIMARY KEY AUTO_INCREMENT,
-    user1_id int NOT NULL,
-    user2_id int NOT NULL
+    user1_id char(36) NOT NULL,
+    user2_id char(36) NOT NULL
 )$$
 
-CREATE TABLE friendships_invitations
+CREATE TABLE friend_requests
 (
-#     user1 sends a friend request to user2
+    #     user1 sends a friend request to user2
     id       int PRIMARY KEY AUTO_INCREMENT,
-    user1_id int NOT NULL,
-    user2_id int NOT NULL,
-    status   enum ('pending', 'accepted', 'denied')
+    user1_id char(36)                                 NOT NULL,
+    user2_id char(36)                                 NOT NULL,
+    status   enum ('pending', 'accepted', 'declined') NOT NULL
 )$$
 
 CREATE TABLE members
@@ -171,6 +171,28 @@ SELECT m.id,
        m.image_md5  as imageMd5
 FROM messages m;
 
+CREATE VIEW friendships_view
+AS
+SELECT f.id,
+       f.user1_id as user1Id,
+       f.user2_id as user2Id
+FROM friendships f;
+
+CREATE VIEW friends_view
+AS
+SELECT f.id,
+       f.user1_id as user1Id,
+       f.user2_id as user2Id
+FROM friendships f;
+
+CREATE VIEW friend_requests_view
+AS
+SELECT f.id,
+       f.user1_id as user1Id,
+       f.user2_id as user2Id,
+       f.status
+FROM friend_requests f;
+
 CREATE FUNCTION is_member(userId char(36), serverId int) RETURNS BOOLEAN DETERMINISTIC
     READS SQL DATA
 BEGIN
@@ -183,7 +205,8 @@ BEGIN
     RETURN TRUE;
 END $$
 
-CREATE PROCEDURE send_friend_request(userId char(36), user2Id char(36))
+CREATE FUNCTION send_friend_request(userId char(36), user2Id char(36)) RETURNS int
+    MODIFIES SQL DATA DETERMINISTIC
 BEGIN
     IF (userId = user2Id) THEN
         SIGNAL SQLSTATE '45000'
@@ -196,29 +219,29 @@ BEGIN
     END IF;
     SELECT f.id, f.status
     INTO @friendshipInvitationId1, @friendshipInvitationStatus1
-    FROM friendships_invitations f
+    FROM friend_requests f
     WHERE user1_id = userId;
+
     SELECT f.id, f.status
     INTO @friendshipInvitationId2, @friendshipInvitationStatus2
-    FROM friendships_invitations f
+    FROM friend_requests f
     WHERE user2_id = userId;
+
     IF (@friendshipInvitationId1 IS NOT NULL OR @friendshipInvitationId2 IS NOT NULL) THEN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'Invitation has already been sent or received';
-    END IF
-    $$
-    INSERT INTO friendships_invitations (user1_id, user2_id, status) VALUES (userId, user2Id, 'pending');
-    SELECT f.id, f.user1_id as user1Id, f.user2_id as user2Id, f.status
-    FROM friendships_invitations f
-    WHERE id = LAST_INSERT_ID();
+    END IF;
+
+    INSERT INTO friend_requests (user1_id, user2_id, status) VALUES (userId, user2Id, 'pending');
+
+    RETURN LAST_INSERT_ID();
 END $$
 
-CREATE FUNCTION accept_friend_request(userId char(36), friendRequestId int) RETURNS int NOT DETERMINISTIC
-    MODIFIES SQL DATA
+CREATE PROCEDURE change_friend_request(userId char(36), friendRequestId int, accept boolean)
 BEGIN
     SELECT f.user1_id, f.user2_id, f.status
     INTO @user1Id, @user2Id, @status
-    FROM friendships_invitations f
+    FROM friend_requests f
     WHERE id = friendRequestId;
     IF (@user2Id IS NULL) THEN
         SIGNAL SQLSTATE '45000'
@@ -229,12 +252,16 @@ BEGIN
     ELSEIF (@status = 'accepted') THEN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'Invitation already accepted';
-    ELSEIF (@status = 'denied') THEN
+    ELSEIF (@status = 'declined') THEN
         SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Invitation already denied';
+            SET MESSAGE_TEXT = 'Invitation already declined';
     END IF;
-    UPDATE friendships_invitations SET status = 'accepted' WHERE id = friendRequestId;
-    INSERT INTO friendships (user1_id, user2_id) VALUES (@user1Id, @user2Id);
+    IF (accept) THEN
+        UPDATE friend_requests SET status = 'accepted' WHERE id = friendRequestId;
+        INSERT INTO friendships (user1_id, user2_id) VALUES (@user1Id, @user2Id);
+    ELSE
+        UPDATE friend_requests SET status = 'declined' WHERE id = friendRequestId;
+    END IF;
 END $$
 
 CREATE PROCEDURE get_user_data(userId char(36))
@@ -259,12 +286,13 @@ BEGIN
              JOIN members m2 ON m1.serverId = m2.server_id
     WHERE m2.user_id = userId;
 
-    SELECT f.id, f.user1_id as user1Id, f.user2_id as user2Id, f.status
-    FROM friendships_invitations f
-    WHERE user1_id = userId
-       OR user2_id = userId;
-END
-$$
+    SELECT f.id, f.user1Id, f.user2Id FROM friends_view f WHERE f.user1Id = userId OR f.user2Id = userId;
+
+    SELECT f.id, f.user1Id, f.user2Id, f.status
+    FROM friend_requests_view f
+    WHERE user1Id = userId
+       OR user2Id = userId;
+END $$
 
 CREATE FUNCTION create_invitation(userId char(36), serverId int) RETURNS char(36)
     MODIFIES SQL DATA DETERMINISTIC

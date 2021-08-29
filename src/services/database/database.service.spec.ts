@@ -7,7 +7,7 @@ import { AppModule } from '../../app.module';
 describe('DatabaseService', () => {
   let service: DatabaseService;
   const uid1 = '40ede82c-41a3-44b9-97d7-25dc25bde568';
-  const uid2 = '588ed943-d335-4b2c-89fc-98e1745e8859';
+  // const uid2 = '588ed943-d335-4b2c-89fc-98e1745e8859';
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
@@ -32,7 +32,7 @@ describe('DatabaseService', () => {
     const invitation = await service.create_invitation(uid1, server[0][0].id);
     let p = invitation[0];
     let o = Object.values(p)[0];
-    console.log();
+    console.log(o);
     expect(true);
   });
 });
