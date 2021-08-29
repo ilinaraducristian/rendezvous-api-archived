@@ -32,7 +32,7 @@ describe('DatabaseService', () => {
     const invitation = await service.create_invitation(uid1, server[0][0].id);
     let p = invitation[0];
     let o = Object.values(p)[0];
-    console.log(o);
+    expect(o).toBeTruthy();
     expect(true);
   });
 });

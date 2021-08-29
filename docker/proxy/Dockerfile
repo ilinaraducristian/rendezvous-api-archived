@@ -1,4 +1,0 @@
-FROM nginx:1.21.1-alpine
-COPY nginx.conf /etc/nginx/nginx.conf
-COPY nginx-selfsigned.crt /etc/ssl/nginx-selfsigned.crt
-COPY nginx-selfsigned.key /etc/ssl/nginx-selfsigned.key

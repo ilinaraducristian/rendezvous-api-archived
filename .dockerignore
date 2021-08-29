@@ -5,3 +5,9 @@
 !package.json
 !grant-manager.js
 !yarn.lock
+!my.cnf
+!schema.sql
+!capp.json
+!nginx.conf
+!nginx-selfsigned.crt
+!nginx-selfsigned.key
