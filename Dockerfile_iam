@@ -1,3 +1,4 @@
 FROM jboss/keycloak:15.0.0
 COPY ./capp.json /tmp/capp.json
+HEALTHCHECK --timeout=3s --start-period=10s CMD curl --fail http://localhost:8080/auth/realms/master
 EXPOSE 8080

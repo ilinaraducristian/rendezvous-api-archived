@@ -63,7 +63,7 @@ export class MediasoupGateway {
   @SubscribeMessage('create_producer')
   async createProducer(client, payload) {
     client.data.producer = await client.data.sendTransport.produce(payload);
-    return { producerId: client.data.producer.id };
+    return { id: client.data.producer.id };
   }
 
   @SubscribeMessage('create_consumer')

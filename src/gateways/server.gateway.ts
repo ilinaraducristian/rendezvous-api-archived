@@ -25,6 +25,10 @@ export class ServerGateway {
       client.handshake.auth.sub,
       payload.name,
     );
+    result.servers[0].channels.forEach(this.channelService.processChannel(this.server));
+    result.servers[0].groups.forEach(group =>
+      group.channels.forEach(this.channelService.processChannel(this.server)),
+    );
     client.join(`server_${result.servers[0].id}`);
     return result;
   }
@@ -58,7 +62,6 @@ export class ServerGateway {
       member: newMember,
       user: newUser,
     });
-
     return result;
   }
 
