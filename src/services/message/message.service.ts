@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { DatabaseService } from '../database/database.service';
 import { MessageEntity } from '../../entities/message.entity';
 import { ObjectStoreService } from '../object-store/object-store.service';
-import { FrontendMessage } from '../../models/message.model';
+import { NewMessageRequest, NewMessageResponse } from '../../dtos/message.dto';
 
 @Injectable()
 export class MessageService {
@@ -19,39 +19,34 @@ export class MessageService {
 
   async sendMessage(
     userId: string,
-    channelId: number,
-    message: string,
-    isReply: boolean,
-    replyId: number | null,
-    image: string | null,
-  ): Promise<FrontendMessage> {
+    payload: NewMessageRequest,
+  ): Promise<NewMessageResponse> {
     let imageMd5;
-    if (image !== null) {
-      imageMd5 = await this.objectStoreService.putImage(image);
+    if (payload.image !== null) {
+      imageMd5 = await this.objectStoreService.putImage(payload.image);
     }
     const result = await this.databaseService.send_message(
       userId,
-      channelId,
-      message,
-      isReply,
-      replyId,
-      image === null ? null : imageMd5,
+      payload,
+      payload.image === null ? null : imageMd5,
     );
 
     const storedMessage = Object.assign({ image: null }, result[0][0]);
-    storedMessage.image = image;
+    storedMessage.image = payload.image;
     delete storedMessage.imageMd5;
     return storedMessage;
   }
 
   async getMessages(
     userId: string,
+    friendshipId: number,
     serverId: number,
     channelId: number,
     offset: number,
-  ): Promise<FrontendMessage[]> {
+  ): Promise<NewMessageResponse[]> {
     const result = await this.databaseService.get_messages(
       userId,
+      friendshipId,
       serverId,
       channelId,
       offset,

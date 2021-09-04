@@ -1,7 +1,15 @@
 import { SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
+import { Server } from 'socket.io';
 import { ChannelService } from '../services/channel/channel.service';
 import { ChannelType } from '../models/channel.model';
+import Socket from '../models/socket';
+import {
+  JoinVoiceChannelRequest,
+  JoinVoiceChannelResponse,
+  MoveChannelRequest,
+  NewChannelRequest,
+  NewChannelResponse,
+} from '../dtos/channel.dto';
 
 @WebSocketGateway()
 export class ChannelGateway {
@@ -14,8 +22,11 @@ export class ChannelGateway {
   ) {
   }
 
-  @SubscribeMessage('join_voice-channel')
-  async joinVoiceChannel(client: Socket, { channelId, serverId }: { serverId: number, channelId: number }) {
+  @SubscribeMessage('join_voice_channel')
+  async joinVoiceChannel(client: Socket, {
+    serverId,
+    channelId,
+  }: JoinVoiceChannelRequest): Promise<JoinVoiceChannelResponse> {
     await client.join(`channel_${channelId}`);
     client.to(`server_${serverId}`).emit('user_joined_voice-channel', {
       channelId,
@@ -33,10 +44,7 @@ export class ChannelGateway {
   }
 
   @SubscribeMessage('create_channel')
-  async createChannel(
-    client: Socket,
-    payload: { serverId: number; groupId: number | null; channelName: string },
-  ): Promise<{ channelId: number }> {
+  async createChannel(client: Socket, payload: NewChannelRequest): Promise<NewChannelResponse> {
     const channelId = await this.channelService.createChannel(
       client.handshake.auth.sub,
       payload.serverId,
@@ -56,7 +64,7 @@ export class ChannelGateway {
   }
 
   @SubscribeMessage('move_channel')
-  async moveChannel(client: Socket, payload: { serverId: number, channelId: number, groupId: number | null, order: number }) {
+  async moveChannel(client: Socket, payload: MoveChannelRequest) {
     await this.channelService.moveChannel(client.handshake.auth.token, payload);
     client.to(`server_${payload.serverId}`).emit('channel_moved', payload);
   }

@@ -1,8 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import FriendRequestStatus from '../models/friend-request-status.model';
 
-@Entity('friend_requests')
-export class FriendRequestEntity {
+@Entity('friendships')
+export class FriendshipEntity {
 
   @PrimaryGeneratedColumn()
   id: number;
@@ -12,8 +11,5 @@ export class FriendRequestEntity {
 
   @Column({ nullable: false })
   user2_id: string;
-
-  @Column({ nullable: false })
-  status: FriendRequestStatus;
 
 }

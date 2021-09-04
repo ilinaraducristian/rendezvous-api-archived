@@ -24,6 +24,8 @@ import { AppController } from './app.controller';
 import { UserGateway } from './gateways/user.gateway';
 import { GroupGateway } from './gateways/group.gateway';
 import { ServerEntity } from './entities/server.entity';
+import { FriendshipEntity } from './entities/friendship.entity';
+import { FriendshipService } from './services/friendship/friendship.service';
 
 @Module({
   imports: [
@@ -52,6 +54,7 @@ export class AppModule {
     ChannelService,
     GroupService,
     ObjectStoreService,
+    FriendshipService,
   ];
   static gateways = [
     ServerGateway,
@@ -97,7 +100,7 @@ export class AppModule {
       TypeOrmModule.forRoot(
         {
           ...commonOptions,
-          entities: [ChannelEntity, MessageEntity, ServerEntity],
+          entities: [ChannelEntity, MessageEntity, ServerEntity, FriendshipEntity],
           database: AppModule.envVariables.DB_NAME,
         }),
       TypeOrmModule.forRoot(
@@ -107,7 +110,7 @@ export class AppModule {
           entities: [UserEntity],
           database: AppModule.envVariables.KEYCLOAK_DB_NAME,
         }),
-      TypeOrmModule.forFeature([ChannelEntity, MessageEntity, ServerEntity]),
+      TypeOrmModule.forFeature([ChannelEntity, MessageEntity, ServerEntity, FriendshipEntity]),
       TypeOrmModule.forFeature([UserEntity], 'keycloakConnection'),
     ];
   }

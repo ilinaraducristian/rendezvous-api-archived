@@ -12,6 +12,10 @@ spec:
       nodePort: 30000
       name: https
     - protocol: TCP
+      port: 3306
+      nodePort: 30001
+      name: database
+    - protocol: TCP
       port: 9000
       nodePort: 30002
       name: store
@@ -20,6 +24,6 @@ spec:
       nodePort: 30003
       name: store2
     - protocol: TCP
-      port: 3306
-      nodePort: 30001
-      name: database
+      port: 3000
+      nodePort: 30004
+      name: api

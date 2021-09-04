@@ -1,4 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { ChannelType } from '../models/channel.model';
 
 @Entity('channels')
 export class ChannelEntity {
@@ -13,7 +14,7 @@ export class ChannelEntity {
   group_id: number;
 
   @Column({ nullable: false })
-  type: string;
+  type: ChannelType;
 
   @Column({ nullable: false })
   name: string;

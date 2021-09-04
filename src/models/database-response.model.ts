@@ -4,7 +4,7 @@ import Channel from './channel.model';
 import Member from './member.model';
 import Server from './server.model';
 import Message from './message.model';
-import FriendShip from './FriendShip.model';
+import Friendship from './friendship.model';
 
 export type FunctionIntReturnType = [{ [key: string]: number }, ResultSetHeader];
 export type FunctionStringReturnType = [{ [key: string]: string }, ResultSetHeader];
@@ -14,7 +14,7 @@ type temp = [
 ]
 
 export type ProcedureUserDataResponseType = [
-  ...temp, FriendShip[], { id: number, user1Id: string, user2Id: string, status: string }[], ResultSetHeader
+  ...temp, Friendship[], { id: number, user1Id: string, user2Id: string, status: string }[], ResultSetHeader
 ]
 
 export type ProcedureServerResponseType = [

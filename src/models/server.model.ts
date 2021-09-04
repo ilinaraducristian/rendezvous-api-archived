@@ -2,7 +2,7 @@ import Member from './member.model';
 import Group from './group.model';
 import Channel from './channel.model';
 import User from './user.model';
-import Friend from './friend.moel';
+import Friend from './friend.model';
 import FriendRequest from './friend-request.model';
 
 type Server = {

@@ -6,11 +6,14 @@ export class MessageEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ nullable: false })
-  server_id: number;
+  @Column()
+  friendship_id: number | null;
 
-  @Column({ nullable: false })
-  channel_id: number;
+  @Column()
+  server_id: number | null;
+
+  @Column()
+  channel_id: number | null;
 
   @Column({ nullable: false })
   user_id: string;
@@ -25,9 +28,9 @@ export class MessageEntity {
   is_reply: boolean;
 
   @Column()
-  image_md5: string;
+  reply_id: number | null;
 
   @Column()
-  replyId: number | null;
+  image_md5: string;
 
 }

@@ -1,8 +1,15 @@
 import { SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
-import { UserServersData } from '../models/server.model';
+import { Server } from 'socket.io';
 import { ServerService } from '../services/server/server.service';
 import { ChannelService } from '../services/channel/channel.service';
+import Socket from '../models/socket';
+import {
+  JoinServerRequest,
+  JoinServerResponse,
+  NewInvitationRequest,
+  NewServerRequest,
+  NewServerResponse,
+} from '../dtos/server.dto';
 
 @WebSocketGateway()
 export class ServerGateway {
@@ -17,10 +24,7 @@ export class ServerGateway {
   }
 
   @SubscribeMessage('create_server')
-  async createServer(
-    client: Socket,
-    payload: { name: string },
-  ): Promise<UserServersData> {
+  async createServer(client: Socket, payload: NewServerRequest): Promise<NewServerResponse> {
     const result = await this.serverService.createServer(
       client.handshake.auth.sub,
       payload.name,
@@ -34,15 +38,15 @@ export class ServerGateway {
   }
 
   @SubscribeMessage('create_invitation')
-  async createInvitation(client: Socket, { serverId }) {
+  async createInvitation(client: Socket, { serverId }: NewInvitationRequest) {
     return { invitation: await this.serverService.createInvitation(client.handshake.auth.sub, serverId) };
   }
 
   @SubscribeMessage('join_server')
   async joinServer(
     client: Socket,
-    payload: { invitation: string },
-  ): Promise<UserServersData> {
+    payload: JoinServerRequest,
+  ): Promise<JoinServerResponse> {
     const result = await this.serverService.joinServer(
       client.handshake.auth.sub,
       payload.invitation,

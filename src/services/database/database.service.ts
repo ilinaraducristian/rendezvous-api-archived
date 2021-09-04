@@ -8,6 +8,7 @@ import {
   ProcedureServerResponseType,
   ProcedureUserDataResponseType,
 } from '../../models/database-response.model';
+import { NewMessageRequest } from '../../dtos/message.dto';
 
 @Injectable()
 export class DatabaseService {
@@ -28,18 +29,16 @@ export class DatabaseService {
 
   send_message(
     userId: string,
-    channelId: number,
-    message: string,
-    isReply: boolean,
-    replyId: number | null,
-    imageMd5: string | null,
+    payload: NewMessageRequest,
+    imageMd5: string,
   ): Promise<ProcedureMessagesType> {
-    return this.connection.query('CALL send_message(?,?,?,?,?,?)', [
+    return this.connection.query('CALL send_message(?,?,?,?,?,?,?)', [
       userId,
-      channelId,
-      message,
-      isReply,
-      replyId,
+      payload.friendshipId,
+      payload.channelId,
+      payload.text,
+      payload.isReply,
+      payload.replyId,
       imageMd5,
     ]);
   }
@@ -79,12 +78,14 @@ export class DatabaseService {
 
   get_messages(
     userId: string,
+    friendshipId: number,
     serverId: number,
     channelId: number,
     offset: number,
   ): Promise<ProcedureMessagesType> {
-    return this.connection.query('CALL get_messages(?,?,?,?)', [
+    return this.connection.query('CALL get_messages(?,?,?,?,?)', [
       userId,
+      friendshipId,
       serverId,
       channelId,
       offset,

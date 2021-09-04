@@ -1,6 +1,8 @@
 import { SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
+import { Server } from 'socket.io';
 import { GroupService } from '../services/group/group.service';
+import Socket from '../models/socket';
+import { NewGroupRequest, NewGroupResponse } from '../dtos/group.dto';
 
 @WebSocketGateway()
 export class GroupGateway {
@@ -16,8 +18,8 @@ export class GroupGateway {
   @SubscribeMessage('create_group')
   async createGroup(
     client: Socket,
-    payload: { serverId: number; groupName: string },
-  ): Promise<number> {
+    payload: NewGroupRequest,
+  ): Promise<NewGroupResponse> {
     const groupId = await this.groupService.createGroup(
       client.handshake.auth.sub,
       payload.serverId,
@@ -33,7 +35,7 @@ export class GroupGateway {
   }
 
   @SubscribeMessage('move_group')
-  async moveGroup() {
+  async moveGroup(client: Socket, payload: any) {
     await this.groupService.moveGroup();
   }
 

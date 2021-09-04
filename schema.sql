@@ -63,18 +63,24 @@ CREATE TABLE members
 
 CREATE TABLE messages
 (
-    id         int PRIMARY KEY AUTO_INCREMENT,
-    server_id  int          NOT NULL,
-    channel_id int          NOT NULL,
-    user_id    char(36)     NOT NULL,
-    timestamp  datetime     NOT NULL DEFAULT NOW(),
-    text       varchar(255) NOT NULL,
-    is_reply   boolean      NOT NULL,
-    reply_id   int,
-    image_md5  char(32),
+    id            int PRIMARY KEY AUTO_INCREMENT,
+    friendship_id int,
+    server_id     int,
+    channel_id    int,
+    user_id       char(36)     NOT NULL,
+    timestamp     datetime     NOT NULL DEFAULT NOW(),
+    text          varchar(255) NOT NULL,
+    is_reply      boolean      NOT NULL,
+    reply_id      int,
+    image_md5     char(32),
+    FOREIGN KEY (friendship_id) REFERENCES friendships (id),
     FOREIGN KEY (server_id) REFERENCES servers (id),
     FOREIGN KEY (channel_id) REFERENCES channels (id),
-    FOREIGN KEY (reply_id) REFERENCES messages (id) ON DELETE SET NULL
+    FOREIGN KEY (reply_id) REFERENCES messages (id) ON DELETE SET NULL,
+    CHECK (
+            ((friendship_id IS NOT NULL) AND (server_id IS NULL) AND (channel_id IS NULL)) OR
+            ((friendship_id IS NULL) AND (server_id IS NOT NULL) AND (channel_id IS NOT NULL))
+        )
 )$$
 
 CREATE UNIQUE INDEX unique_member
@@ -123,13 +129,15 @@ CREATE TRIGGER trigger_before_insert_on_messages
     ON messages
     FOR EACH ROW
 BEGIN
-    SELECT type INTO @TYPE FROM channels WHERE NEW.channel_id = id;
-    IF (@TYPE IS NULL) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Channel doesn\'t exist';
-    ELSEIF (@TYPE = 'voice') THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Voice channels can\'t contain text messages';
+    IF (NEW.channel_id IS NOT NULL) THEN
+        SELECT type INTO @TYPE FROM channels WHERE NEW.channel_id = id;
+        IF (@TYPE IS NULL) THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Channel doesn\'t exist';
+        ELSEIF (@TYPE = 'voice') THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Voice channels can\'t contain text messages';
+        END IF;
     ELSEIF (LENGTH(TRIM(NEW.text)) = 0 AND NEW.image_md5 IS NULL) THEN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'Message text must not be empty';
@@ -161,14 +169,15 @@ FROM members m1 $$
 CREATE VIEW messages_view
 AS
 SELECT m.id,
-       m.server_id  as serverId,
-       m.channel_id as channelId,
-       m.user_id    as userId,
+       m.friendship_id as friendshipId,
+       m.server_id     as serverId,
+       m.channel_id    as channelId,
+       m.user_id       as userId,
        m.timestamp,
        m.text,
-       m.is_reply   as isReply,
-       m.reply_id   as replyId,
-       m.image_md5  as imageMd5
+       m.is_reply      as isReply,
+       m.reply_id      as replyId,
+       m.image_md5     as imageMd5
 FROM messages m;
 
 CREATE VIEW friendships_view
@@ -316,8 +325,7 @@ BEGIN
         invitation_exp = DATE_ADD(NOW(), INTERVAL 7 DAY)
     WHERE serverId = s.id;
     RETURN @INVITATION;
-END
-$$
+END $$
 
 CREATE PROCEDURE join_server(userId char(36), invitation char(36))
 BEGIN
@@ -357,38 +365,42 @@ BEGIN
     FROM members_view m1
              JOIN members m2 ON m1.serverId = @serverId
     WHERE m2.user_id = userId;
-END
-$$
+END $$
 
-CREATE PROCEDURE send_message(userId char(36), channelId int, message varchar(255), isReply boolean, replyId int,
+CREATE PROCEDURE send_message(userId char(36), friendship int, channelId int, message varchar(255), isReply boolean,
+                              replyId int,
                               imageMd5 char(32))
 BEGIN
 
-    SELECT c.server_id INTO @serverId FROM channels c WHERE c.id = channelId;
+    IF (friendship IS NULL) THEN
+        SELECT c.server_id INTO @serverId FROM channels c WHERE c.id = channelId;
 
-    IF (@serverId IS NULL) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Channel doesnt exist';
+        IF (@serverId IS NULL) THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Channel doesnt exist';
+        END IF;
+
+        SELECT m.id
+        INTO @memberId
+        FROM members m
+        WHERE m.user_id = userId
+          AND m.server_id = @serverId;
+
+        IF (@memberId IS NULL) THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'User is not a member of this server';
+        END IF;
+
+        INSERT INTO messages (server_id, channel_id, user_id, text, is_reply, reply_id, image_md5)
+        VALUES (@serverId, channelId, userId, message, isReply, replyId, imageMd5);
+    ELSE
+        INSERT INTO messages (friendship_id, user_id, text, is_reply, reply_id, image_md5)
+        VALUES (NULL, userId, message, isReply, replyId, imageMd5);
     END IF;
-
-    SELECT m.id
-    INTO @memberId
-    FROM members m
-    WHERE m.user_id = userId
-      AND m.server_id = @serverId;
-
-    IF (@memberId IS NULL) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'User is not a member of this server';
-    END IF;
-
-    INSERT INTO messages (server_id, channel_id, user_id, text, is_reply, reply_id, image_md5)
-    VALUES (@serverId, channelId, userId, message, isReply, replyId, imageMd5);
 
     SELECT * FROM messages_view m WHERE m.id = LAST_INSERT_ID();
 
-END
-$$
+END $$
 
 CREATE PROCEDURE create_server(userId char(36), serverName varchar(255))
 BEGIN
@@ -431,8 +443,7 @@ BEGIN
     FROM members_view m1
     WHERE m1.serverId = @serverId;
 
-END
-$$
+END $$
 
 CREATE FUNCTION create_channel(userId char(36), serverId int, groupId int, channelType enum ('text', 'voice'),
                                channelName varchar(255)) RETURNS int DETERMINISTIC
@@ -469,8 +480,7 @@ BEGIN
 
     RETURN LAST_INSERT_ID();
 
-END
-$$
+END $$
 
 # CREATE PROCEDURE move_channel(userId char(36), serverId int, groupId int, channelId int, channelOrder int)
 # BEGIN
@@ -505,37 +515,52 @@ BEGIN
 
     RETURN LAST_INSERT_ID();
 
-END
-$$
+END $$
 
-CREATE PROCEDURE get_messages(userId char(36), serverId int, channelId int, offset int)
+CREATE PROCEDURE get_messages(userId char(36), friendshipId int, serverId int, channelId int, offset int)
 BEGIN
 
-    SELECT m.id
-    INTO @MEMBER_ID
-    FROM members m
-    WHERE m.user_id = userId
-      and m.server_id = serverId;
+    IF (friendshipId IS NULL) THEN
+        SELECT m.id
+        INTO @MEMBER_ID
+        FROM members m
+        WHERE m.user_id = userId
+          and m.server_id = serverId;
 
-    IF (@MEMBER_ID IS NULL) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'User is not a member of this server';
+        IF (@MEMBER_ID IS NULL) THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'User is not a member of this server';
+        END IF;
+
+        SELECT m.id,
+               m.friendshipId,
+               m.serverId,
+               m.channelId,
+               m.userId,
+               m.timestamp,
+               m.text,
+               m.isReply,
+               m.replyId,
+               m.imageMd5
+        FROM messages_view m
+                 JOIN channels c ON m.channelId = c.id
+        WHERE c.id = channelId
+        ORDER BY timestamp DESC, m.id DESC
+        LIMIT 30 OFFSET offset;
+    ELSE
+        SELECT m.id,
+               m.friendshipId,
+               m.serverId,
+               m.channelId,
+               m.userId,
+               m.timestamp,
+               m.text,
+               m.isReply,
+               m.replyId,
+               m.imageMd5
+        FROM messages_view m
+        WHERE m.friendshipId = friendshipId
+        ORDER BY timestamp DESC, m.id DESC
+        LIMIT 30 OFFSET offset;
     END IF;
-
-    SELECT m.id,
-           m.serverId,
-           m.channelId,
-           m.userId,
-           m.timestamp,
-           m.text,
-           m.isReply,
-           m.replyId,
-           m.imageMd5
-    FROM messages_view m
-             JOIN channels c ON m.channelId = c.id
-    WHERE c.id = channelId
-    ORDER BY timestamp DESC, m.id DESC
-    LIMIT 30 OFFSET offset;
-
-END
-$$
+END $$

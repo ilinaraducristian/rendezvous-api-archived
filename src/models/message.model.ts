@@ -1,7 +1,8 @@
 type Message = {
   id: number,
-  serverId: number,
-  channelId: number,
+  friendshipId: number | null,
+  serverId: number | null,
+  channelId: number | null,
   userId: string,
   timestamp: string,
   text: string,
@@ -9,7 +10,5 @@ type Message = {
   replyId: number | null,
   imageMd5: string | null,
 }
-
-export type FrontendMessage = Omit<Message, 'imageMd5'> & { image: string | null };
 
 export default Message;
