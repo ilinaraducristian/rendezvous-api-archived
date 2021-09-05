@@ -2,8 +2,8 @@ import Member from './member.model';
 import Group from './group.model';
 import Channel from './channel.model';
 import User from './user.model';
-import Friend from './friend.model';
 import FriendRequest from './friend-request.model';
+import Friendship from './friendship.model';
 
 type Server = {
   id: number,
@@ -23,7 +23,7 @@ export type UserServersData = {
 
 export type UserData = {
   servers: Server[],
-  friends: Friend[],
+  friendships: Friendship[],
   friendRequests: FriendRequest[],
   users: User[]
 }

@@ -299,8 +299,8 @@ BEGIN
 
     SELECT f.id, f.user1Id, f.user2Id, f.status
     FROM friend_requests_view f
-    WHERE user1Id = userId
-       OR user2Id = userId;
+    WHERE (user1Id = userId OR user2Id = userId)
+      AND (f.status = 'pending');
 END $$
 
 CREATE FUNCTION create_invitation(userId char(36), serverId int) RETURNS char(36)
@@ -394,8 +394,8 @@ BEGIN
         INSERT INTO messages (server_id, channel_id, user_id, text, is_reply, reply_id, image_md5)
         VALUES (@serverId, channelId, userId, message, isReply, replyId, imageMd5);
     ELSE
-        INSERT INTO messages (friendship_id, user_id, text, is_reply, reply_id, image_md5)
-        VALUES (NULL, userId, message, isReply, replyId, imageMd5);
+        INSERT INTO messages (friendship_id, server_id, channel_id, user_id, text, is_reply, reply_id, image_md5)
+        VALUES (friendship, NULL, channelId, userId, message, isReply, replyId, imageMd5);
     END IF;
 
     SELECT * FROM messages_view m WHERE m.id = LAST_INSERT_ID();

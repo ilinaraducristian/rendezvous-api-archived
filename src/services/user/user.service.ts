@@ -9,8 +9,8 @@ import { ProcedureUserDataResponseType } from '../../models/database-response.mo
 import Member from '../../models/member.model';
 import Group from '../../models/group.model';
 import { ChannelType, TextChannel, VoiceChannel } from '../../models/channel.model';
-import { ServerEntity } from '../../entities/server.entity';
 import duplicates from '../../util/filter-duplicates';
+import { MemberEntity } from '../../entities/member.entity';
 
 
 @Injectable()
@@ -18,8 +18,8 @@ export class UserService {
 
   constructor(
     private databaseService: DatabaseService,
-    @InjectRepository(ServerEntity)
-    private serverRepository: Repository<ServerEntity>,
+    @InjectRepository(MemberEntity)
+    private memberRepository: Repository<MemberEntity>,
     @InjectRepository(UserEntity, 'keycloakConnection')
     private keycloakRepository: Repository<UserEntity>,
   ) {
@@ -67,39 +67,36 @@ export class UserService {
         group.channels.push(channel);
       }
     });
-
-    const friends = result[4].map(friendShip => friendShip.user1Id === userId ? { userId: friendShip.user2Id } : { userId: friendShip.user1Id });
+    const friendships = result[4].map(friendship => Object.assign({ messages: [] }, friendship));
     const friendRequests = result[5].map((friendRequest: any) => ({
       id: friendRequest.id,
       userId: friendRequest.user1Id === userId ? friendRequest.user2Id : friendRequest.user1Id,
       incoming: friendRequest.user2Id === userId,
     }));
-
     return {
       servers: serversTable,
-      friends,
+      friendships,
       friendRequests,
       users: [],
     };
   }
 
   getUserServersIds(userId: string): Promise<number[]> {
-    return this.serverRepository.find({
-      select: ['id'],
-      where: { id: userId },
-    }).then(servers => servers.map(server => server.id));
+    return this.memberRepository.find({
+      select: ['server_id'],
+      where: { user_id: userId },
+    }).then(servers => servers.map(member => member.server_id));
   }
 
   async getUserData(userId: string): Promise<UserData> {
     const result = await this.databaseService.get_user_data(userId);
     let usersIds = result[3]
       .map(user => ({ ID: user.userId }));
-
-    usersIds.concat(
+    usersIds = usersIds.concat(
       result[4]
         .map(friendship => ({ ID: friendship.user1Id === userId ? friendship.user2Id : friendship.user1Id })),
     );
-    usersIds.concat(
+    usersIds = usersIds.concat(
       result[5].map(friendRequest => ({ ID: friendRequest.user1Id === userId ? friendRequest.user2Id : friendRequest.user1Id })),
     );
     usersIds = usersIds.filter(duplicates);

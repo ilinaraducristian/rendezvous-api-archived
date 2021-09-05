@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { MemberEntity } from './member.entity';
 
 @Entity('servers')
 export class ServerEntity {
@@ -17,5 +18,8 @@ export class ServerEntity {
 
   @Column()
   invitation_exp: string | null;
+
+  @OneToMany(() => MemberEntity, member => member.server)
+  members: MemberEntity[];
 
 }

@@ -26,6 +26,7 @@ import { GroupGateway } from './gateways/group.gateway';
 import { ServerEntity } from './entities/server.entity';
 import { FriendshipEntity } from './entities/friendship.entity';
 import { FriendshipService } from './services/friendship/friendship.service';
+import { MemberEntity } from './entities/member.entity';
 
 @Module({
   imports: [
@@ -96,11 +97,12 @@ export class AppModule {
       synchronize: false,
       retryAttempts: 500,
     };
+    const entities = [ChannelEntity, MessageEntity, ServerEntity, FriendshipEntity, MemberEntity];
     return [
       TypeOrmModule.forRoot(
         {
           ...commonOptions,
-          entities: [ChannelEntity, MessageEntity, ServerEntity, FriendshipEntity],
+          entities,
           database: AppModule.envVariables.DB_NAME,
         }),
       TypeOrmModule.forRoot(
@@ -110,7 +112,7 @@ export class AppModule {
           entities: [UserEntity],
           database: AppModule.envVariables.KEYCLOAK_DB_NAME,
         }),
-      TypeOrmModule.forFeature([ChannelEntity, MessageEntity, ServerEntity, FriendshipEntity]),
+      TypeOrmModule.forFeature(entities),
       TypeOrmModule.forFeature([UserEntity], 'keycloakConnection'),
     ];
   }
