@@ -16,10 +16,7 @@ export class GroupGateway {
   }
 
   @SubscribeMessage('create_group')
-  async createGroup(
-    client: Socket,
-    payload: NewGroupRequest,
-  ): Promise<NewGroupResponse> {
+  async createGroup(client: Socket, payload: NewGroupRequest): Promise<NewGroupResponse> {
     const groupId = await this.groupService.createGroup(
       client.handshake.auth.sub,
       payload.serverId,

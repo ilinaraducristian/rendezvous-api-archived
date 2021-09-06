@@ -43,10 +43,7 @@ export class ServerGateway {
   }
 
   @SubscribeMessage('join_server')
-  async joinServer(
-    client: Socket,
-    payload: JoinServerRequest,
-  ): Promise<JoinServerResponse> {
+  async joinServer(client: Socket, payload: JoinServerRequest): Promise<JoinServerResponse> {
     const result = await this.serverService.joinServer(
       client.handshake.auth.sub,
       payload.invitation,

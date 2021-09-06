@@ -58,11 +58,7 @@ export class MediasoupGateway {
   }
 
   @SubscribeMessage('connect_transport')
-  async connectSendTransport(client: Socket, {
-    type,
-    id,
-    dtlsParameters,
-  }: ConnectTransportRequest) {
+  async connectSendTransport(client: Socket, { type, id, dtlsParameters }: ConnectTransportRequest) {
     if (type === 'send') {
       await client.data.sendTransport.connect({ dtlsParameters });
     } else if (type === 'recv') {

@@ -1,23 +1,45 @@
-import { UserServersData } from '../models/server.model';
+import { Server } from './server.dto';
+import { FriendRequest, Friendship } from './friend.dto';
 
-type UserDataResponse = UserServersData;
+export type User = {
+  id: string,
+  username: string,
+  firstName: string,
+  lastName: string
+}
 
-type AcceptFriendRequest = {
+export type KeycloakUser = {
+  sub: string,
+  preferred_username: string,
+  email: string, name: string,
+  nickname: string,
+  given_name: string,
+  family_name: string
+}
+
+export type UserDataResponse = UserServersData;
+
+export type AcceptFriendRequest = {
   friendRequestId: number
 }
 
-type SendFriendRequest = {
+export type SendFriendRequest = {
   username: string
 }
 
-type SendFriendRequestResponse = {
+export type SendFriendRequestResponse = {
   id: number,
   userId: string
 }
 
-export {
-  UserDataResponse,
-  AcceptFriendRequest,
-  SendFriendRequest,
-  SendFriendRequestResponse,
-};
+export type UserServersData = {
+  servers: Server[],
+  users: User[]
+}
+
+export type UserData = {
+  servers: Server[],
+  friendships: Friendship[],
+  friendRequests: FriendRequest[],
+  users: User[]
+}

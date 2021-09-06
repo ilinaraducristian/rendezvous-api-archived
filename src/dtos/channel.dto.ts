@@ -1,35 +1,51 @@
-type JoinVoiceChannelRequest = {
+import { Message } from './message.dto';
+
+export enum ChannelType {
+  Text = 'text',
+  Voice = 'voice'
+}
+
+export type Channel = {
+  id: number,
+  serverId: number,
+  groupId: number,
+  type: ChannelType,
+  name: string,
+  order: number
+}
+
+export type VoiceChannel = Channel & {
+  users: { socketId: string, userId: string }[],
+}
+
+export type TextChannel = Channel & {
+  messages: Message[]
+}
+
+export type JoinVoiceChannelRequest = {
   serverId: number,
   channelId: number,
 }
 
-type JoinVoiceChannelResponse = {
+export type JoinVoiceChannelResponse = {
   channelId: number,
   socketId: string,
   userId: string
 }[]
 
-type NewChannelRequest = {
+export type NewChannelRequest = {
   serverId: number,
   groupId: number | null,
   channelName: string
 }
 
-type NewChannelResponse = {
+export type NewChannelResponse = {
   channelId: number
 }
 
-type MoveChannelRequest = {
+export type MoveChannelRequest = {
   serverId: number,
   channelId: number,
   groupId: number | null,
   order: number
 }
-
-export {
-  JoinVoiceChannelRequest,
-  JoinVoiceChannelResponse,
-  NewChannelRequest,
-  NewChannelResponse,
-  MoveChannelRequest,
-};

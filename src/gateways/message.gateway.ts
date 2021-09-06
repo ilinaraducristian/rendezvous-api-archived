@@ -25,10 +25,7 @@ export class MessageGateway {
   }
 
   @SubscribeMessage('send_message')
-  async sendMessage(
-    client: Socket,
-    payload: NewMessageRequest,
-  ): Promise<NewMessageResponse> {
+  async sendMessage(client: Socket, payload: NewMessageRequest): Promise<NewMessageResponse> {
     const message = await this.messageService.sendMessage(
       client.handshake.auth.sub,
       payload,
@@ -53,23 +50,14 @@ export class MessageGateway {
   }
 
   @SubscribeMessage('edit_message')
-  async editMessage(client: Socket, {
-    serverId,
-    channelId,
-    messageId,
-    text,
-  }: EditMessagesRequest) {
+  async editMessage(client: Socket, { serverId, channelId, messageId, text }: EditMessagesRequest) {
     const response = await this.messageService.editMessage(client.handshake.auth.sub, messageId, text);
     client.to(`server_${serverId}`).emit('message_edited', { serverId, channelId, messageId, text });
     return response;
   }
 
   @SubscribeMessage('delete_message')
-  async deleteMessage(client: Socket, {
-    serverId,
-    channelId,
-    messageId,
-  }: DeleteMessagesRequest) {
+  async deleteMessage(client: Socket, { serverId, channelId, messageId }: DeleteMessagesRequest) {
     const response = await this.messageService.deleteMessage(client.handshake.auth.sub, messageId);
     client.to(`server_${serverId}`).emit('message_deleted', { serverId, channelId, messageId });
     return response;

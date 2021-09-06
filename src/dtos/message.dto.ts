@@ -1,4 +1,4 @@
-type NewMessageResponse = {
+export type Message = {
   id: number,
   friendshipId: number | null,
   serverId: number | null,
@@ -8,34 +8,30 @@ type NewMessageResponse = {
   text: string,
   isReply: boolean,
   replyId: number | null,
-  image: string | null,
+  imageMd5: string | null,
 }
 
-type NewMessageRequest = Omit<NewMessageResponse, 'id' | 'serverId' | 'userId' | 'timestamp'>;
+export type NewMessageResponse = Message;
 
-type GetMessagesRequest = {
+export type NewMessageRequest =
+  Omit<Message, 'id' | 'serverId' | 'userId' | 'timestamp' | 'imageMd5'>
+  & { image: string | null };
+
+export type GetMessagesRequest = {
   friendshipId: number | null,
   serverId: number | null,
   channelId: number | null,
   offset: number
 }
 
-type EditMessagesRequest = {
+export type EditMessagesRequest = {
   serverId: number,
   channelId: number,
   messageId: number,
   text: string
 }
-type DeleteMessagesRequest = {
+export type DeleteMessagesRequest = {
   serverId: number,
   channelId: number,
   messageId: number
 }
-
-export {
-  NewMessageRequest,
-  NewMessageResponse,
-  GetMessagesRequest,
-  EditMessagesRequest,
-  DeleteMessagesRequest,
-};

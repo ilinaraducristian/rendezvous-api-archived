@@ -1,11 +1,15 @@
-type NewGroupRequest = {
+import { Channel } from './channel.dto';
+
+export type Group = {
+  id: number,
+  serverId: number,
+  name: string,
+  channels: Channel[] // channels in a group
+}
+
+export type NewGroupRequest = {
   serverId: number,
   groupName: string
 }
 
-type NewGroupResponse = number;
-
-export {
-  NewGroupRequest,
-  NewGroupResponse,
-};
+export type NewGroupResponse = number;
