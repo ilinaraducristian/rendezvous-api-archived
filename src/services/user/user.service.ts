@@ -1,16 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import Server, { UserData } from '../../models/server.model';
 import { UserEntity } from '../../entities/user.entity';
 import { DatabaseService } from '../database/database.service';
-import User from '../../models/user.model';
 import { ProcedureUserDataResponseType } from '../../models/database-response.model';
-import Member from '../../models/member.model';
-import Group from '../../models/group.model';
-import { ChannelType, TextChannel, VoiceChannel } from '../../models/channel.model';
 import duplicates from '../../util/filter-duplicates';
 import { MemberEntity } from '../../entities/member.entity';
+import { Server } from '../../dtos/server.dto';
+import { User, UserData } from '../../dtos/user.dto';
+import { Member } from '../../dtos/member.dto';
+import { ChannelType, TextChannel } from '../../dtos/channel.dto';
 
 
 @Injectable()
@@ -30,7 +29,7 @@ export class UserService {
     userId: string,
   ): UserData {
 
-    const serversTable: Server[] = result[0].map((server: Omit<Server, 'channels' | 'groups' | 'members'>) => ({
+    const serversTable: Server[] = result[0].map(server => ({
       ...server,
       channels: [],
       groups: [],
@@ -48,13 +47,13 @@ export class UserService {
         });
     });
 
-    result[1].forEach((group: Omit<Group, 'channels'>) => {
+    result[1].forEach(group => {
       const server = serversTable.find(server => server.id === group.serverId);
       if (server === undefined) return;
       server.groups.push({ ...group, channels: [] });
     });
 
-    result[2].forEach((channel: TextChannel | VoiceChannel) => {
+    result[2].forEach(channel => {
       if (channel.type === ChannelType.Text) {
         (channel as TextChannel).messages = [];
       }

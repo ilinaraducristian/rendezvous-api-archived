@@ -1,5 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { ChannelType } from '../models/channel.model';
+import { ChannelType } from '../dtos/channel.dto';
+
 
 @Entity('channels')
 export class ChannelEntity {

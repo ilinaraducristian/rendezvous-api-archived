@@ -1,9 +1,10 @@
 import { SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server } from 'socket.io';
 import { ChannelService } from '../services/channel/channel.service';
-import { ChannelType } from '../models/channel.model';
+
 import Socket from '../models/socket';
 import {
+  ChannelType,
   JoinVoiceChannelRequest,
   JoinVoiceChannelResponse,
   MoveChannelRequest,

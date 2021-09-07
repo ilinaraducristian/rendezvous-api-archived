@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { Server } from 'socket.io';
 import { DatabaseService } from '../database/database.service';
 import { ChannelEntity } from '../../entities/channel.entity';
-import { ChannelType, TextChannel, VoiceChannel } from '../../models/channel.model';
+import { ChannelType, TextChannel, VoiceChannel } from '../../dtos/channel.dto';
 
 @Injectable()
 export class ChannelService {

@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { UserService } from '../user/user.service';
-import Server, { UserServersData } from '../../models/server.model';
 import { ProcedureServerResponseType } from '../../models/database-response.model';
-import Member from '../../models/member.model';
-import Group from '../../models/group.model';
-import { ChannelType, TextChannel, VoiceChannel } from '../../models/channel.model';
+import { UserServersData } from '../../dtos/user.dto';
+import { Server } from '../../dtos/server.dto';
+import { ChannelType, TextChannel } from '../../dtos/channel.dto';
 
 @Injectable()
 export class ServerService {
@@ -20,14 +19,14 @@ export class ServerService {
     result: ProcedureServerResponseType,
   ): UserServersData {
 
-    const serversTable: Server[] = result[0].map((server: Omit<Server, 'channels' | 'groups' | 'members'>) => ({
+    const serversTable: Server[] = result[0].map(server => ({
       ...server,
       channels: [],
       groups: [],
       members: [],
     }));
 
-    result[3].forEach((member: Member) => {
+    result[3].forEach(member => {
       const server = serversTable.find(server => server.id === member.serverId);
       if (server === undefined) return;
       if (server.members.findIndex(m1 => m1.id === member.id) === -1)
@@ -38,13 +37,13 @@ export class ServerService {
         });
     });
 
-    result[1].forEach((group: Omit<Group, 'channels'>) => {
+    result[1].forEach(group => {
       const server = serversTable.find(server => server.id === group.serverId);
       if (server === undefined) return;
       server.groups.push({ ...group, channels: [] });
     });
 
-    result[2].forEach((channel: TextChannel | VoiceChannel) => {
+    result[2].forEach(channel => {
       if (channel.type === ChannelType.Text) {
         (channel as TextChannel).messages = [];
       }

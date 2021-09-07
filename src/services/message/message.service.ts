@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { DatabaseService } from '../database/database.service';
 import { MessageEntity } from '../../entities/message.entity';
 import { ObjectStoreService } from '../object-store/object-store.service';
-import { NewMessageRequest, NewMessageResponse } from '../../dtos/message.dto';
+import { Message, NewMessageRequest } from '../../dtos/message.dto';
 
 @Injectable()
 export class MessageService {
@@ -20,7 +20,7 @@ export class MessageService {
   async sendMessage(
     userId: string,
     payload: NewMessageRequest,
-  ): Promise<NewMessageResponse> {
+  ): Promise<Message> {
     let imageMd5;
     if (payload.image !== null) {
       imageMd5 = await this.objectStoreService.putImage(payload.image);
@@ -43,7 +43,7 @@ export class MessageService {
     serverId: number,
     channelId: number,
     offset: number,
-  ): Promise<NewMessageResponse[]> {
+  ): Promise<Message[]> {
     const result = await this.databaseService.get_messages(
       userId,
       friendshipId,

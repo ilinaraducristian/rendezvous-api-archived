@@ -52,7 +52,11 @@ export class UserGateway implements OnGatewayConnection<Socket> {
     const response = await this.userService.sendFriendRequest(client.handshake.auth.sub, userId);
     const socket = getSocketByUserId(this.server, userId);
     if (socket !== undefined) {
-      client.to(socket.id).emit('new_friend_request', { userId: client.handshake.auth.sub });
+      client.to(socket.id).emit('new_friend_request', {
+        id: response,
+        userId: client.handshake.auth.sub,
+        incoming: true,
+      });
     }
     return { id: response, userId };
   }
@@ -63,7 +67,7 @@ export class UserGateway implements OnGatewayConnection<Socket> {
     await this.userService.acceptFriendRequest(userId, friendRequestId);
     const socket = getSocketByUserId(this.server, userId);
     if (socket === undefined) return;
-    client.to(socket.id).emit('friend_request_accepted', { friendRequestId });
+    client.to(socket.id).emit('friend_request_accepted', { id: friendRequestId });
   }
 
 }

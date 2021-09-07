@@ -8,14 +8,11 @@ export type Message = {
   text: string,
   isReply: boolean,
   replyId: number | null,
-  imageMd5: string | null,
+  image: string | null,
 }
 
-export type NewMessageResponse = Message;
-
 export type NewMessageRequest =
-  Omit<Message, 'id' | 'serverId' | 'userId' | 'timestamp' | 'imageMd5'>
-  & { image: string | null };
+  Omit<Message, 'id' | 'serverId' | 'userId' | 'timestamp'> & { image: string | null };
 
 export type GetMessagesRequest = {
   friendshipId: number | null,

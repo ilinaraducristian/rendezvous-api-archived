@@ -7,8 +7,8 @@ import {
   DeleteMessagesRequest,
   EditMessagesRequest,
   GetMessagesRequest,
+  Message,
   NewMessageRequest,
-  NewMessageResponse,
 } from '../dtos/message.dto';
 import getSocketByUserId from '../util/get-socket';
 
@@ -25,7 +25,7 @@ export class MessageGateway {
   }
 
   @SubscribeMessage('send_message')
-  async sendMessage(client: Socket, payload: NewMessageRequest): Promise<NewMessageResponse> {
+  async sendMessage(client: Socket, payload: NewMessageRequest): Promise<Message> {
     const message = await this.messageService.sendMessage(
       client.handshake.auth.sub,
       payload,
@@ -45,7 +45,7 @@ export class MessageGateway {
   }
 
   @SubscribeMessage('get_messages')
-  getMessages(client: Socket, { friendshipId, serverId, channelId, offset }: GetMessagesRequest) {
+  getMessages(client: Socket, { friendshipId, serverId, channelId, offset }: GetMessagesRequest): Promise<Message[]> {
     return this.messageService.getMessages(client.handshake.auth.sub, friendshipId, serverId, channelId, offset);
   }
 

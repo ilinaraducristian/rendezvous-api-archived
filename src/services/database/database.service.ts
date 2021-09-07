@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { Connection } from 'typeorm';
-import { ChannelType } from '../../models/channel.model';
 import {
   FunctionIntReturnType,
   FunctionStringReturnType,
@@ -9,6 +8,7 @@ import {
   ProcedureUserDataResponseType,
 } from '../../models/database-response.model';
 import { NewMessageRequest } from '../../dtos/message.dto';
+import { ChannelType } from '../../dtos/channel.dto';
 
 @Injectable()
 export class DatabaseService {

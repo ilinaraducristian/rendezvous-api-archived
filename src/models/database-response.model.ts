@@ -1,10 +1,11 @@
 import { ResultSetHeader } from 'mysql2';
-import Group from './group.model';
-import Channel from './channel.model';
-import Member from './member.model';
-import Server from './server.model';
-import Message from './message.model';
-import Friendship from './friendship.model';
+import { Server } from '../dtos/server.dto';
+import { Group } from '../dtos/group.dto';
+import { Member } from '../dtos/member.dto';
+import { Channel } from '../dtos/channel.dto';
+import { Friendship } from '../dtos/friend.dto';
+import { Message } from './message.model';
+
 
 export type FunctionIntReturnType = [{ [key: string]: number }, ResultSetHeader];
 export type FunctionStringReturnType = [{ [key: string]: string }, ResultSetHeader];
