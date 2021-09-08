@@ -5,11 +5,16 @@ import { ProcedureServerResponseType } from '../../models/database-response.mode
 import { UserServersData } from '../../dtos/user.dto';
 import { Server } from '../../dtos/server.dto';
 import { ChannelType, TextChannel } from '../../dtos/channel.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ServerEntity } from '../../entities/server.entity';
 
 @Injectable()
 export class ServerService {
 
   constructor(
+    @InjectRepository(ServerEntity)
+    private serverRepository: Repository<ServerEntity>,
     private readonly databaseService: DatabaseService,
     private readonly userService: UserService,
   ) {
@@ -93,6 +98,10 @@ export class ServerService {
     const response = ServerService.processQuery(result);
     response.users = users;
     return response;
+  }
+
+  deleteServer(userId: string, serverId: number) {
+    return this.serverRepository.delete({ id: serverId });
   }
 
 }

@@ -22,7 +22,7 @@ CREATE TABLE `groups`
     id        int PRIMARY KEY AUTO_INCREMENT,
     server_id int          NOT NULL,
     name      varchar(255) NOT NULL,
-    FOREIGN KEY (server_id) REFERENCES servers (id)
+    FOREIGN KEY (server_id) REFERENCES servers (id) ON DELETE CASCADE
 )$$
 
 CREATE TABLE channels
@@ -33,8 +33,8 @@ CREATE TABLE channels
     type      enum ('text', 'voice') NOT NULL,
     name      varchar(255)           NOT NULL,
     `order`   int unsigned           NOT NULL,
-    FOREIGN KEY (server_id) REFERENCES servers (id),
-    FOREIGN KEY (group_id) REFERENCES `groups` (id)
+    FOREIGN KEY (server_id) REFERENCES servers (id) ON DELETE CASCADE,
+    FOREIGN KEY (group_id) REFERENCES `groups` (id) ON DELETE CASCADE
 )$$
 
 CREATE TABLE friendships
@@ -58,7 +58,7 @@ CREATE TABLE members
     id        int PRIMARY KEY AUTO_INCREMENT,
     server_id int      NOT NULL,
     user_id   char(36) NOT NULL,
-    FOREIGN KEY (server_id) REFERENCES servers (id)
+    FOREIGN KEY (server_id) REFERENCES servers (id) ON DELETE CASCADE
 )$$
 
 CREATE TABLE messages
@@ -73,9 +73,9 @@ CREATE TABLE messages
     is_reply      boolean      NOT NULL,
     reply_id      int,
     image_md5     char(32),
-    FOREIGN KEY (friendship_id) REFERENCES friendships (id),
-    FOREIGN KEY (server_id) REFERENCES servers (id),
-    FOREIGN KEY (channel_id) REFERENCES channels (id),
+    FOREIGN KEY (friendship_id) REFERENCES friendships (id) ON DELETE CASCADE,
+    FOREIGN KEY (server_id) REFERENCES servers (id) ON DELETE CASCADE,
+    FOREIGN KEY (channel_id) REFERENCES channels (id) ON DELETE CASCADE,
     FOREIGN KEY (reply_id) REFERENCES messages (id) ON DELETE SET NULL,
     CHECK (
             ((friendship_id IS NOT NULL) AND (server_id IS NULL) AND (channel_id IS NULL)) OR

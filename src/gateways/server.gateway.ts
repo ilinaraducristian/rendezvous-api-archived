@@ -10,8 +10,11 @@ import {
   NewServerRequest,
   NewServerResponse,
 } from '../dtos/server.dto';
+import { UseInterceptors } from '@nestjs/common';
+import { EmptyResponseInterceptor } from '../empty-response.interceptor';
 
 @WebSocketGateway()
+@UseInterceptors(EmptyResponseInterceptor)
 export class ServerGateway {
 
   @WebSocketServer()
@@ -64,6 +67,12 @@ export class ServerGateway {
       user: newUser,
     });
     return result;
+  }
+
+  @SubscribeMessage('delete_server')
+  async deleteServer(client: Socket, payload: { serverId: number }) {
+    await this.serverService.deleteServer(client.handshake.auth.sub, payload.serverId);
+    this.server.to(`server_${payload.serverId}`).emit('server_deleted', { serverId: payload.serverId });
   }
 
 }
