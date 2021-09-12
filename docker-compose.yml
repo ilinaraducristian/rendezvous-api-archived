@@ -1,5 +1,12 @@
 version: "3.0"
 services:
+  proxy:
+    image: nginx:1.21.1-alpine
+    volumes:
+      - "./nginx.conf:/etc/nginx/nginx.conf"
+      - "./nginx-selfsigned.crt:/etc/ssl/nginx-selfsigned.crt"
+      - "./nginx-selfsigned.key:/etc/ssl/nginx-selfsigned.key"
+    network_mode: 'host'
   store:
     image: minio/minio:RELEASE.2021-08-20T18-32-01Z
     ports:

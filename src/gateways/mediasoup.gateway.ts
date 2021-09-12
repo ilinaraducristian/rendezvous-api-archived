@@ -13,12 +13,8 @@ import {
 } from '../dtos/mediasoup.dto';
 import { UseInterceptors } from '@nestjs/common';
 import { EmptyResponseInterceptor } from '../empty-response.interceptor';
-
-const webRtcTransportOptions = {
-  listenIps: [{ ip: '192.168.1.4' }],
-  enableTcp: true,
-  preferUdp: true,
-};
+import { WebRtcTransportOptions } from 'mediasoup/lib/WebRtcTransport';
+import fetch from 'node-fetch';
 
 @WebSocketGateway()
 @UseInterceptors(EmptyResponseInterceptor)
@@ -27,10 +23,22 @@ export class MediasoupGateway {
   @WebSocketServer()
   server: Server;
 
+  private webRtcTransportOptions: WebRtcTransportOptions;
+
   constructor(
     private readonly appService: AppService,
     private readonly router: Router,
   ) {
+    fetch('https://api.ipify.org?format=json')
+      .then(response => response.json())
+      .then(({ ip }) => {
+        this.webRtcTransportOptions = {
+          listenIps: [{ ip: '0.0.0.0', announcedIp: ip }],
+          port: 3001,
+          enableTcp: true,
+          preferUdp: true,
+        };
+      });
   }
 
   @SubscribeMessage('get_router_capabilities')
@@ -40,7 +48,7 @@ export class MediasoupGateway {
 
   @SubscribeMessage('create_transport')
   async createTransport(client: Socket, { type }: CreateTransportRequest): Promise<CreateTransportResponse> {
-    const transport = await this.router.createWebRtcTransport(webRtcTransportOptions);
+    const transport = await this.router.createWebRtcTransport(this.webRtcTransportOptions);
     if (type === 'send') {
       client.data.sendTransport = transport;
     } else if (type === 'recv') {

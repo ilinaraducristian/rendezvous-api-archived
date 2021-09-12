@@ -8,6 +8,7 @@
 !my.cnf
 !schema.sql
 !capp.json
+!capp-prod.json
 !nginx.conf
 !nginx-selfsigned.crt
 !nginx-selfsigned.key

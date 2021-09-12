@@ -12,18 +12,18 @@ spec:
       nodePort: 30000
       name: https
     - protocol: TCP
-      port: 3306
+      port: 3001
       nodePort: 30001
-      name: database
-    - protocol: TCP
-      port: 9000
-      nodePort: 30002
-      name: store
-    - protocol: TCP
-      port: 9001
-      nodePort: 30003
-      name: store2
-    - protocol: TCP
-      port: 3000
-      nodePort: 30004
-      name: api
+      name: mediasoup
+#    - protocol: TCP
+#      port: 9000
+#      nodePort: 30002
+#      name: store
+#    - protocol: TCP
+#      port: 9001
+#      nodePort: 30003
+#      name: store2
+#    - protocol: TCP
+#      port: 3000
+#      nodePort: 30004
+#      name: api

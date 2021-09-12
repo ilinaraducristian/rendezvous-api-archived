@@ -17,6 +17,7 @@
     "push:object-store": "docker push ilinaraducristian/rendezvous-object:0.0.1",
     "push:proxy": "docker push ilinaraducristian/rendezvous-proxy:0.0.1",
     "push:all": "yarn run push:api && yarn run push:databse && yarn run push:iam && yarn run push:object-store && yarn run push:proxy",
+    "buildandpush": "yarn run build:all && yarn run push:all",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch -e \"node --trace-warnings\"",
