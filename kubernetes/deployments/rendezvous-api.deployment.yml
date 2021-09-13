@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rendezvous-api-deployment
+  labels:
+    app: rendezvous-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rendezvous-api
+  template:
+    metadata:
+      labels:
+        app: rendezvous-api
+    spec:
+      containers:
+        - name: api
+          image: ilinaraducristian/rendezvous-api:0.0.1
+          imagePullPolicy: Always

@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rendezvous-iam-deployment
+  labels:
+    app: rendezvous-iam
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rendezvous-iam
+  template:
+    metadata:
+      labels:
+        app: rendezvous-iam
+    spec:
+      containers:
+        - name: iam
+          image: ilinaraducristian/rendezvous-iam:0.0.1
+          imagePullPolicy: Always
+          #          securityContext:
+          #            allowPrivilegeEscalation: true
+          #            runAsUser: 0
+          env:
+            - name: DB_VENDOR
+              value: "MYSQL"
+            - name: DB_ADDR
+              value: "rendezvous-database-service"
+            - name: DB_DATABASE
+              value: "keycloak"
+            - name: DB_USER
+              value: "root"
+            - name: DB_PASSWORD
+              value: "root"
+            - name: KEYCLOAK_USER
+              value: "admin"
+            - name: KEYCLOAK_PASSWORD
+              value: "admin"
+            - name: KEYCLOAK_IMPORT
+              value: "/tmp/capp.json"
+            - name: PROXY_ADDRESS_FORWARDING
+              value: "true"
+          ports:
+            - containerPort: 8080

@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rendezvous-object-store-deployment
+  labels:
+    app: rendezvous-object-store
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rendezvous-object-store
+  template:
+    metadata:
+      labels:
+        app: rendezvous-object-store
+    spec:
+      containers:
+        - name: object-store
+          image: ilinaraducristian/rendezvous-object-store:0.0.1
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 9000
+              name: port1
+            - containerPort: 9001
+              name: port2

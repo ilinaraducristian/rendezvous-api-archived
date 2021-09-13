@@ -34,8 +34,8 @@ export class MediasoupGateway {
       .then(({ ip }) => {
         this.webRtcTransportOptions = {
           listenIps: [{ ip: '0.0.0.0', announcedIp: ip }],
-          port: 3001,
           enableTcp: true,
+          enableUdp: true,
           preferUdp: true,
         };
       });

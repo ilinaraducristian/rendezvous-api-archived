@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rendezvous-proxy-deployment
+  labels:
+    app: rendezvous-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rendezvous-proxy
+  template:
+    metadata:
+      labels:
+        app: rendezvous-proxy
+    spec:
+      containers:
+        - name: proxy
+          image: ilinaraducristian/rendezvous-proxy:0.0.1
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+            - containerPort: 443

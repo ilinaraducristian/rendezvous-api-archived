@@ -27,6 +27,7 @@ import { ServerEntity } from './entities/server.entity';
 import { FriendshipEntity } from './entities/friendship.entity';
 import { FriendshipService } from './services/friendship/friendship.service';
 import { MemberEntity } from './entities/member.entity';
+import { RtpCodecCapability } from 'mediasoup/src/RtpParameters';
 
 @Module({
   imports: [
@@ -121,13 +122,14 @@ export class AppModule {
     return {
       provide: Router,
       // @ts-ignore
-      useFactory: () => createWorker().then(worker => worker.createRouter({ mediaCodecs })),
+      useFactory: () => createWorker({ rtcMinPort: 30001, rtcMaxPort: 30007 })
+        .then(worker => worker.createRouter({ mediaCodecs })),
     };
   }
 
 }
 
-const mediaCodecs = [
+const mediaCodecs: RtpCodecCapability[] = [
   {
     kind: 'audio',
     mimeType: 'audio/opus',

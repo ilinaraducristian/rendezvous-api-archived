@@ -1,4 +1,10 @@
-import { OnGatewayConnection, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import {
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
+} from '@nestjs/websockets';
 import { Server } from 'socket.io';
 import { UserService } from '../services/user/user.service';
 import { ChannelService } from '../services/channel/channel.service';
@@ -10,7 +16,7 @@ import getSocketByUserId from '../util/get-socket';
 
 @WebSocketGateway()
 @UseInterceptors(EmptyResponseInterceptor)
-export class UserGateway implements OnGatewayConnection<Socket> {
+export class UserGateway implements OnGatewayConnection<Socket>, OnGatewayDisconnect<Socket> {
 
   @WebSocketServer()
   server: Server;
@@ -19,6 +25,17 @@ export class UserGateway implements OnGatewayConnection<Socket> {
     private readonly userService: UserService,
     private readonly channelService: ChannelService,
   ) {
+  }
+
+  handleDisconnect(client: Socket) {
+    client.data.consumers.forEach(consumer => {
+      consumer.close();
+    });
+    client.data.producer.close();
+    client.data.recvTransports.forEach(transport => {
+      transport.close();
+    });
+    client.data.sendTransport?.close();
   }
 
   async handleConnection(client: Socket, ...args: any[]) {

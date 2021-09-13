@@ -1,5 +1,6 @@
 import { DtlsParameters, IceCandidate, IceParameters } from 'mediasoup/lib/WebRtcTransport';
 import { SctpParameters } from 'mediasoup/lib/SctpParameters';
+import { MediaKind, RtpParameters } from 'mediasoup/src/RtpParameters';
 
 export type CreateTransportRequest = {
   type: string
@@ -21,7 +22,12 @@ export type ConnectTransportRequest = {
   dtlsParameters: DtlsParameters,
 }
 
-export type CreateProducerRequest = {}
+export type CreateProducerRequest = {
+  id: string,
+  kind: MediaKind,
+  rtpParameters: RtpParameters,
+  appData: any
+}
 
 export type CreateConsumerRequest = {
   transportId: string,

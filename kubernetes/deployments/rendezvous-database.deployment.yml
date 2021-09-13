@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rendezvous-database-deployment
+  labels:
+    app: rendezvous-database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rendezvous-database
+  template:
+    metadata:
+      labels:
+        app: rendezvous-database
+    spec:
+      containers:
+        - name: database
+          image: ilinaraducristian/rendezvous-database:0.0.1
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: "root"
+            - name: MYSQL_DATABASE
+              value: "keycloak"
+            - name: MYSQL_USER
+              value: "capp"
+            - name: MYSQL_PASSWORD
+              value: "capp"
+          ports:
+            - containerPort: 3306

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rendezvous-object-store-service
+spec:
+  selector:
+    app: rendezvous-object-store
+  ports:
+    - protocol: TCP
+      port: 9000
+      name: object-store1
+    - protocol: TCP
+      port: 9001
+      name: object-store2
