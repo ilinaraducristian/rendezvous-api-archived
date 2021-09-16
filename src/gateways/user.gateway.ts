@@ -28,13 +28,9 @@ export class UserGateway implements OnGatewayConnection<Socket>, OnGatewayDiscon
   }
 
   handleDisconnect(client: Socket) {
-    client.data.consumers.forEach(consumer => {
-      consumer.close();
-    });
-    client.data.producer.close();
-    client.data.recvTransports.forEach(transport => {
-      transport.close();
-    });
+    client.data.consumers.forEach(consumer => consumer.close());
+    client.data.producer?.close();
+    client.data.recvTransports.forEach(transport => transport.close());
     client.data.sendTransport?.close();
   }
 

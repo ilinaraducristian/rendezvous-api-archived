@@ -8,6 +8,7 @@ import {
   JoinVoiceChannelRequest,
   JoinVoiceChannelResponse,
   MoveChannelRequest,
+  MoveChannelResponse,
   NewChannelRequest,
   NewChannelResponse,
 } from '../dtos/channel.dto';
@@ -65,9 +66,11 @@ export class ChannelGateway {
   }
 
   @SubscribeMessage('move_channel')
-  async moveChannel(client: Socket, payload: MoveChannelRequest) {
-    await this.channelService.moveChannel(client.handshake.auth.token, payload);
-    client.to(`server_${payload.serverId}`).emit('channel_moved', payload);
+  async moveChannel(client: Socket, payload: MoveChannelRequest): Promise<MoveChannelResponse> {
+    const serverChannels = await this.channelService.moveChannel(client.handshake.auth.token, payload);
+    const channels = serverChannels.map(({ id, order, group_id: groupId }) => ({ id, groupId, order }));
+    client.to(`server_${payload.serverId}`).emit('channels_moved', { channels });
+    return { channels };
   }
 
 }

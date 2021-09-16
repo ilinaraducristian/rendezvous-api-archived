@@ -285,7 +285,7 @@ BEGIN
              JOIN members m ON g.serverId = m.server_id
         AND m.user_id = userId;
 
-    SELECT c.id, c.serverId, c.groupId, c.type, c.name
+    SELECT c.id, c.serverId, c.groupId, c.`order`, c.type, c.name
     FROM channels_view c
              JOIN members m ON c.serverId = m.server_id
         AND m.user_id = userId;
