@@ -14,6 +14,8 @@ spec:
       labels:
         app: rendezvous-api
     spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
       containers:
         - name: api
           image: ilinaraducristian/rendezvous-api:0.0.1

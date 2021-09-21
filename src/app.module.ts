@@ -122,7 +122,7 @@ export class AppModule {
     return {
       provide: Router,
       // @ts-ignore
-      useFactory: () => createWorker({ rtcMinPort: 30001, rtcMaxPort: 30007 })
+      useFactory: () => createWorker({ rtcMinPort: 64535, rtcMaxPort: 65535 })
         .then(worker => worker.createRouter({ mediaCodecs })),
     };
   }
