@@ -27,6 +27,16 @@ export class MediasoupGateway {
   ) {
   }
 
+  @SubscribeMessage('pause_producer')
+  async pauseProducer(client: Socket) {
+    await client.data.producer?.pause();
+  }
+
+  @SubscribeMessage('resume_producer')
+  async resumeProducer(client: Socket) {
+    await client.data.producer?.resume();
+  }
+
   @SubscribeMessage('get_router_capabilities')
   getRouterCapabilities() {
     return { routerRtpCapabilities: this.router.rtpCapabilities };
@@ -67,12 +77,24 @@ export class MediasoupGateway {
   }
 
   @SubscribeMessage('create_consumer')
-  async createConsumer(client, { transportId, socketId, ...payload }: CreateConsumerRequest) {
+  async createConsumer(client: Socket, { transportId, socketId, ...rtpCapabilities }: CreateConsumerRequest) {
     const producerId = this.server.sockets.sockets.get(socketId).data.producer.id;
     const consumer = await client.data.recvTransports
       .find(transport => transport.id === transportId)
-      .consume({ producerId, ...payload, paused: true });
+      .consume({ producerId, ...rtpCapabilities, paused: true });
     client.data.consumers.push(consumer);
+    consumer.on('producerpause', () => {
+      consumer.pause();
+    });
+    consumer.on('producerresume', () => {
+      consumer.resume();
+    });
+    consumer.observer.on('pause', () => {
+      this.server.to(client.id).emit('consumer_pause', { consumerId: consumer.id });
+    });
+    consumer.observer.on('resume', () => {
+      this.server.to(client.id).emit('consumer_resume', { consumerId: consumer.id });
+    });
     return {
       consumerParameters: {
         id: consumer.id,
