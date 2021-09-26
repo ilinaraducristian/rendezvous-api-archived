@@ -92,7 +92,11 @@ export class ChannelService {
         channel.users = [];
         if (room === undefined) return;
         channel.users = Array.from(room)
-          .map(socketId => ({ socketId, userId: gateway.sockets.sockets.get(socketId).handshake.auth.sub }));
+          .map(socketId => ({
+            socketId,
+            userId: gateway.sockets.sockets.get(socketId).handshake.auth.sub,
+            isTalking: false,
+          }));
       }
     };
   }
