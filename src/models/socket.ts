@@ -9,7 +9,7 @@ type Socket = Omit<SocketIOSocket, 'data'> & {
     consumers: Consumer[],
     producer?: Producer,
     sendTransport?: WebRtcTransport,
-    recvTransports: WebRtcTransport[]
+    recvTransport?: WebRtcTransport
   },
   handshake: Omit<Handshake, 'auth'> & {
     auth: {

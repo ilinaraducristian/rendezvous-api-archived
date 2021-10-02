@@ -6,8 +6,8 @@ import Socket from '../models/socket';
 import {
   ConnectTransportRequest,
   CreateConsumerRequest,
+  CreateConsumersResponse,
   CreateProducerRequest,
-  CreateTransportRequest,
   CreateTransportResponse,
   ResumeConsumerRequest,
 } from '../dtos/mediasoup.dto';
@@ -42,32 +42,33 @@ export class MediasoupGateway {
     return { routerRtpCapabilities: this.router.rtpCapabilities };
   }
 
-  @SubscribeMessage('create_transport')
-  async createTransport(client: Socket, { type }: CreateTransportRequest): Promise<CreateTransportResponse> {
-    const transport = await this.router.createWebRtcTransport(global.webRtcTransportOptions);
-    if (type === 'send') {
-      client.data.sendTransport = transport;
-    } else if (type === 'recv') {
-      client.data.recvTransports.push(transport);
-    }
+  @SubscribeMessage('create_transports')
+  async createTransport(client: Socket): Promise<CreateTransportResponse> {
+    const sendTransport = await this.router.createWebRtcTransport(global.webRtcTransportOptions);
+    const recvTransport = await this.router.createWebRtcTransport(global.webRtcTransportOptions);
+    client.data.sendTransport = sendTransport;
+    client.data.recvTransport = recvTransport;
     return {
-      transportParameters: {
-        id: transport.id,
-        iceParameters: transport.iceParameters,
-        iceCandidates: transport.iceCandidates,
-        dtlsParameters: transport.dtlsParameters,
-        sctpParameters: transport.sctpParameters,
+      sendTransportParameters: {
+        id: sendTransport.id,
+        iceParameters: sendTransport.iceParameters,
+        iceCandidates: sendTransport.iceCandidates,
+        dtlsParameters: sendTransport.dtlsParameters,
+        sctpParameters: sendTransport.sctpParameters,
+      },
+      recvTransportParameters: {
+        id: recvTransport.id,
+        iceParameters: recvTransport.iceParameters,
+        iceCandidates: recvTransport.iceCandidates,
+        dtlsParameters: recvTransport.dtlsParameters,
+        sctpParameters: recvTransport.sctpParameters,
       },
     };
   }
 
   @SubscribeMessage('connect_transport')
-  async connectSendTransport(client: Socket, { type, id, dtlsParameters }: ConnectTransportRequest) {
-    if (type === 'send') {
-      await client.data.sendTransport.connect({ dtlsParameters });
-    } else if (type === 'recv') {
-      await client.data.recvTransports.find(transport => transport.id === id).connect({ dtlsParameters });
-    }
+  async connectSendTransport(client: Socket, { type, dtlsParameters }: ConnectTransportRequest) {
+    client.data[`${type}Transport`].connect({ dtlsParameters });
   }
 
   @SubscribeMessage('create_producer')
@@ -77,33 +78,31 @@ export class MediasoupGateway {
   }
 
   @SubscribeMessage('create_consumer')
-  async createConsumer(client: Socket, { transportId, socketId, ...rtpCapabilities }: CreateConsumerRequest) {
-    const producerId = this.server.sockets.sockets.get(socketId).data.producer.id;
-    const consumer = await client.data.recvTransports
-      .find(transport => transport.id === transportId)
-      .consume({ producerId, ...rtpCapabilities, paused: true });
-    client.data.consumers.push(consumer);
-    consumer.on('producerpause', () => {
-      consumer.pause();
-    });
-    consumer.on('producerresume', () => {
-      consumer.resume();
-    });
-    consumer.observer.on('pause', () => {
-      this.server.to(client.id).emit('consumer_pause', { consumerId: consumer.id });
-    });
-    consumer.observer.on('resume', () => {
-      this.server.to(client.id).emit('consumer_resume', { consumerId: consumer.id });
-    });
-    return {
-      consumerParameters: {
+  async createConsumer(client: Socket, { consumers }: CreateConsumerRequest): Promise<CreateConsumersResponse> {
+    return Promise.all(consumers.map(async ({ socketId, ...rtpCapabilities }) => {
+      const producerId = this.server.sockets.sockets.get(socketId).data.producer.id;
+      const consumer = await client.data.recvTransport.consume({ producerId, ...rtpCapabilities, paused: true });
+      client.data.consumers.push(consumer);
+      consumer.on('producerpause', () => {
+        consumer.pause();
+      });
+      consumer.on('producerresume', () => {
+        consumer.resume();
+      });
+      consumer.observer.on('pause', () => {
+        this.server.to(client.id).emit('consumer_pause', { consumerId: consumer.id });
+      });
+      consumer.observer.on('resume', () => {
+        this.server.to(client.id).emit('consumer_resume', { consumerId: consumer.id });
+      });
+      return {
         id: consumer.id,
         producerId,
         rtpParameters: consumer.rtpParameters,
         kind: consumer.kind,
         appData: consumer.appData,
-      },
-    };
+      };
+    })).then(consumersParameters => ({ consumersParameters }));
   }
 
   @SubscribeMessage('resume_consumer')

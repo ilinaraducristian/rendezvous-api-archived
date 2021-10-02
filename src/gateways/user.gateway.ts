@@ -30,7 +30,7 @@ export class UserGateway implements OnGatewayConnection<Socket>, OnGatewayDiscon
   handleDisconnect(client: Socket) {
     client.data.consumers.forEach(consumer => consumer.close());
     client.data.producer?.close();
-    client.data.recvTransports.forEach(transport => transport.close());
+    client.data.recvTransport?.close();
     client.data.sendTransport?.close();
   }
 
@@ -38,7 +38,7 @@ export class UserGateway implements OnGatewayConnection<Socket>, OnGatewayDiscon
     const userServersIds = await this.userService.getUserServersIds(
       client.handshake.auth.sub,
     );
-    client.data = { consumers: [], recvTransports: [] };
+    client.data = { consumers: [] };
     await Promise.all(userServersIds.map((id) =>
       client.join(`server_${id}`),
     ));

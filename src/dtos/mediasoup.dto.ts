@@ -6,19 +6,21 @@ export type CreateTransportRequest = {
   type: string
 }
 
+export type TransportParameters = {
+  id: string,
+  iceParameters: IceParameters,
+  iceCandidates: IceCandidate[],
+  dtlsParameters: DtlsParameters,
+  sctpParameters: SctpParameters,
+}
+
 export type CreateTransportResponse = {
-  transportParameters: {
-    id: string,
-    iceParameters: IceParameters,
-    iceCandidates: IceCandidate[],
-    dtlsParameters: DtlsParameters,
-    sctpParameters: SctpParameters,
-  },
+  sendTransportParameters: TransportParameters,
+  recvTransportParameters: TransportParameters
 }
 
 export type ConnectTransportRequest = {
   type: string,
-  id: string
   dtlsParameters: DtlsParameters,
 }
 
@@ -30,9 +32,14 @@ export type CreateProducerRequest = {
 }
 
 export type CreateConsumerRequest = {
-  transportId: string,
-  socketId: string,
-  rtpCapabilities: RtpCapabilities
+  consumers: {
+    socketId: string,
+    rtpCapabilities: RtpCapabilities
+  }[]
+}
+
+export type CreateConsumersResponse = {
+  consumersParameters: { id: string, producerId: string, rtpParameters: RtpParameters, kind: MediaKind, appData: any }[]
 }
 
 export type ResumeConsumerRequest = {

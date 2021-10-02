@@ -29,6 +29,10 @@ export class ChannelGateway {
     serverId,
     channelId,
   }: JoinVoiceChannelRequest): Promise<JoinVoiceChannelResponse> {
+    const clientRooms = client.rooms.values();
+    for (const room of clientRooms) {
+      if (room.includes('channel')) client.leave(room);
+    }
     await client.join(`channel_${channelId}`);
     client.to(`server_${serverId}`).emit('user_joined_voice-channel', {
       channelId,

@@ -37,6 +37,12 @@ export type JoinVoiceChannelResponse = {
   userId: string
 }[]
 
+export type LeaveVoiceChannelRequest = {
+  channelId: number
+}
+
+export type LeaveVoiceChannelResponse = {}
+
 export type NewChannelRequest = {
   serverId: number,
   groupId: number | null,
