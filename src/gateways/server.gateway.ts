@@ -7,6 +7,7 @@ import {
   JoinServerRequest,
   JoinServerResponse,
   NewInvitationRequest,
+  NewInvitationResponse,
   NewServerRequest,
   NewServerResponse,
 } from '../dtos/server.dto';
@@ -41,7 +42,7 @@ export class ServerGateway {
   }
 
   @SubscribeMessage('create_invitation')
-  async createInvitation(client: Socket, { serverId }: NewInvitationRequest) {
+  async createInvitation(client: Socket, { serverId }: NewInvitationRequest): Promise<NewInvitationResponse> {
     return { invitation: await this.serverService.createInvitation(client.handshake.auth.sub, serverId) };
   }
 

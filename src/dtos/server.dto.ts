@@ -24,6 +24,10 @@ export type NewInvitationRequest = {
   serverId: number,
 }
 
+export type NewInvitationResponse = {
+  invitation: string
+}
+
 export type JoinServerRequest = {
   invitation: string
 }
