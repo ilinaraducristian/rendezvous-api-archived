@@ -62,7 +62,7 @@ export class ServerGateway {
       group.channels.forEach(this.channelService.processChannel(this.server)),
     );
 
-    client.join(`server_${serverId}`);
+    await client.join(`server_${serverId}`);
     client.to(`server_${serverId}`).emit('new_member', {
       member: newMember,
       user: newUser,

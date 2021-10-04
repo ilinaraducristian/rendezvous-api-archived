@@ -49,6 +49,19 @@ export class ChannelGateway {
       }));
   }
 
+  @SubscribeMessage('leave_voice_channel')
+  async leaveVoiceChannel(client: Socket, { serverId, channelId }: JoinVoiceChannelRequest) {
+    const clientRooms = client.rooms.values();
+    for (const room of clientRooms) {
+      if (room.includes('channel')) client.leave(room);
+    }
+    client.to(`server_${serverId}`).emit('user_left_voice-channel', {
+      socketId: client.id,
+      channelId,
+    });
+    return { socketId: client.id, channelId };
+  }
+
   @SubscribeMessage('create_channel')
   async createChannel(client: Socket, payload: NewChannelRequest): Promise<NewChannelResponse> {
     const channelId = await this.channelService.createChannel(
