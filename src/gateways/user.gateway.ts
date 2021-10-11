@@ -47,14 +47,12 @@ export class UserGateway implements OnGatewayConnection<Socket>, OnGatewayDiscon
   @SubscribeMessage('get_user_data')
   async getUserData(client: Socket): Promise<UserDataResponse> {
     const response = await this.userService.getUserData(client.handshake.auth.sub);
-
     response.servers.forEach(server => {
       server.channels.forEach(this.channelService.processChannel(this.server));
       server.groups.forEach(group =>
         group.channels.forEach(this.channelService.processChannel(this.server)),
       );
     });
-
     return response;
   }
 

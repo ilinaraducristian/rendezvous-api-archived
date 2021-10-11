@@ -2,7 +2,7 @@ import { SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/web
 import { Server } from 'socket.io';
 import { GroupService } from '../services/group/group.service';
 import Socket from '../models/socket';
-import { NewGroupRequest, NewGroupResponse } from '../dtos/group.dto';
+import { MoveGroupRequest, MoveGroupResponse, NewGroupRequest, NewGroupResponse } from '../dtos/group.dto';
 
 @WebSocketGateway()
 export class GroupGateway {
@@ -32,8 +32,9 @@ export class GroupGateway {
   }
 
   @SubscribeMessage('move_group')
-  async moveGroup(client: Socket, payload: any) {
-    await this.groupService.moveGroup();
+  async moveGroup(client: Socket, payload: MoveGroupRequest): Promise<MoveGroupResponse> {
+    const groups = await this.groupService.moveGroup(client.handshake.auth.sub, payload);
+    return { groups };
   }
 
 }

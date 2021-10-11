@@ -1,17 +1,13 @@
-import { INestApplicationContext, Inject } from '@nestjs/common';
+import { INestApplicationContext } from '@nestjs/common';
 import { isFunction, isNil } from '@nestjs/common/utils/shared.utils';
 import { AbstractWsAdapter, MessageMappingProperties } from '@nestjs/websockets';
 import { DISCONNECT_EVENT } from '@nestjs/websockets/constants';
 import { fromEvent, Observable } from 'rxjs';
 import { filter, first, map, mergeMap, share, takeUntil } from 'rxjs/operators';
 import { Server } from 'socket.io';
-import { AppService } from 'src/services/app/app.service';
 import tokens from 'src/tokens';
 
 export class SocketIoAdapter extends AbstractWsAdapter {
-
-  @Inject('AppService')
-  private readonly appService: AppService;
 
   constructor(
     appOrHttpServer?: INestApplicationContext | any,

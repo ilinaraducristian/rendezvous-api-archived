@@ -1,6 +1,5 @@
 import { SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server } from 'socket.io';
-import { AppService } from '../services/app/app.service';
 import { Router } from 'mediasoup/lib/Router';
 import Socket from '../models/socket';
 import {
@@ -22,7 +21,6 @@ export class MediasoupGateway {
   server: Server;
 
   constructor(
-    private readonly appService: AppService,
     private readonly router: Router,
   ) {
   }
@@ -77,12 +75,29 @@ export class MediasoupGateway {
     return { id: client.data.producer.id };
   }
 
+  @SubscribeMessage('close_producer')
+  async closeProducer(client: Socket) {
+    client.data.producer?.close();
+    client.data.producer = undefined;
+  }
+
+  @SubscribeMessage('close_transports')
+  async closeTransports(client: Socket) {
+    client.data.recvTransport?.close();
+    client.data.sendTransport?.close();
+    client.data.recvTransport = undefined;
+    client.data.sendTransport = undefined;
+  }
+
   @SubscribeMessage('create_consumer')
   async createConsumer(client: Socket, { consumers }: CreateConsumerRequest): Promise<CreateConsumersResponse> {
     return Promise.all(consumers.map(async ({ socketId, ...rtpCapabilities }) => {
       const producerId = this.server.sockets.sockets.get(socketId).data.producer.id;
       const consumer = await client.data.recvTransport.consume({ producerId, ...rtpCapabilities, paused: true });
       client.data.consumers.push(consumer);
+      consumer.on('producerclose', () => {
+        consumer.close();
+      });
       consumer.on('producerpause', () => {
         consumer.pause();
       });

@@ -1,18 +1,37 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { GroupService } from './group.service';
+import { AppModule } from '../../app.module';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from 'nest-keycloak-connect';
 
 describe('GroupService', () => {
   let service: GroupService;
+  let module: TestingModule;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [GroupService],
+    module = await Test.createTestingModule({
+      imports: [
+        ...AppModule.asyncImports(),
+      ],
+      providers: [
+        {
+          provide: APP_GUARD,
+          useClass: AuthGuard,
+        },
+        AppModule.mediasoupProvider(),
+        ...AppModule.services,
+        ...AppModule.gateways,
+      ],
     }).compile();
 
     service = module.get<GroupService>(GroupService);
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+  afterAll(async () => {
+    await module.close();
+  });
+
+  it('should rearrange groups', async () => {
+
   });
 });

@@ -22,6 +22,7 @@ CREATE TABLE `groups`
     id        int PRIMARY KEY AUTO_INCREMENT,
     server_id int          NOT NULL,
     name      varchar(255) NOT NULL,
+    `order`   int unsigned NOT NULL,
     FOREIGN KEY (server_id) REFERENCES servers (id) ON DELETE CASCADE
 )$$
 
@@ -151,7 +152,7 @@ FROM servers s $$
 
 CREATE VIEW groups_view
 AS
-SELECT g.id, g.server_id as serverId, g.name
+SELECT g.id, g.server_id as serverId, g.name, g.`order`
 FROM `groups` g $$
 
 CREATE VIEW channels_view
@@ -280,7 +281,7 @@ BEGIN
              JOIN members m ON s.id = m.server_id
         AND m.user_id = userId;
 
-    SELECT g.id, g.serverId, g.name
+    SELECT g.id, g.serverId, g.name, g.`order`
     FROM groups_view g
              JOIN members m ON g.serverId = m.server_id
         AND m.user_id = userId;
@@ -353,7 +354,7 @@ BEGIN
     FROM servers_view s
     WHERE id = @serverId;
 
-    SELECT g.id, g.serverId, g.name
+    SELECT g.id, g.serverId, g.name, g.`order`
     FROM groups_view g
     WHERE g.serverId = @serverId;
 
@@ -416,9 +417,9 @@ BEGIN
     END IF;
     INSERT INTO servers (name, user_id) VALUES (@serverName, userId);
     SET @serverId = LAST_INSERT_ID();
-    INSERT INTO `groups` (server_id, name) VALUES (@serverId, @group1Name);
+    INSERT INTO `groups` (server_id, name, `order`) VALUES (@serverId, @group1Name, 0);
     SET @group1Id = LAST_INSERT_ID();
-    INSERT INTO `groups` (server_id, name) VALUES (@serverId, @group2Name);
+    INSERT INTO `groups` (server_id, name, `order`) VALUES (@serverId, @group2Name, 1);
     SET @group2Id = LAST_INSERT_ID();
     INSERT INTO channels (server_id, group_id, type, name, `order`)
     VALUES (@serverId, @group1Id, 'text', @channel1Name, 0);
@@ -431,7 +432,7 @@ BEGIN
     FROM servers_view s
     WHERE id = @serverId;
 
-    SELECT g.id, g.serverId, g.name
+    SELECT g.id, g.serverId, g.name, g.`order`
     FROM groups_view g
     WHERE g.serverId = @serverId;
 
@@ -467,13 +468,11 @@ BEGIN
         END IF;
     END IF;
 
-    SELECT c.`order`
+    SELECT MAX(`order`)
     INTO @lastChannelOrder
     FROM channels c
     WHERE server_id = serverId
-      AND group_id = c.group_id
-    ORDER BY c.`order` DESC
-    LIMIT 1;
+      AND group_id = c.group_id;
 
     INSERT INTO channels (server_id, group_id, type, name, `order`)
     VALUES (serverId, groupId, channelType, channelName, @lastChannelOrder + 1);
@@ -511,7 +510,12 @@ BEGIN
 
     SELECT is_member(userId, serverId) INTO @isMember;
 
-    INSERT INTO `groups` (server_id, name) VALUES (serverId, groupName);
+    SELECT MAX(`order`)
+    INTO @lastGroupOrder
+    FROM `groups` g
+    WHERE server_id = serverId;
+
+    INSERT INTO `groups` (server_id, name, `order`) VALUES (serverId, groupName, @lastGroupOrder);
 
     RETURN LAST_INSERT_ID();
 

@@ -19,7 +19,6 @@ import { MessageService } from './services/message/message.service';
 import { ChannelService } from './services/channel/channel.service';
 import { GroupService } from './services/group/group.service';
 import { ObjectStoreService } from './services/object-store/object-store.service';
-import { AppService } from './services/app/app.service';
 import { AppController } from './app.controller';
 import { UserGateway } from './gateways/user.gateway';
 import { GroupGateway } from './gateways/group.gateway';
@@ -28,6 +27,7 @@ import { FriendshipEntity } from './entities/friendship.entity';
 import { FriendshipService } from './services/friendship/friendship.service';
 import { MemberEntity } from './entities/member.entity';
 import { RtpCodecCapability } from 'mediasoup/src/RtpParameters';
+import { GroupEntity } from './entities/group.entity';
 
 @Module({
   imports: [
@@ -48,7 +48,6 @@ export class AppModule {
 
   static envVariables: { [key: string]: string };
   static services = [
-    AppService,
     UserService,
     ServerService,
     DatabaseService,
@@ -98,7 +97,7 @@ export class AppModule {
       synchronize: false,
       retryAttempts: 500,
     };
-    const entities = [ChannelEntity, MessageEntity, ServerEntity, FriendshipEntity, MemberEntity];
+    const entities = [ServerEntity, GroupEntity, ChannelEntity, MessageEntity, FriendshipEntity, MemberEntity];
     return [
       TypeOrmModule.forRoot(
         {

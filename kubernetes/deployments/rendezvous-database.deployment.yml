@@ -14,6 +14,10 @@ spec:
       labels:
         app: rendezvous-database
     spec:
+      volumes:
+        - name: datadir
+          hostPath:
+            path: /home/rendezvous/db/data
       containers:
         - name: database
           image: ilinaraducristian/rendezvous-database:0.0.1
@@ -28,3 +32,6 @@ spec:
               value: "capp"
           ports:
             - containerPort: 3306
+          volumeMounts:
+            - name: /var/lib/mysql
+              mountPath: datadir
