@@ -18,9 +18,25 @@ spec:
         - name: datadir
           hostPath:
             path: /home/rendezvous/db/data
+      initContainers:
+        - name: ensure-volumes-ownership
+          image: ilinaraducristian/rendezvous-database:0.0.1
+          imagePullPolicy: Always
+          securityContext:
+            runAsUser: 0
+
+          command:
+            - "sh"
+            - "-c"
+            - "chown mysql:mysql -R /var/lib/mysql"
+
+          volumeMounts:
+            - name: datadir
+              mountPath: /var/lib/mysql
       containers:
         - name: database
           image: ilinaraducristian/rendezvous-database:0.0.1
+          imagePullPolicy: Always
           env:
             - name: MYSQL_ROOT_PASSWORD
               value: "root"
@@ -33,5 +49,5 @@ spec:
           ports:
             - containerPort: 3306
           volumeMounts:
-            - name: /var/lib/mysql
-              mountPath: datadir
+            - name: datadir
+              mountPath: /var/lib/mysql
