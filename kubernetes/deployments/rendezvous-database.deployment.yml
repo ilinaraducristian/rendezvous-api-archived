@@ -24,12 +24,10 @@ spec:
           imagePullPolicy: Always
           securityContext:
             runAsUser: 0
-
           command:
             - "sh"
             - "-c"
             - "chown mysql:mysql -R /var/lib/mysql"
-
           volumeMounts:
             - name: datadir
               mountPath: /var/lib/mysql

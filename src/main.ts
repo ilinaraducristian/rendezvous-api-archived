@@ -9,8 +9,13 @@ bootstrap();
 async function bootstrap() {
 
   const { ip } = await fetch('https://api.ipify.org?format=json').then(response => response.json());
+  const listenIp =
+    process.env.ENVIRONMENT === 'production' ?
+      { ip: '0.0.0.0', announcedIp: ip }
+      :
+      { ip: '192.168.1.4' };
   global.webRtcTransportOptions = {
-    listenIps: [{ ip: '192.168.1.4' }],
+    listenIps: [listenIp],
     enableTcp: true,
     enableUdp: true,
     preferUdp: true,
