@@ -49,7 +49,7 @@ export class ChannelService {
         .sort((ch1, ch2) => ch1.order - ch2.order);
       myChannelIndex = sourceGroupSortedChannels.findIndex(channel => payload.channelId === channel.id);
       if (myChannelIndex === -1) throw new Error('Channel does not exist');
-      const myChannel = sourceGroupSortedChannels.splice(myChannelIndex, 1)[0];
+      const myChannel = sourceGroupSortedChannels.splice(sourceGroupSortedChannels.findIndex(channel => channel === undefined), 1)[0];
       // change channel group id
       myChannel.group_id = payload.groupId;
       // add it to the second group
@@ -76,7 +76,7 @@ export class ChannelService {
       groupSortedChannels[myChannelIndex] = null;
       groupSortedChannels.splice(payload.order, 0, myChannel);
       myChannelIndex = groupSortedChannels.findIndex(channel => channel === null);
-      groupSortedChannels.splice(myChannelIndex, 1);
+      groupSortedChannels.splice(groupSortedChannels.findIndex(channel => channel === undefined), 1);
       groupSortedChannels = groupSortedChannels.map((channel, order) => ({ ...channel, order }));
       await Promise.all(groupSortedChannels.map(channel => this.channelRepository.update(channel.id, { order: channel.order })));
     }

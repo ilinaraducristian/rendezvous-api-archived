@@ -4,10 +4,11 @@ import { UserService } from '../user/user.service';
 import { ProcedureServerResponseType } from '../../models/database-response.model';
 import { UserServersData } from '../../dtos/user.dto';
 import { Server } from '../../dtos/server.dto';
-import { ChannelType, TextChannel } from '../../dtos/channel.dto';
+import { ChannelType, MoveServerRequest, TextChannel } from '../../dtos/channel.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ServerEntity } from '../../entities/server.entity';
+import { MemberEntity } from '../../entities/member.entity';
 
 @Injectable()
 export class ServerService {
@@ -15,6 +16,8 @@ export class ServerService {
   constructor(
     @InjectRepository(ServerEntity)
     private serverRepository: Repository<ServerEntity>,
+    @InjectRepository(MemberEntity)
+    private memberRepository: Repository<MemberEntity>,
     private readonly databaseService: DatabaseService,
     private readonly userService: UserService,
   ) {
@@ -98,6 +101,23 @@ export class ServerService {
     const response = ServerService.processQuery(result);
     response.users = users;
     return response;
+  }
+
+  async moveServer(userId: string, { serverId, order }: MoveServerRequest) {
+    const findMembers = () => {
+      return this.memberRepository.find({ select: ['id', 'server_id', 'order'], where: { user_id: userId } });
+    };
+    let members = await findMembers();
+    const memberIndex = members.findIndex(member => member.server_id === serverId);
+    if (memberIndex === -1) return;
+    const member = members[memberIndex];
+    if (member.order === order || member.order + 1 === order) return;
+    members[memberIndex] = undefined;
+    members.splice(order, 0, member);
+    members.splice(members.findIndex(member => member === undefined), 1);
+    members = members.map((server, index) => ({ ...server, order: index }));
+    await Promise.all(members.map(({ id, order }) => this.memberRepository.update(id, { order })));
+    return await findMembers();
   }
 
   deleteServer(userId: string, serverId: number) {

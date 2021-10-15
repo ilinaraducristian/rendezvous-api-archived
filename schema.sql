@@ -59,6 +59,7 @@ CREATE TABLE members
     id        int PRIMARY KEY AUTO_INCREMENT,
     server_id int      NOT NULL,
     user_id   char(36) NOT NULL,
+    `order`   int      NOT NULL,
     FOREIGN KEY (server_id) REFERENCES servers (id) ON DELETE CASCADE
 )$$
 
@@ -276,7 +277,7 @@ END $$
 
 CREATE PROCEDURE get_user_data(userId char(36))
 BEGIN
-    SELECT s.id, s.name, s.userId, s.invitation, s.invitationExp
+    SELECT s.id, s.name, s.userId, s.invitation, s.invitationExp, m.`order`
     FROM servers_view s
              JOIN members m ON s.id = m.server_id
         AND m.user_id = userId;
@@ -348,11 +349,18 @@ BEGIN
             SET MESSAGE_TEXT = 'Invitation expired';
     END IF;
 
-    INSERT INTO members (server_id, user_id) VALUES (@serverId, userId);
+    SELECT MAX(`order`)
+    INTO @lastServerOrder
+    FROM servers s
+             JOIN members m on s.id = m.server_id
+    WHERE m.user_id = userId;
 
-    SELECT s.id, s.name, s.userId, s.invitation, s.invitationExp
+    INSERT INTO members (server_id, user_id, `order`) VALUES (@serverId, userId, IFNULL(@lastServerOrder + 1, 0));
+
+    SELECT s.id, s.name, s.userId, s.invitation, s.invitationExp, m.`order`
     FROM servers_view s
-    WHERE id = @serverId;
+             JOIN members m ON m.user_id = userId AND m.server_id = @serverId
+    WHERE s.id = @serverId;
 
     SELECT g.id, g.serverId, g.name, g.`order`
     FROM groups_view g
@@ -426,9 +434,15 @@ BEGIN
     INSERT INTO channels (server_id, group_id, type, name, `order`)
     VALUES (@serverId, @group2Id, 'voice', @channel2Name, 0);
 
-    INSERT INTO members (server_id, user_id) VALUES (@serverId, userId);
+    SELECT MAX(`order`)
+    INTO @lastServerOrder
+    FROM servers s
+             JOIN members m on s.id = m.server_id
+    WHERE m.user_id = userId;
 
-    SELECT s.id, s.name, s.userId, s.invitation, s.invitationExp
+    INSERT INTO members (server_id, user_id, `order`) VALUES (@serverId, userId, IFNULL(@lastServerOrder + 1, 0));
+
+    SELECT s.id, s.name, s.userId, s.invitation, s.invitationExp, IFNULL(@lastServerOrder, 0) as `order`
     FROM servers_view s
     WHERE id = @serverId;
 

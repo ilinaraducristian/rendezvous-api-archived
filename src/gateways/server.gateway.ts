@@ -13,6 +13,7 @@ import {
 } from '../dtos/server.dto';
 import { UseInterceptors } from '@nestjs/common';
 import { EmptyResponseInterceptor } from '../empty-response.interceptor';
+import { MoveServerRequest, MoveServerResponse } from '../dtos/channel.dto';
 
 @WebSocketGateway()
 @UseInterceptors(EmptyResponseInterceptor)
@@ -68,6 +69,13 @@ export class ServerGateway {
       user: newUser,
     });
     return result;
+  }
+
+  @SubscribeMessage('move_server')
+  async moveServer(client: Socket, payload: MoveServerRequest): Promise<MoveServerResponse> {
+    const userServers = await this.serverService.moveServer(client.handshake.auth.sub, payload);
+    console.log(userServers);
+    return { servers: userServers.map(({ id, order }) => ({ id, order })) };
   }
 
   @SubscribeMessage('delete_server')

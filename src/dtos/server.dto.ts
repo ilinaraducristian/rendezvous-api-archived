@@ -7,6 +7,7 @@ export type Server = {
   id: number,
   name: string,
   userId: string,
+  order: number,
   invitation: string | null,
   invitationExp: string | null,
   channels: Channel[], // channels without a group

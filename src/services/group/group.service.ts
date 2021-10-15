@@ -35,7 +35,7 @@ export class GroupService {
     if (group.order === order || group.order + 1 === order) return;
     serverGroups[groupIndex] = undefined;
     serverGroups.splice(order, 0, group);
-    serverGroups.splice(groupIndex, 1);
+    serverGroups.splice(serverGroups.findIndex(group => group === undefined), 1);
     serverGroups = serverGroups.map((group, index) => ({ ...group, order: index }));
     await Promise.all(serverGroups.map(({ id, order }) => this.groupRepository.update(id, { order })));
     return findGroups();

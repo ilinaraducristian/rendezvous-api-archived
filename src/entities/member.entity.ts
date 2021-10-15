@@ -13,6 +13,9 @@ export class MemberEntity {
   @Column({ nullable: false })
   user_id: string;
 
+  @Column({ nullable: false })
+  order: number;
+
   @ManyToOne(() => ServerEntity, server => server.members)
   server: ServerEntity;
 
