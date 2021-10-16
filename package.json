@@ -19,6 +19,7 @@
     "push:all": "yarn run push:api && yarn run push:databse && yarn run push:iam && yarn run push:object-store && yarn run push:proxy",
     "buildandpush": "yarn run build:all && yarn run push:all",
     "apply:api": "kubectl apply -f ./kubernetes/deployments/rendezvous-api.deployment.yml && kubectl rollout restart deployment rendezvous-api-deployment",
+    "apply:iam": "kubectl apply -f ./kubernetes/deployments/rendezvous-iam.deployment.yml && kubectl rollout restart deployment rendezvous-iam-deployment",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch -e \"node --trace-warnings\"",

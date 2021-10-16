@@ -37,13 +37,22 @@ spec:
           imagePullPolicy: Always
           env:
             - name: MYSQL_ROOT_PASSWORD
-              value: "root"
+              valueFrom:
+                secretKeyRef:
+                  name: database-secret
+                  key: root_password
             - name: MYSQL_DATABASE
-              value: "keycloak"
+              value: keycloak
             - name: MYSQL_USER
-              value: "capp"
+              valueFrom:
+                secretKeyRef:
+                  name: database-secret
+                  key: keycloak_user
             - name: MYSQL_PASSWORD
-              value: "capp"
+              valueFrom:
+                secretKeyRef:
+                  name: database-secret
+                  key: keycloak_password
           ports:
             - containerPort: 3306
           volumeMounts:

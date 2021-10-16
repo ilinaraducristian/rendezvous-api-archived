@@ -20,3 +20,26 @@ spec:
         - name: api
           image: ilinaraducristian/rendezvous-api:0.0.1
           imagePullPolicy: Always
+          env:
+            - name: DB_USER
+              value: root
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: database-secret
+                  key: root_password
+            - name: KEYCLOAK_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-secret
+                  key: client_secret
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: access_key
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: secret_key

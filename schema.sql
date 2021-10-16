@@ -1,6 +1,6 @@
-DROP DATABASE IF EXISTS capp;
-CREATE DATABASE capp;
-USE capp;
+DROP DATABASE IF EXISTS rendezvous;
+CREATE DATABASE rendezvous;
+USE rendezvous;
 
 DELIMITER $$
 

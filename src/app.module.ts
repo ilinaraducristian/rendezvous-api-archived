@@ -71,7 +71,7 @@ export class AppModule {
     if (parsed === undefined)
       AppModule.envVariables = process.env;
     else
-      AppModule.envVariables = parsed;
+      AppModule.envVariables = Object.assign(parsed, process.env);
     return [
       ...AppModule.typeORM(),
       KeycloakConnectModule.register({

@@ -29,16 +29,36 @@ spec:
             - name: DB_DATABASE
               value: "keycloak"
             - name: DB_USER
-              value: "root"
+              valueFrom:
+                secretKeyRef:
+                  name: database-secret
+                  key: keycloak_user
             - name: DB_PASSWORD
-              value: "root"
+              valueFrom:
+                secretKeyRef:
+                  name: database-secret
+                  key: keycloak_password
             - name: KEYCLOAK_USER
-              value: "admin"
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-secret
+                  key: user
             - name: KEYCLOAK_PASSWORD
-              value: "admin"
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-secret
+                  key: password
             - name: KEYCLOAK_IMPORT
-              value: "/tmp/capp.json"
+              value: "/tmp/rendezvous.json"
             - name: PROXY_ADDRESS_FORWARDING
               value: "true"
+          volumeMounts:
+            - name: realm-file
+              mountPath: /tmp/rendezvous.json
+              subPath: rendezvous.json
           ports:
             - containerPort: 8080
+      volumes:
+        - name: realm-file
+          configMap:
+            name: rendezvous-iam-configmap
