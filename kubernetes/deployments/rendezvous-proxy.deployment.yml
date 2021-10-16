@@ -18,6 +18,17 @@ spec:
         - name: proxy
           image: ilinaraducristian/rendezvous-proxy:0.0.1
           imagePullPolicy: Always
+          volumeMounts:
+            - name: ssl-files
+              mountPath: /etc/ssl/certificate.crt
+              subPath: certificate.crt
+            - name: ssl-files
+              mountPath: /etc/ssl/private.key
+              subPath: private.key
           ports:
             - containerPort: 80
             - containerPort: 443
+      volumes:
+        - name: ssl-files
+          configMap:
+            name: rendezvous-proxy-configmap
