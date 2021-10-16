@@ -1,4 +1,4 @@
-USE capp;
+USE rendezvous;
 
 # 100 test users
 SET @user1 = '40ede82c-41a3-44b9-97d7-25dc25bde568';
@@ -18,7 +18,8 @@ SET @user20 = '6bee0a4c-eec0-43f0-ba45-0912bf428abb';
 SET @user21 = 'a2b0eeab-61fe-431c-98c6-4e727d907b2a';
 SET @user22 = 'ffd84094-e93e-4472-a924-d924c515a935';
 SET @user23 = 'ab950251-3e26-4059-9edd-bebaa92f2aea';
-SET @user24 = '9fc1e307-cc61-4dbe-84ee-fa4d6f71537d';
+SET
+    @user24 = '9fc1e307-cc61-4dbe-84ee-fa4d6f71537d';
 SET @user25 = '69902aa6-097e-42ee-8131-0becf43aba69';
 SET @user26 = '21567e40-7680-487e-aa98-6ee5ba1a7143';
 SET @user27 = '9b7b853b-1547-4bb1-b62b-cd2bda6c5bf9';
@@ -102,7 +103,7 @@ SET @user97 = 'a14b0631-2fc1-4470-9ffc-051efd571fe9';
 SET @user98 = 'ff2ce64e-4a00-401e-bb8b-7d033920a11b';
 SET @user99 = 'fff170b3-2e1e-4b24-9b9a-972b1d6fea37';
 
-USE capp;
+USE rendezvous;
 CALL get_messages(@user1, 1, 30);
 CALL send_message(@user1, 1, 'test message4');
 CALL create_server(@user1, 'a new server');

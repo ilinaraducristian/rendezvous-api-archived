@@ -14,6 +14,10 @@ spec:
       labels:
         app: rendezvous-object-store
     spec:
+      volumes:
+        - name: datadir
+          hostPath:
+            path: /home/rendezvous/object-store/data
       containers:
         - name: object-store
           image: ilinaraducristian/rendezvous-object-store:0.0.1
@@ -34,3 +38,6 @@ spec:
               name: port1
             - containerPort: 9001
               name: port2
+          volumeMounts:
+            - name: datadir
+              mountPath: /data

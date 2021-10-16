@@ -57,15 +57,11 @@ export class MessageService {
       delete newMessage.imageMd5;
       return newMessage;
     });
-    const promises = [];
-    messages.forEach(message => {
-      const newMessage = Object.assign({ image: null }, message);
-      if (newMessage.image === null) return;
-      promises.push(this.objectStoreService.getImage(newMessage.image).then(data => {
-        newMessage.image = data;
-      }));
-    });
-    await Promise.all(promises);
+    await Promise.all(messages.map(message =>
+      this.objectStoreService.getImage(message.image).then(data => {
+        message.image = data;
+      }),
+    ));
     return messages;
   }
 

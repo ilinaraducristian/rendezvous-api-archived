@@ -7,8 +7,6 @@
 !yarn.lock
 !my.cnf
 !schema.sql
-!capp.json
-!capp-prod.json
 !nginx.conf
 !certificate.crt
 !private.key
