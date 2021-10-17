@@ -14,6 +14,9 @@ export class ServerEntity {
   user_id: string;
 
   @Column()
+  image_md5: string | null;
+
+  @Column()
   invitation: string | null;
 
   @Column()

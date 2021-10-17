@@ -11,7 +11,7 @@ export type FunctionIntReturnType = [{ [key: string]: number }, ResultSetHeader]
 export type FunctionStringReturnType = [{ [key: string]: string }, ResultSetHeader];
 
 type temp = [
-  Omit<Server, 'channels' | 'groups' | 'members'>[], Omit<Group, 'channels'>[], Channel[], Member[]
+  Omit<Omit<Server, 'image'> & { imageMd5: string | null }, 'channels' | 'groups' | 'members'>[], Omit<Group, 'channels'>[], Channel[], Member[]
 ]
 
 export type ProcedureUserDataResponseType = [

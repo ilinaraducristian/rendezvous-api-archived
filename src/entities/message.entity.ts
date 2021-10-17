@@ -31,6 +31,6 @@ export class MessageEntity {
   reply_id: number | null;
 
   @Column()
-  image_md5: string;
+  image_md5: string | null;
 
 }

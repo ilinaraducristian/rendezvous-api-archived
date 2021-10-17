@@ -6,10 +6,10 @@ import { DatabaseService } from '../database/database.service';
 import { ProcedureUserDataResponseType } from '../../models/database-response.model';
 import duplicates from '../../util/filter-duplicates';
 import { MemberEntity } from '../../entities/member.entity';
-import { Server } from '../../dtos/server.dto';
 import { User, UserData } from '../../dtos/user.dto';
 import { Member } from '../../dtos/member.dto';
 import { ChannelType, TextChannel } from '../../dtos/channel.dto';
+import { ObjectStoreService } from '../object-store/object-store.service';
 
 
 @Injectable()
@@ -21,19 +21,59 @@ export class UserService {
     private memberRepository: Repository<MemberEntity>,
     @InjectRepository(UserEntity, 'keycloakConnection')
     private keycloakRepository: Repository<UserEntity>,
+    private readonly objectStoreService: ObjectStoreService,
   ) {
   }
 
-  private static processQuery(
+  async getUserData(userId: string): Promise<UserData> {
+    const result = await this.databaseService.get_user_data(userId);
+    let usersIds = result[3]
+      .map(user => ({ ID: user.userId }));
+    usersIds = usersIds.concat(
+      result[4]
+        .map(friendship => ({ ID: friendship.user1Id === userId ? friendship.user2Id : friendship.user1Id })),
+    );
+    usersIds = usersIds.concat(
+      result[5].map(friendRequest => ({ ID: friendRequest.user1Id === userId ? friendRequest.user2Id : friendRequest.user1Id })),
+    );
+    usersIds = usersIds.filter(duplicates);
+    const response = await this.processQuery(result, userId);
+    if (usersIds.length === 0) return { ...response, users: [] };
+    response.users = await this.getUsersDetails(usersIds);
+    return response;
+  }
+
+  getUserServersIds(userId: string): Promise<number[]> {
+    return this.memberRepository.find({
+      select: ['server_id'],
+      where: { user_id: userId },
+    }).then(servers => servers.map(member => member.server_id));
+  }
+
+  private async processQuery(
     result: ProcedureUserDataResponseType,
     userId: string,
-  ): UserData {
+  ): Promise<UserData> {
 
-    const serversTable: Server[] = result[0].map(server => ({
-      ...server,
-      channels: [],
-      groups: [],
-      members: [],
+    const serversTable: any = await Promise.all(result[0].map(server => {
+      const newServer = Object.assign({ image: null }, server);
+      newServer.image = server.imageMd5;
+      delete newServer.imageMd5;
+      if (newServer.image === null) {
+        return {
+          ...newServer,
+          channels: [],
+          groups: [],
+          members: [],
+        };
+      }
+      return this.objectStoreService.getImage(newServer.image).then((data: string) => ({
+        ...newServer,
+        image: data,
+        channels: [],
+        groups: [],
+        members: [],
+      }));
     }));
 
     result[3].forEach((member: Member) => {
@@ -78,31 +118,6 @@ export class UserService {
       friendRequests,
       users: [],
     };
-  }
-
-  getUserServersIds(userId: string): Promise<number[]> {
-    return this.memberRepository.find({
-      select: ['server_id'],
-      where: { user_id: userId },
-    }).then(servers => servers.map(member => member.server_id));
-  }
-
-  async getUserData(userId: string): Promise<UserData> {
-    const result = await this.databaseService.get_user_data(userId);
-    let usersIds = result[3]
-      .map(user => ({ ID: user.userId }));
-    usersIds = usersIds.concat(
-      result[4]
-        .map(friendship => ({ ID: friendship.user1Id === userId ? friendship.user2Id : friendship.user1Id })),
-    );
-    usersIds = usersIds.concat(
-      result[5].map(friendRequest => ({ ID: friendRequest.user1Id === userId ? friendRequest.user2Id : friendRequest.user1Id })),
-    );
-    usersIds = usersIds.filter(duplicates);
-    const response = UserService.processQuery(result, userId);
-    if (usersIds.length === 0) return { ...response, users: [] };
-    response.users = await this.getUsersDetails(usersIds);
-    return response;
   }
 
   getUsersDetails(usersIds: { ID: string }[]): Promise<User[]> {

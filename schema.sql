@@ -9,6 +9,7 @@ CREATE TABLE servers
     id             int PRIMARY KEY AUTO_INCREMENT,
     name           varchar(255) NOT NULL,
     user_id        char(36)     NOT NULL COMMENT ' owner ',
+    image_md5      char(32),
     invitation     char(36),
     invitation_exp datetime,
     CHECK (
@@ -148,7 +149,7 @@ END $$
 
 CREATE VIEW servers_view
 AS
-SELECT s.id, s.name, s.user_id as userId, s.invitation, s.invitation_exp as invitationExp
+SELECT s.id, s.name, s.user_id as userId, s.image_md5 as imageMd5, s.invitation, s.invitation_exp as invitationExp
 FROM servers s $$
 
 CREATE VIEW groups_view
@@ -277,7 +278,7 @@ END $$
 
 CREATE PROCEDURE get_user_data(userId char(36))
 BEGIN
-    SELECT s.id, s.name, s.userId, s.invitation, s.invitationExp, m.`order`
+    SELECT s.id, s.name, s.userId, s.imageMd5, s.invitation, s.invitationExp, m.`order`
     FROM servers_view s
              JOIN members m ON s.id = m.server_id
         AND m.user_id = userId;
@@ -357,7 +358,7 @@ BEGIN
 
     INSERT INTO members (server_id, user_id, `order`) VALUES (@serverId, userId, IFNULL(@lastServerOrder + 1, 0));
 
-    SELECT s.id, s.name, s.userId, s.invitation, s.invitationExp, m.`order`
+    SELECT s.id, s.name, s.userId, s.imageMd5, s.invitation, s.invitationExp, m.`order`
     FROM servers_view s
              JOIN members m ON m.user_id = userId AND m.server_id = @serverId
     WHERE s.id = @serverId;
@@ -442,7 +443,7 @@ BEGIN
 
     INSERT INTO members (server_id, user_id, `order`) VALUES (@serverId, userId, IFNULL(@lastServerOrder + 1, 0));
 
-    SELECT s.id, s.name, s.userId, s.invitation, s.invitationExp, IFNULL(@lastServerOrder, 0) as `order`
+    SELECT s.id, s.name, s.userId, s.imageMd5, s.invitation, s.invitationExp, IFNULL(@lastServerOrder, 0) as `order`
     FROM servers_view s
     WHERE id = @serverId;
 
@@ -494,23 +495,6 @@ BEGIN
     RETURN LAST_INSERT_ID();
 
 END $$
-
-# CREATE PROCEDURE move_channel(userId char(36), serverId int, groupId int, channelId int, channelOrder int)
-# BEGIN
-#
-#     SELECT is_member(userId, serverId);
-#
-#     START TRANSACTION;
-#     UPDATE channels c SET c.`order` = channelOrder WHERE c.id = channelId;
-#     SELECT (SUM(c.`order`) = COUNT(*) - 1) INTO @eq FROM channels c WHERE c.group_id = groupId;
-#     IF @eq = FALSE THEN
-#         ROLLBACK;
-#     ELSE
-#         COMMIT;
-#     END IF;
-#
-# END
-$$
 
 CREATE FUNCTION create_group(userId char(36), serverId int, groupName varchar(255)) RETURNS int DETERMINISTIC
     MODIFIES SQL DATA

@@ -17,8 +17,6 @@ export type KeycloakUser = {
   family_name: string
 }
 
-export type UserDataResponse = UserServersData;
-
 export type AcceptFriendRequest = {
   friendRequestId: number
 }
@@ -37,9 +35,9 @@ export type UserServersData = {
   users: User[]
 }
 
-export type UserData = {
-  servers: Server[],
+export type UserData = UserServersData & {
   friendships: Friendship[],
   friendRequests: FriendRequest[],
-  users: User[]
 }
+
+export type UserDataResponse = UserServersData;

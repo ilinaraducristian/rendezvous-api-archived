@@ -3,12 +3,13 @@ import { DatabaseService } from '../database/database.service';
 import { UserService } from '../user/user.service';
 import { ProcedureServerResponseType } from '../../models/database-response.model';
 import { UserServersData } from '../../dtos/user.dto';
-import { Server } from '../../dtos/server.dto';
-import { ChannelType, MoveServerRequest, TextChannel } from '../../dtos/channel.dto';
+import { MoveServerRequest, UpdateServerImageRequest } from '../../dtos/server.dto';
+import { ChannelType, TextChannel } from '../../dtos/channel.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ServerEntity } from '../../entities/server.entity';
 import { MemberEntity } from '../../entities/member.entity';
+import { ObjectStoreService } from '../object-store/object-store.service';
 
 @Injectable()
 export class ServerService {
@@ -20,18 +21,72 @@ export class ServerService {
     private memberRepository: Repository<MemberEntity>,
     private readonly databaseService: DatabaseService,
     private readonly userService: UserService,
+    private readonly objectStoreService: ObjectStoreService,
   ) {
   }
 
-  private static processQuery(
-    result: ProcedureServerResponseType,
-  ): UserServersData {
+  async joinServer(userId: string, invitation: string): Promise<UserServersData> {
+    let result = await this.databaseService.join_server(userId, invitation);
 
-    const serversTable: Server[] = result[0].map(server => ({
-      ...server,
-      channels: [],
-      groups: [],
-      members: [],
+    const usersIds = result[3].map(member => ({ ID: member.userId }))
+      .filter((user, index, array) => array.indexOf(user) === index);
+
+    const users = await this.userService.getUsersDetails(usersIds);
+
+    const response = await this.processQuery(result);
+    response.users = users;
+    return response;
+  }
+
+  async updateImage(userId: string, payload: UpdateServerImageRequest) {
+    let imageMd5 = null;
+    if (payload.image !== null) {
+      imageMd5 = await this.objectStoreService.putImage(payload.image);
+    }
+    await this.serverRepository.update(payload.serverId, { image_md5: imageMd5 });
+  }
+
+  async createServer(userId: string, name: string): Promise<UserServersData> {
+    let result = await this.databaseService.create_server(userId, name);
+
+    const usersIds = result[3].map(member => ({ ID: member.userId }))
+      .filter((user, index, array) => array.indexOf(user) === index);
+
+    const users = await this.userService.getUsersDetails(usersIds);
+
+    const response = await this.processQuery(result);
+    response.users = users;
+    return response;
+  }
+
+  async createInvitation(userId: string, serverId: number): Promise<string> {
+    return this.databaseService.create_invitation(userId, serverId)
+      .then((result) => Object.values(result[0])[0]);
+  }
+
+  private async processQuery(
+    result: ProcedureServerResponseType,
+  ): Promise<UserServersData> {
+
+    const serversTable: any = await Promise.all(result[0].map(server => {
+      const newServer = Object.assign({ image: null }, server);
+      newServer.image = server.imageMd5;
+      delete newServer.imageMd5;
+      if (newServer.image === null) {
+        return {
+          ...newServer,
+          channels: [],
+          groups: [],
+          members: [],
+        };
+      }
+      return this.objectStoreService.getImage(newServer.image).then((data: string) => ({
+        ...newServer,
+        image: data,
+        channels: [],
+        groups: [],
+        members: [],
+      }));
     }));
 
     result[3].forEach(member => {
@@ -65,42 +120,10 @@ export class ServerService {
       }
     });
 
-
     return {
       servers: serversTable,
       users: [],
     };
-  }
-
-  async joinServer(userId: string, invitation: string): Promise<UserServersData> {
-    let result = await this.databaseService.join_server(userId, invitation);
-
-    const usersIds = result[3].map(member => ({ ID: member.userId }))
-      .filter((user, index, array) => array.indexOf(user) === index);
-
-    const users = await this.userService.getUsersDetails(usersIds);
-
-    const response = ServerService.processQuery(result);
-    response.users = users;
-    return response;
-  }
-
-  async createInvitation(userId: string, serverId: number): Promise<string> {
-    return this.databaseService.create_invitation(userId, serverId)
-      .then((result) => Object.values(result[0])[0]);
-  }
-
-  async createServer(userId: string, name: string): Promise<UserServersData> {
-    let result = await this.databaseService.create_server(userId, name);
-
-    const usersIds = result[3].map(member => ({ ID: member.userId }))
-      .filter((user, index, array) => array.indexOf(user) === index);
-
-    const users = await this.userService.getUsersDetails(usersIds);
-
-    const response = ServerService.processQuery(result);
-    response.users = users;
-    return response;
   }
 
   async moveServer(userId: string, { serverId, order }: MoveServerRequest) {

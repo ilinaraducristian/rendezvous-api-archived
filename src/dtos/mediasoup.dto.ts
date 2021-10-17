@@ -22,6 +22,7 @@ export type CreateTransportResponse = {
 export type ConnectTransportRequest = {
   type: string,
   dtlsParameters: DtlsParameters,
+  id: string
 }
 
 export type CreateProducerRequest = {

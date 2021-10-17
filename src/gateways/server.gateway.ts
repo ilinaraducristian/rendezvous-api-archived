@@ -6,14 +6,16 @@ import Socket from '../models/socket';
 import {
   JoinServerRequest,
   JoinServerResponse,
+  MoveServerRequest,
+  MoveServerResponse,
   NewInvitationRequest,
   NewInvitationResponse,
   NewServerRequest,
   NewServerResponse,
+  UpdateServerImageRequest,
 } from '../dtos/server.dto';
 import { UseInterceptors } from '@nestjs/common';
 import { EmptyResponseInterceptor } from '../empty-response.interceptor';
-import { MoveServerRequest, MoveServerResponse } from '../dtos/channel.dto';
 
 @WebSocketGateway()
 @UseInterceptors(EmptyResponseInterceptor)
@@ -69,6 +71,11 @@ export class ServerGateway {
       user: newUser,
     });
     return result;
+  }
+
+  @SubscribeMessage('update_server_image')
+  async updateImage(client: Socket, payload: UpdateServerImageRequest) {
+    await this.serverService.updateImage(client.handshake.auth.sub, payload);
   }
 
   @SubscribeMessage('move_server')
