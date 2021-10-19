@@ -57,7 +57,7 @@ export class MessageService {
       delete newMessage.imageMd5;
       return newMessage;
     });
-    await Promise.all(messages.map(message =>
+    await Promise.all(messages.filter(message => message.image !== null).map(message =>
       this.objectStoreService.getImage(message.image).then(data => {
         message.image = data;
       }),

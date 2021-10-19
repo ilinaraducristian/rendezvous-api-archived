@@ -81,7 +81,6 @@ export class ServerGateway {
   @SubscribeMessage('move_server')
   async moveServer(client: Socket, payload: MoveServerRequest): Promise<MoveServerResponse> {
     const userServers = await this.serverService.moveServer(client.handshake.auth.sub, payload);
-    console.log(userServers);
     return { servers: userServers.map(({ id, order }) => ({ id, order })) };
   }
 
