@@ -3,13 +3,15 @@ import { DatabaseService } from '../database/database.service';
 import { UserService } from '../user/user.service';
 import { ProcedureServerResponseType } from '../../models/database-response.model';
 import { UserServersData } from '../../dtos/user.dto';
-import { MoveServerRequest, UpdateServerImageRequest } from '../../dtos/server.dto';
+import { MoveServerRequest, Server, UpdateServerImageRequest } from '../../dtos/server.dto';
 import { ChannelType, TextChannel } from '../../dtos/channel.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ServerEntity } from '../../entities/server.entity';
 import { MemberEntity } from '../../entities/member.entity';
 import { ObjectStoreService } from '../object-store/object-store.service';
+import { Role } from '../../dtos/role.dto';
+import { RoleEntity } from '../../entities/role.entity';
 
 @Injectable()
 export class ServerService {
@@ -19,23 +21,12 @@ export class ServerService {
     private serverRepository: Repository<ServerEntity>,
     @InjectRepository(MemberEntity)
     private memberRepository: Repository<MemberEntity>,
+    @InjectRepository(RoleEntity)
+    private roleRepository: Repository<RoleEntity>,
     private readonly databaseService: DatabaseService,
     private readonly userService: UserService,
     private readonly objectStoreService: ObjectStoreService,
   ) {
-  }
-
-  async joinServer(userId: string, invitation: string): Promise<UserServersData> {
-    let result = await this.databaseService.join_server(userId, invitation);
-
-    const usersIds = result[3].map(member => ({ ID: member.userId }))
-      .filter((user, index, array) => array.indexOf(user) === index);
-
-    const users = await this.userService.getUsersDetails(usersIds);
-
-    const response = await this.processQuery(result);
-    response.users = users;
-    return response;
   }
 
   async updateImage(userId: string, payload: UpdateServerImageRequest) {
@@ -46,27 +37,18 @@ export class ServerService {
     await this.serverRepository.update(payload.serverId, { image_md5: imageMd5 });
   }
 
-  async createServer(userId: string, name: string): Promise<UserServersData> {
-    let result = await this.databaseService.create_server(userId, name);
-
-    const usersIds = result[3].map(member => ({ ID: member.userId }))
-      .filter((user, index, array) => array.indexOf(user) === index);
-
-    const users = await this.userService.getUsersDetails(usersIds);
-
-    const response = await this.processQuery(result);
-    response.users = users;
-    return response;
-  }
-
-  async createInvitation(userId: string, serverId: number): Promise<string> {
-    return this.databaseService.create_invitation(userId, serverId)
-      .then((result) => Object.values(result[0])[0]);
-  }
-
-  private async processQuery(
+  static async processQuery(
     result: ProcedureServerResponseType,
-  ): Promise<UserServersData> {
+    objectStoreService: ObjectStoreService,
+  ): Promise<Server[]> {
+
+    result[1] = result[1].map(role => {
+      Object.keys(role).forEach(key => {
+        if (['id', 'serverId', 'name'].includes(key)) return;
+        role[key] = !!role[key];
+      });
+      return role;
+    });
 
     const serversTable: any = await Promise.all(result[0].map(server => {
       const newServer = Object.assign({ image: null }, server);
@@ -78,18 +60,20 @@ export class ServerService {
           channels: [],
           groups: [],
           members: [],
+          roles: result[1].filter(role => role.serverId === server.id),
         };
       }
-      return this.objectStoreService.getImage(newServer.image).then((data: string) => ({
+      return objectStoreService.getImage(newServer.image).then((data: string) => ({
         ...newServer,
         image: data,
         channels: [],
         groups: [],
         members: [],
+        roles: result[1].filter(role => role.serverId === server.id),
       }));
     }));
 
-    result[3].forEach(member => {
+    result[5].forEach(member => {
       const server = serversTable.find(server => server.id === member.serverId);
       if (server === undefined) return;
       if (server.members.findIndex(m1 => m1.id === member.id) === -1)
@@ -97,16 +81,17 @@ export class ServerService {
           id: member.id,
           userId: member.userId,
           serverId: member.serverId,
+          roles: result[2].filter(memberRole => memberRole.memberId === member.id && memberRole.serverId === server.id).map(memberRole => memberRole.roleId),
         });
     });
 
-    result[1].forEach(group => {
+    result[3].forEach(group => {
       const server = serversTable.find(server => server.id === group.serverId);
       if (server === undefined) return;
       server.groups.push({ ...group, channels: [] });
     });
 
-    result[2].forEach(channel => {
+    result[4].forEach(channel => {
       if (channel.type === ChannelType.Text) {
         (channel as TextChannel).messages = [];
       }
@@ -119,11 +104,40 @@ export class ServerService {
         group.channels.push(channel);
       }
     });
+    return serversTable;
+    // return {
+    //   servers: serversTable,
+    //   users: [],
+    // };
+  }
 
-    return {
-      servers: serversTable,
-      users: [],
-    };
+  async createServer(userId: string, name: string): Promise<UserServersData> {
+    const result = await this.databaseService.create_server(userId, name);
+    return this.returnServerData(result);
+  }
+
+  async joinServer(userId: string, invitation: string): Promise<UserServersData> {
+    const result = await this.databaseService.join_server(userId, invitation);
+    return this.returnServerData(result);
+  }
+
+  async createInvitation(userId: string, serverId: number): Promise<string> {
+
+    // check if user/member has access
+    const canCreateInvitation = await this.databaseService.user_has_permission(userId, serverId, 'createInvitation');
+    if (!canCreateInvitation) throw new Error('User doesnt have permission to create invitations in this server');
+
+    return this.databaseService.create_invitation(userId, serverId)
+      .then((result) => Object.values(result[0])[0]);
+  }
+
+  async deleteServer(userId: string, serverId: number) {
+
+    // check if user/member has access
+    const canDeleteServer = await this.databaseService.user_has_permission(userId, serverId, 'deleteServer');
+    if (!canDeleteServer) throw new Error('User doesnt have permission to delete this server');
+
+    return this.serverRepository.delete({ id: serverId });
   }
 
   async moveServer(userId: string, { serverId, order }: MoveServerRequest) {
@@ -143,8 +157,31 @@ export class ServerService {
     return await findMembers();
   }
 
-  deleteServer(userId: string, serverId: number) {
-    return this.serverRepository.delete({ id: serverId });
+  changePermissions(userId: string, role: Role) {
+    return this.roleRepository.update(role.id, {
+      rename_server: role.renameServer,
+      create_invitation: role.createInvitation,
+      delete_server: role.deleteServer,
+      create_channels: role.createChannels,
+      create_groups: role.createGroups,
+      delete_channels: role.deleteChannels,
+      delete_groups: role.deleteGroups,
+      move_channels: role.moveChannels,
+      move_groups: role.moveGroups,
+      read_messages: role.readMessages,
+      write_messages: role.writeMessages,
+    });
+  }
+
+  private async returnServerData(result: ProcedureServerResponseType) {
+    const usersIds = result[5].map(member => ({ ID: member.userId }))
+      .filter((user, index, array) => array.indexOf(user) === index);
+    const users = await this.userService.getUsersDetails(usersIds);
+    const serversTable = await ServerService.processQuery(result, this.objectStoreService);
+    return {
+      servers: serversTable,
+      users,
+    };
   }
 
 }

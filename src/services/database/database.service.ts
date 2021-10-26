@@ -109,4 +109,13 @@ export class DatabaseService {
       ]);
   }
 
+  async user_has_permission(userId: string, serverId: number, permission: string): Promise<boolean> {
+    const result = await this.connection.query(`SELECT COUNT(1)
+                                                FROM member_roles_for_server m
+                                                WHERE m.userId = ?
+                                                  AND m.serverId = ?
+                                                  AND m.${permission} = TRUE`, [userId, serverId]);
+    return parseInt(result[0]['COUNT(1)']) > 0;
+  }
+
 }

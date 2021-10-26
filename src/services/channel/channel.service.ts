@@ -23,6 +23,11 @@ export class ChannelService {
     type: ChannelType,
     name: string,
   ): Promise<number> {
+
+    // check if user/member has access
+    const canCreateChannels = await this.databaseService.user_has_permission(userId, serverId, 'createChannels');
+    if (!canCreateChannels) throw new Error('User doesnt have permission to create channels in this server');
+
     return this.databaseService.create_channel(
       userId,
       serverId,
@@ -34,6 +39,11 @@ export class ChannelService {
   }
 
   async moveChannel(userId: string, payload: MoveChannelRequest): Promise<ChannelEntity[]> {
+
+    // check if user/member has access
+    const canMoveChannels = await this.databaseService.user_has_permission(userId, payload.serverId, 'moveChannels');
+    if (!canMoveChannels) throw new Error('User doesnt have permission to move channels in this server');
+
     // get server channels
     const serverChannels = await this.channelRepository.find({ where: { server_id: payload.serverId } });
     // find my channel

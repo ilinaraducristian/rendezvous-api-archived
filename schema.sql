@@ -86,6 +86,80 @@ CREATE TABLE messages
         )
 )$$
 
+CREATE TABLE roles
+(
+    id                int PRIMARY KEY AUTO_INCREMENT,
+    server_id         int          NOT NULL,
+    name              varchar(255) NOT NULL DEFAULT 'everyone',
+    rename_server     boolean      NOT NULL DEFAULT true,
+    create_invitation boolean      NOT NULL DEFAULT true,
+    delete_server     boolean      NOT NULL DEFAULT true,
+    create_channels   boolean      NOT NULL DEFAULT true,
+    create_groups     boolean      NOT NULL DEFAULT true,
+    delete_channels   boolean      NOT NULL DEFAULT true,
+    delete_groups     boolean      NOT NULL DEFAULT true,
+    move_channels     boolean      NOT NULL DEFAULT true,
+    move_groups       boolean      NOT NULL DEFAULT true,
+    read_messages     boolean      NOT NULL DEFAULT true,
+    write_messages    boolean      NOT NULL DEFAULT true,
+    FOREIGN KEY (server_id) REFERENCES servers (id) ON DELETE CASCADE
+)$$
+
+CREATE TABLE members_roles
+(
+    id        int PRIMARY KEY AUTO_INCREMENT,
+    member_id int NOT NULL,
+    server_id int NOT NULL,
+    role_id   int NOT NULL,
+    FOREIGN KEY (member_id) REFERENCES members (id) ON DELETE CASCADE,
+    FOREIGN KEY (role_id) REFERENCES roles (id) ON DELETE CASCADE
+)$$
+
+CREATE VIEW roles_view AS
+SELECT id,
+       server_id         as serverId,
+       name,
+       rename_server     as renameServer,
+       create_invitation as createInvitation,
+       delete_server     as deleteServer,
+       create_channels   as createChannels,
+       create_groups     as createGroups,
+       delete_channels   as deleteChannels,
+       delete_groups     as deleteGroups,
+       move_channels     as moveChannels,
+       move_groups       as moveGroups,
+       read_messages     as readMessages,
+       write_messages    as writeMessages
+FROM roles;
+
+CREATE VIEW members_roles_view AS
+SELECT id,
+       member_id as memberId,
+       server_id as serverId,
+       role_id   as roleId
+FROM members_roles;
+
+CREATE VIEW member_roles_for_server AS
+SELECT r.id              as roleId,
+       name,
+       m.user_id         as userId,
+       m.server_id       as serverId,
+       rename_server     as renameServer,
+       create_invitation as createInvitation,
+       delete_server     as deleteServer,
+       create_channels   as createChannels,
+       create_groups     as createGroups,
+       delete_channels   as deleteChannels,
+       delete_groups     as deleteGroups,
+       move_channels     as moveChannels,
+       move_groups       as moveGroups,
+       read_messages     as readMessages,
+       write_messages    as writeMessages
+FROM members_roles mr
+         JOIN members m on mr.member_id = m.id
+         JOIN roles r on mr.role_id = r.id AND m.server_id = r.server_id
+$$
+
 CREATE UNIQUE INDEX unique_member
     ON members (server_id, user_id)$$
 
@@ -283,6 +357,32 @@ BEGIN
              JOIN members m ON s.id = m.server_id
         AND m.user_id = userId;
 
+    SELECT r.id,
+           r.serverId,
+           r.name,
+           r.renameServer,
+           r.createInvitation,
+           r.deleteServer,
+           r.createChannels,
+           r.createGroups,
+           r.deleteChannels,
+           r.deleteGroups,
+           r.moveChannels,
+           r.moveGroups,
+           r.readMessages,
+           r.writeMessages
+    FROM roles_view r
+             JOIN servers s ON r.serverId = s.id
+             JOIN members m ON s.id = m.server_id AND m.user_id = userId;
+
+    SELECT mr.id,
+           mr.memberId,
+           mr.serverId,
+           mr.roleId
+    FROM members_roles_view mr
+             JOIN servers s ON mr.serverId = s.id
+             JOIN members m ON s.id = m.server_id AND m.user_id = userId;
+
     SELECT g.id, g.serverId, g.name, g.`order`
     FROM groups_view g
              JOIN members m ON g.serverId = m.server_id
@@ -358,10 +458,40 @@ BEGIN
 
     INSERT INTO members (server_id, user_id, `order`) VALUES (@serverId, userId, IFNULL(@lastServerOrder + 1, 0));
 
+    SET @memberId = LAST_INSERT_ID();
+
+    SELECT id INTO @roleId FROM roles r WHERE r.server_id = @serverId AND r.name = 'everyone';
+
+    INSERT INTO members_roles (member_id, server_id, role_id) VALUES (@memberId, @serverId, @roleId);
+
     SELECT s.id, s.name, s.userId, s.imageMd5, s.invitation, s.invitationExp, m.`order`
     FROM servers_view s
              JOIN members m ON m.user_id = userId AND m.server_id = @serverId
     WHERE s.id = @serverId;
+
+    SELECT r.id,
+           r.serverId,
+           r.name,
+           r.renameServer,
+           r.createInvitation,
+           r.deleteServer,
+           r.createChannels,
+           r.createGroups,
+           r.deleteChannels,
+           r.deleteGroups,
+           r.moveChannels,
+           r.moveGroups,
+           r.readMessages,
+           r.writeMessages
+    FROM roles_view r
+    WHERE r.serverId = @serverId;
+
+    SELECT mr.id,
+           mr.memberId,
+           mr.serverId,
+           mr.roleId
+    FROM members_roles_view mr
+    WHERE mr.serverId = @serverId;
 
     SELECT g.id, g.serverId, g.name, g.`order`
     FROM groups_view g
@@ -378,8 +508,7 @@ BEGIN
 END $$
 
 CREATE PROCEDURE send_message(userId char(36), friendship int, channelId int, message varchar(255), isReply boolean,
-                              replyId int,
-                              imageMd5 char(32))
+                              replyId int, imageMd5 char(32))
 BEGIN
 
     IF (friendship IS NULL) THEN
@@ -443,9 +572,27 @@ BEGIN
 
     INSERT INTO members (server_id, user_id, `order`) VALUES (@serverId, userId, IFNULL(@lastServerOrder + 1, 0));
 
+    SET @memberId = LAST_INSERT_ID();
+
+    INSERT INTO roles (server_id) VALUES (@serverId);
+    SET @roleId = LAST_INSERT_ID();
+    INSERT INTO members_roles (member_id, server_id, role_id) VALUES (@memberId, @serverId, @roleId);
+
+    INSERT INTO roles (server_id, name) VALUES (@serverId, 'admin');
+    SET @roleId = LAST_INSERT_ID();
+    INSERT INTO members_roles (member_id, server_id, role_id) VALUES (@memberId, @serverId, @roleId);
+
     SELECT s.id, s.name, s.userId, s.imageMd5, s.invitation, s.invitationExp, IFNULL(@lastServerOrder, 0) as `order`
     FROM servers_view s
     WHERE id = @serverId;
+
+    SELECT *
+    FROM roles_view r
+    WHERE r.serverId = @serverId;
+
+    SELECT *
+    FROM members_roles_view mr
+    WHERE mr.serverId = @serverId;
 
     SELECT g.id, g.serverId, g.name, g.`order`
     FROM groups_view g

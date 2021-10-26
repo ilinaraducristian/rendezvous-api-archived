@@ -16,6 +16,7 @@ import {
 } from '../dtos/server.dto';
 import { UseInterceptors } from '@nestjs/common';
 import { EmptyResponseInterceptor } from '../empty-response.interceptor';
+import { Role } from '../dtos/role.dto';
 
 @WebSocketGateway()
 @UseInterceptors(EmptyResponseInterceptor)
@@ -88,6 +89,12 @@ export class ServerGateway {
   async deleteServer(client: Socket, payload: { serverId: number }) {
     await this.serverService.deleteServer(client.handshake.auth.sub, payload.serverId);
     this.server.to(`server_${payload.serverId}`).emit('server_deleted', { serverId: payload.serverId });
+  }
+
+  @SubscribeMessage('change_permissions')
+  async changePermissions(client: Socket, payload: { role: Role }) {
+    await this.serverService.changePermissions(client.handshake.auth.sub, payload.role);
+    this.server.to(`server_${payload.role.serverId}`).emit('permissions_updated', { role: payload.role });
   }
 
 }

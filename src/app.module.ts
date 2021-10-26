@@ -28,6 +28,7 @@ import { FriendshipService } from './services/friendship/friendship.service';
 import { MemberEntity } from './entities/member.entity';
 import { RtpCodecCapability } from 'mediasoup/src/RtpParameters';
 import { GroupEntity } from './entities/group.entity';
+import { RoleEntity } from './entities/role.entity';
 
 @Module({
   imports: [
@@ -97,7 +98,7 @@ export class AppModule {
       synchronize: false,
       retryAttempts: 500,
     };
-    const entities = [ServerEntity, GroupEntity, ChannelEntity, MessageEntity, FriendshipEntity, MemberEntity];
+    const entities = [ServerEntity, GroupEntity, ChannelEntity, MessageEntity, FriendshipEntity, MemberEntity, RoleEntity];
     return [
       TypeOrmModule.forRoot(
         {

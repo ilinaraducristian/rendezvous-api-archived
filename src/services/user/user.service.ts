@@ -3,13 +3,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserEntity } from '../../entities/user.entity';
 import { DatabaseService } from '../database/database.service';
-import { ProcedureUserDataResponseType } from '../../models/database-response.model';
+import { ProcedureServerResponseType, ProcedureUserDataResponseType } from '../../models/database-response.model';
 import duplicates from '../../util/filter-duplicates';
 import { MemberEntity } from '../../entities/member.entity';
 import { User, UserData } from '../../dtos/user.dto';
-import { Member } from '../../dtos/member.dto';
-import { ChannelType, TextChannel } from '../../dtos/channel.dto';
 import { ObjectStoreService } from '../object-store/object-store.service';
+import { ServerService } from '../server/server.service';
 
 
 @Injectable()
@@ -27,14 +26,14 @@ export class UserService {
 
   async getUserData(userId: string): Promise<UserData> {
     const result = await this.databaseService.get_user_data(userId);
-    let usersIds = result[3]
+    let usersIds = result[5]
       .map(user => ({ ID: user.userId }));
     usersIds = usersIds.concat(
-      result[4]
+      result[6]
         .map(friendship => ({ ID: friendship.user1Id === userId ? friendship.user2Id : friendship.user1Id })),
     );
     usersIds = usersIds.concat(
-      result[5].map(friendRequest => ({ ID: friendRequest.user1Id === userId ? friendRequest.user2Id : friendRequest.user1Id })),
+      result[7].map(friendRequest => ({ ID: friendRequest.user1Id === userId ? friendRequest.user2Id : friendRequest.user1Id })),
     );
     usersIds = usersIds.filter(duplicates);
     const response = await this.processQuery(result, userId);
@@ -55,59 +54,9 @@ export class UserService {
     userId: string,
   ): Promise<UserData> {
 
-    const serversTable: any = await Promise.all(result[0].map(server => {
-      const newServer = Object.assign({ image: null }, server);
-      newServer.image = server.imageMd5;
-      delete newServer.imageMd5;
-      if (newServer.image === null) {
-        return {
-          ...newServer,
-          channels: [],
-          groups: [],
-          members: [],
-        };
-      }
-      return this.objectStoreService.getImage(newServer.image).then((data: string) => ({
-        ...newServer,
-        image: data,
-        channels: [],
-        groups: [],
-        members: [],
-      }));
-    }));
-
-    result[3].forEach((member: Member) => {
-      const server = serversTable.find(server => server.id === member.serverId);
-      if (server === undefined) return;
-      if (server.members.findIndex(m1 => m1.id === member.id) === -1)
-        server.members.push({
-          id: member.id,
-          userId: member.userId,
-          serverId: member.serverId,
-        });
-    });
-
-    result[1].forEach(group => {
-      const server = serversTable.find(server => server.id === group.serverId);
-      if (server === undefined) return;
-      server.groups.push({ ...group, channels: [] });
-    });
-
-    result[2].forEach(channel => {
-      if (channel.type === ChannelType.Text) {
-        (channel as TextChannel).messages = [];
-      }
-      const server = serversTable.find(server => server.id === channel.serverId);
-      if (channel.groupId === null)
-        server.channels.push(channel);
-      else {
-        const group = server.groups.find(group => group.id === channel.groupId);
-        if (group === undefined) return;
-        group.channels.push(channel);
-      }
-    });
-    const friendships = result[4].map(friendship => Object.assign({ messages: [] }, friendship));
-    const friendRequests = result[5].map((friendRequest: any) => ({
+    const serversTable = await ServerService.processQuery(result as unknown as ProcedureServerResponseType, this.objectStoreService);
+    const friendships = result[6].map(friendship => Object.assign({ messages: [] }, friendship));
+    const friendRequests = result[7].map((friendRequest: any) => ({
       id: friendRequest.id,
       userId: friendRequest.user1Id === userId ? friendRequest.user2Id : friendRequest.user1Id,
       incoming: friendRequest.user2Id === userId,

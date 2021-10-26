@@ -20,11 +20,21 @@ export class GroupService {
     serverId: number,
     name: string,
   ): Promise<number> {
+
+    // check if user/member has access
+    const canCreateGroups = await this.databaseService.user_has_permission(userId, serverId, 'createGroups');
+    if (!canCreateGroups) throw new Error('User doesnt have permission to create groups in this server');
+
     return this.databaseService.create_group(userId, serverId, name)
       .then((result) => Object.values(result[0])[0]);
   }
 
   async moveGroup(userId: string, { serverId, groupId, order }: MoveGroupRequest) {
+
+    // check if user/member has access
+    const canMoveGroups = await this.databaseService.user_has_permission(userId, serverId, 'moveGroups');
+    if (!canMoveGroups) throw new Error('User doesnt have permission to move groups in this server');
+
     const findGroups = () => {
       return this.groupRepository.find({ where: { server_id: serverId } });
     };

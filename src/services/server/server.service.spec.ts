@@ -7,6 +7,7 @@ import { AppModule } from '../../app.module';
 describe('ServerService', () => {
   let service: ServerService;
   let module: TestingModule;
+  const user1 = '97a8ffc2-10cd-47dd-b915-cf8243d5bfc4';
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
@@ -30,7 +31,8 @@ describe('ServerService', () => {
   afterAll(() => module.close());
 
   it('should create a new server', async () => {
-    console.log(await service.createServer('97a8ffc2-10cd-47dd-b915-cf8243d5bfc4', 'new server'));
+    const server = await service.createServer(user1, 'new server');
+    console.log(JSON.stringify(server));
     expect(true);
   });
 });

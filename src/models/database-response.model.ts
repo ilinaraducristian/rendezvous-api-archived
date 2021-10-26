@@ -5,13 +5,15 @@ import { Member } from '../dtos/member.dto';
 import { Channel } from '../dtos/channel.dto';
 import { Friendship } from '../dtos/friend.dto';
 import { Message } from './message.model';
+import { Role } from '../dtos/role.dto';
+import { MembersRoles } from '../dtos/members-roles.dto';
 
 
 export type FunctionIntReturnType = [{ [key: string]: number }, ResultSetHeader];
 export type FunctionStringReturnType = [{ [key: string]: string }, ResultSetHeader];
 
 type temp = [
-  Omit<Omit<Server, 'image'> & { imageMd5: string | null }, 'channels' | 'groups' | 'members'>[], Omit<Group, 'channels'>[], Channel[], Member[]
+  Omit<Omit<Server, 'image'> & { imageMd5: string | null }, 'channels' | 'groups' | 'members'>[], Role[], MembersRoles[], Omit<Group, 'channels'>[], Channel[], Member[]
 ]
 
 export type ProcedureUserDataResponseType = [

@@ -21,6 +21,11 @@ export class MessageService {
     userId: string,
     payload: NewMessageRequest,
   ): Promise<Message> {
+
+    // check if user/member has access
+    const canSendMessages = await this.databaseService.user_has_permission(userId, payload.serverId, 'writeMessages');
+    if (!canSendMessages) throw new Error('User doesnt have permission to write messages in this server');
+
     let imageMd5;
     if (payload.image !== null) {
       imageMd5 = await this.objectStoreService.putImage(payload.image);
@@ -44,6 +49,11 @@ export class MessageService {
     channelId: number,
     offset: number,
   ): Promise<Message[]> {
+
+    // check if user/member has access
+    const canReadMessages = await this.databaseService.user_has_permission(userId, serverId, 'readMessages');
+    if (!canReadMessages) throw new Error('User doesnt have permission to read messages in this server');
+
     const result = await this.databaseService.get_messages(
       userId,
       friendshipId,
