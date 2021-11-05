@@ -9,7 +9,13 @@ import { Server } from 'socket.io';
 import { UserService } from '../services/user/user.service';
 import { ChannelService } from '../services/channel/channel.service';
 import Socket from '../models/socket';
-import { AcceptFriendRequest, SendFriendRequest, SendFriendRequestResponse, UserDataResponse } from '../dtos/user.dto';
+import {
+  AcceptFriendRequest,
+  SendFriendRequest,
+  SendFriendRequestResponse,
+  UserDataResponse,
+  UserStatus,
+} from '../dtos/user.dto';
 import { UseInterceptors } from '@nestjs/common';
 import { EmptyResponseInterceptor } from '../empty-response.interceptor';
 import getSocketByUserId from '../util/get-socket';
@@ -32,16 +38,18 @@ export class UserGateway implements OnGatewayConnection<Socket>, OnGatewayDiscon
     client.data.producer?.close();
     client.data.recvTransport?.close();
     client.data.sendTransport?.close();
+    client.broadcast.emit('offline', { userId: client.handshake.auth.sub });
   }
 
   async handleConnection(client: Socket, ...args: any[]) {
     const userServersIds = await this.userService.getUserServersIds(
       client.handshake.auth.sub,
     );
-    client.data = { consumers: [] };
+    client.data = { status: UserStatus.online, consumers: [] };
     await Promise.all(userServersIds.map((id) =>
       client.join(`server_${id}`),
     ));
+    client.broadcast.emit('online', { userId: client.handshake.auth.sub });
   }
 
   @SubscribeMessage('get_user_data')
@@ -52,6 +60,15 @@ export class UserGateway implements OnGatewayConnection<Socket>, OnGatewayDiscon
       server.groups.forEach(group =>
         group.channels.forEach(this.channelService.processChannel(this.server)),
       );
+    });
+    const sockets = Array.from(this.server.sockets.sockets.values());
+    response.users.forEach(user => {
+      const socket = sockets.find(socket => socket.handshake.auth.sub === user.id);
+      if (socket === undefined) {
+        user.status = UserStatus.offline;
+      } else {
+        user.status = socket.data.status;
+      }
     });
     return response;
   }

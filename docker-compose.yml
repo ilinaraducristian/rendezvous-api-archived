@@ -30,8 +30,8 @@ services:
     volumes:
       - './rendezvous.json:/tmp/rendezvous.json'
       - './create-test-realm.sh:/tmp/create-test-realm.sh'
-      - './themes:/opt/jboss/keycloak/themes'
-      - './standalone.xml:/opt/jboss/keycloak/standalone/configuration/standalone.xml'
+      - './themes/rendezvous:/opt/jboss/keycloak/themes/rendezvous'
+    #      - './standalone.xml:/opt/jboss/keycloak/standalone/configuration/standalone.xml'
     ports:
       - '8080:8080'
   db:

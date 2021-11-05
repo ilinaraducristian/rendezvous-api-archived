@@ -17,6 +17,7 @@ import {
 import { UseInterceptors } from '@nestjs/common';
 import { EmptyResponseInterceptor } from '../empty-response.interceptor';
 import { Role } from '../dtos/role.dto';
+import { UserStatus } from '../dtos/user.dto';
 
 @WebSocketGateway()
 @UseInterceptors(EmptyResponseInterceptor)
@@ -70,6 +71,15 @@ export class ServerGateway {
     client.to(`server_${serverId}`).emit('new_member', {
       member: newMember,
       user: newUser,
+    });
+    const sockets = Array.from(this.server.sockets.sockets.values());
+    result.users.forEach(user => {
+      const socket = sockets.find(socket => socket.handshake.auth.sub === user.id);
+      if (socket === undefined) {
+        user.status = UserStatus.offline;
+      } else {
+        user.status = socket.data.status;
+      }
     });
     return result;
   }

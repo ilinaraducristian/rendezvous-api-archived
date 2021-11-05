@@ -6,7 +6,7 @@ import { DatabaseService } from '../database/database.service';
 import { ProcedureServerResponseType, ProcedureUserDataResponseType } from '../../models/database-response.model';
 import duplicates from '../../util/filter-duplicates';
 import { MemberEntity } from '../../entities/member.entity';
-import { User, UserData } from '../../dtos/user.dto';
+import { User, UserData, UserStatus } from '../../dtos/user.dto';
 import { ObjectStoreService } from '../object-store/object-store.service';
 import { ServerService } from '../server/server.service';
 
@@ -78,6 +78,7 @@ export class UserService {
       username: userEntity.USERNAME,
       firstName: userEntity.FIRST_NAME,
       lastName: userEntity.LAST_NAME,
+      status: UserStatus.online,
     })));
   }
 
