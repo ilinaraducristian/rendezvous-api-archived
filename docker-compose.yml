@@ -1,0 +1,12 @@
+services:
+  mongo:
+    image: mongo:focal
+    restart: always
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: user
+      MONGO_INITDB_ROOT_PASSWORD: user
+      MONGO_INITDB_DATABASE: rendezvous
+    volumes:
+      - ./schema.js:/docker-entrypoint-initdb.d/schema.js:ro
