@@ -1,9 +1,7 @@
-import { IsString } from "class-validator";
-
 class UpdateGroupRequest {
 
-  @IsString()
   name: string;
+  order: number;
 
 }
 

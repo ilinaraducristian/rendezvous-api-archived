@@ -29,9 +29,9 @@ export class Message {
   static toDTO(message: Message & { id?: string }): MessageDTO {
     return {
       id: message.id,
-      serverId: message.serverId.toString(),
-      channelId: message.channelId.toString(),
-      groupId: message.groupId?.toString() ?? null,
+      serverId: message.serverId,
+      channelId: message.channelId,
+      groupId: message.groupId ?? null,
       friendId: null,
       timestamp: message.timestamp.toISOString(),
       text: message.text,

@@ -1,9 +1,8 @@
-import { IsString } from "class-validator";
-
 class UpdateChannelRequest {
 
-  @IsString()
   name: string;
+  groupId: string | null;
+  order: number;
 
 }
 

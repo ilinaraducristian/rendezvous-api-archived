@@ -1,2 +1,9 @@
-const ServerNameNotEmptyException = Error('server name must not be empty');
+import ResourceNotEmptyException from "./ResourceNotEmpty.exception";
+
+class ServerNameNotEmptyException extends ResourceNotEmptyException {
+  constructor() {
+    super("server name");
+  }
+}
+
 export default ServerNameNotEmptyException;

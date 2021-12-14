@@ -1,36 +1,44 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { Channel } from "./channel";
+import ServerDTO from "../dtos/server";
 import * as mongoose from "mongoose";
 import { Group } from "./group";
+import { Channel } from "./channel";
 import { Member } from "./member";
-import ServerDTO from "../dtos/server";
 
 @Schema()
 export class Server {
 
-  _id: string = '';
+  _id: string = "";
 
   @Prop({ required: true })
   name: string;
 
-  @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Channel" }], default: [] })
+  @Prop({ default: null })
+  invitation: string | null;
+
+  @Prop({ default: null })
+  invitation_expiration_date: Date | null;
+
+  @Prop({ default: [], type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Channel" }] })
   channels: Channel[];
 
-  @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Group" }], default: [] })
+  @Prop({ default: [], type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Group" }] })
   groups: Group[];
 
-  @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Member" }], default: [] })
+  @Prop({ default: [], type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Member" }] })
   members: Member[];
 
-  static toDTO(server: Server & {id?: string}): ServerDTO {
+  static toDTO(server: Server & { id?: string }): ServerDTO {
     return {
       id: server.id,
       name: server.name,
       order: -1,
-      channels: server.channels.map(channel => Channel.toDTO(channel)),
-      groups: server.groups.map(group => Group.toDTO(group)),
-      members: server.members.map(member => Member.toDTO(member)),
-    }
+      invitation: server.invitation,
+      invitation_exp: server.invitation_expiration_date?.toISOString() ?? null,
+      channels: [],
+      groups: [],
+      members: []
+    };
   }
 
 }

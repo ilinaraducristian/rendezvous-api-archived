@@ -10,17 +10,17 @@ export class Member {
   @Prop({ required: true })
   userId: string;
 
-  @Prop({ required: true })
-  order: number;
-
-  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: "Server" })
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: "Server" })
   serverId: string;
 
-  static toDTO(member: Member & {id?: string}): MemberDTO {
+  @Prop({ default: 0 })
+  order: number;
+
+  static toDTO(member: Member & { id?: string }): MemberDTO {
     return {
-      id: member.id,
+      id: member.id.toString(),
       userId: member.userId,
-      serverId: member.serverId
+      serverId: member.serverId.toString()
     };
   }
 

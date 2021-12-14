@@ -94,8 +94,6 @@ describe("ChannelsController (e2e)", () => {
       const channel1 = channel1Response.json();
       expect(channel1Response.statusCode).toEqual(201);
 
-      console.log(channel1);
-
       const channel2Response = await app.inject({
         method: "POST",
         url: "/servers/"+server.id+"/groups/"+group.id+"/channels",
@@ -103,8 +101,6 @@ describe("ChannelsController (e2e)", () => {
       });
       const channel2 = channel2Response.json();
       expect(channel2Response.statusCode).toEqual(201);
-
-      console.log(channel2);
 
       expect(true).toBeTruthy();
     });

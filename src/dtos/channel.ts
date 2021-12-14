@@ -4,9 +4,10 @@ import Member from "./member";
 
 type Channel = {
     id: string,
-    name: string,
     serverId: string,
     groupId: string | null,
+    name: string,
+    order: number,
     type: ChannelType
 }
 
