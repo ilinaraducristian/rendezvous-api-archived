@@ -1,6 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { ServersModule } from "../src/servers/servers.module";
-import { UsersModule } from "../src/users/users.module";
 import { MongooseModule } from "@nestjs/mongoose";
 import { FastifyAdapter, NestFastifyApplication } from "@nestjs/platform-fastify";
 import { routes } from "../src/app.module";
@@ -15,7 +14,6 @@ describe("AppController (e2e)", () => {
       imports: [
         MongooseModule.forRoot("mongodb://user:user@127.0.0.1:27017/rendezvous"),
         ServersModule,
-        UsersModule,
         routes
       ],
       controllers: [],

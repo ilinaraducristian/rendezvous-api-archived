@@ -1,8 +1,8 @@
-import { IsString } from "class-validator";
+import { IsNotBlank } from "../IsNotBlank";
 
 class NewGroupRequest {
 
-  @IsString()
+  @IsNotBlank()
   name: string;
 
 }

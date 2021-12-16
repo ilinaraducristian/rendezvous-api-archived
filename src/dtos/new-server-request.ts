@@ -1,8 +1,8 @@
-import { IsString } from "class-validator";
+import { IsNotBlank } from "../IsNotBlank";
 
 class NewServerRequest {
 
-  @IsString()
+  @IsNotBlank()
   name: string;
 
 }

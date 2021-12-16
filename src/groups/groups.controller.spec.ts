@@ -1,52 +1,105 @@
 import { Test, TestingModule } from "@nestjs/testing";
+import { FastifyAdapter, NestFastifyApplication } from "@nestjs/platform-fastify";
+import { ValidationPipe } from "@nestjs/common";
 import { GroupsController } from "./groups.controller";
 
-describe('GroupsController', () => {
-  let groupsController: GroupsController;
+describe("GroupsController", () => {
+  let app: NestFastifyApplication;
   let module: TestingModule;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     module = await Test.createTestingModule({
+      imports: [],
       controllers: [GroupsController],
+      providers: []
     }).compile();
 
-    groupsController = module.get<GroupsController>(GroupsController);
+    app = module.createNestApplication<NestFastifyApplication>(
+      new FastifyAdapter()
+    );
+    app.useGlobalPipes(new ValidationPipe());
+    await app.init();
+    await app.getHttpAdapter().getInstance().ready();
   });
 
   afterAll(() => module.close());
-  
-  describe("basic CRUD requests for groups", () => {
 
-    it("should create a new group", () => {
-      expect(groupsController.createGroup(0, { name: "group name" })).toBeInstanceOf(Object);
+  describe("create group", () => {
+
+    it("should return 201", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/",
+        payload: { name: "a new group" }
+      });
+      expect(response.statusCode).toEqual(201);
     });
 
-    it("should throw server not found", () => {
-      expect(groupsController.createGroup(-1, { name: "group name" })).toThrowError("server with id '-1' not found");
+    it("should return 400 for a bad name", async () => {
+      let badNames: any = [-1, 2, -Infinity, Infinity, -NaN, NaN, 3.14, "", "   "];
+      for (const name of badNames) {
+        const response = await app.inject({
+          method: "POST",
+          url: "/",
+          payload: { name }
+        });
+        expect(response.statusCode).toStrictEqual(400);
+      }
     });
 
-    it("should return the new groups order", () => {
-      expect(groupsController.moveGroup(0, 0, { index: 3 })).toBeInstanceOf(Array);
+  });
+
+  describe("group update", () => {
+
+    it("should return 200", async () => {
+      const payloads = [
+        { name: "a new group name" },
+        { order: 1 }
+      ];
+      for (const payload of payloads) {
+        const response = await app.inject({
+          method: "PUT",
+          url: "/0",
+          payload
+        });
+        expect(response.statusCode).toStrictEqual(200);
+      }
     });
 
-    it("should throw server not found", () => {
-      expect(groupsController.moveGroup(-1, 0, { index: 3 })).toThrowError("server with id '-1' not found");
+    it("should return 400 for a bad name", async () => {
+      let badNames: any = [-1, 2, -Infinity, Infinity, -NaN, NaN, 3.14, "", "   "];
+      for (const name of badNames) {
+        const response = await app.inject({
+          method: "PUT",
+          url: "/0",
+          payload: { name }
+        });
+        expect(response.statusCode).toStrictEqual(400);
+      }
     });
 
-    it("should throw group not found", () => {
-      expect(groupsController.moveGroup(0, -1, { index: 3 })).toThrowError("group with id '-1' not found");
+    it("should return 400 for a bad order", async () => {
+      let badOrders: any = [-1, -Infinity, Infinity, -NaN, NaN, 3.14, "", "2", "3.14"];
+      for (const order of badOrders) {
+        const response = await app.inject({
+          method: "PUT",
+          url: "/0",
+          payload: { order }
+        });
+        expect(response.statusCode).toStrictEqual(400);
+      }
     });
 
-    it("should return nothing", () => {
-      expect(groupsController.deleteGroup(0, 0)).toBeUndefined();
-    });
+  });
 
-    it("should throw server not found", () => {
-      expect(groupsController.deleteGroup(-1, 0)).toThrowError("server with id '-1' not found");
-    });
+  describe("delete group", () => {
 
-    it("should throw group not found", () => {
-      expect(groupsController.deleteGroup(0, -1)).toThrowError("group with id '-1' not found");
+    it("should return 200", async () => {
+      const response = await app.inject({
+        method: "DELETE",
+        url: "/0"
+      });
+      expect(response.statusCode).toStrictEqual(200);
     });
 
   });

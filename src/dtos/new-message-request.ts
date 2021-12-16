@@ -1,8 +1,8 @@
-import { IsString } from "class-validator";
+import { IsNotBlank } from "../IsNotBlank";
 
 class NewMessageRequest {
 
-  @IsString()
+  @IsNotBlank()
   text: string;
 
 }

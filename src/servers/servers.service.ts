@@ -5,7 +5,6 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { Channel } from "../entities/channel";
 import { Group, GroupDocument } from "../entities/group";
-import ServerNameNotEmptyException from "../exceptions/ServerNameNotEmpty.exception";
 import ServerNotFoundException from "../exceptions/ServerNotFound.exception";
 import { Member } from "../entities/member";
 import NotAMemberException from "../exceptions/NotAMember.exception";
@@ -26,9 +25,7 @@ export class ServersService {
   }
 
   async createServer(userId: string, name: string): Promise<ServerDTO> {
-    const trimmedName = name.trim();
-    if (trimmedName.length === 0) throw new ServerNameNotEmptyException();
-    let newServer = new this.serverModel({ name: trimmedName });
+    let newServer = new this.serverModel({ name });
     const servers = await this.memberModel.find({ userId }).sort({ order: -1 }).limit(1);
     let newOrder = 0;
     if (servers.length > 0) newOrder = servers[0].order + 1;
@@ -188,38 +185,31 @@ export class ServersService {
     const isMember = await this.isMember(userId, id);
     if (isMember === false) throw new NotAMemberException();
 
-    let trimmedName;
-
     if (serverUpdate.name !== undefined) {
-      trimmedName = serverUpdate.name.trim();
-      if (trimmedName.length === 0) throw new ServerNameNotEmptyException();
       try {
-        const newServer = await this.serverModel.findOneAndUpdate({ _id: id }, { name: trimmedName }, { new: true });
+        const newServer = await this.serverModel.findOneAndUpdate({ _id: id }, { name: serverUpdate.name }, { new: true });
         if (newServer === null) throw new Error();
-        trimmedName = newServer.name;
       } catch (e) {
         throw new ServerNotFoundException();
       }
     }
 
-    let servers;
+    if (serverUpdate.order === undefined) return { name: serverUpdate.name };
 
-    if (serverUpdate.order !== undefined) {
-      servers = await this.memberModel.find({ userId }).sort({ order: 1 });
-      let index = servers.findIndex(server => server.serverId.toString() === id);
-      const server = servers[index];
-      servers[index] = undefined;
-      servers.splice(serverUpdate.order, 0, server);
-      index = servers.findIndex(server => server === undefined);
-      servers.splice(index, 1);
-      servers = await this.memberModel.bulkSave(servers.map((server, i) => {
-        server.order = i;
-        return server;
-      }));
-      servers = servers.map(server => ({ id: server.serverId.toString(), order: server.order }));
-    }
+    let servers: any = await this.memberModel.find({ userId }).sort({ order: 1 });
+    let index = servers.findIndex(server => server.serverId.toString() === id);
+    const server = servers[index];
+    servers[index] = undefined;
+    servers.splice(serverUpdate.order, 0, server);
+    index = servers.findIndex(server => server === undefined);
+    servers.splice(index, 1);
+    servers = await this.memberModel.bulkSave(servers.map((server, i) => {
+      server.order = i;
+      return server;
+    }));
+    servers = servers.map(server => ({ id: server.serverId.toString(), order: server.order }));
 
-    return { name: trimmedName, servers };
+    return { name: serverUpdate.name, servers };
   }
 
   async deleteServer(userId: string, id: string): Promise<void> {
@@ -244,12 +234,17 @@ export class ServersService {
   }
 
   private async fixServersOrder(membersUserIds: string[]) {
-    await Promise.all(membersUserIds.map(memberUserId => this.memberModel.find({ userId: memberUserId }).sort({ order: 1 }).then(servers =>
-      this.memberModel.bulkSave(servers.map((server, i) => {
-        server.order = i;
-        return server;
-      }))
-    )));
+    await Promise.all(
+      membersUserIds.map(memberUserId =>
+        this.memberModel.find({ userId: memberUserId }).sort({ order: 1 })
+          .then(servers =>
+            this.memberModel.bulkSave(servers.map((server, i) => {
+              server.order = i;
+              return server;
+            }))
+          )
+      )
+    );
   }
 
 }

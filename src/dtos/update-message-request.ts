@@ -1,9 +1,11 @@
-import { IsString } from "class-validator";
+import { IsNotBlank } from "../IsNotBlank";
+import { ValidateIf } from "class-validator";
 
 class UpdateMessageRequest {
 
-  @IsString()
-  text: string;
+  @ValidateIf((_, val) => val !== undefined)
+  @IsNotBlank()
+  text?: string;
 
 }
 

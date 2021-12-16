@@ -1,98 +1,89 @@
 import { Test, TestingModule } from "@nestjs/testing";
+import { FastifyAdapter, NestFastifyApplication } from "@nestjs/platform-fastify";
+import { ValidationPipe } from "@nestjs/common";
 import { MessagesController } from "./messages.controller";
 
 describe("MessagesController", () => {
-  let messagesController: MessagesController;
+  let app: NestFastifyApplication;
   let module: TestingModule;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     module = await Test.createTestingModule({
-      controllers: [MessagesController]
+      imports: [],
+      controllers: [MessagesController],
+      providers: []
     }).compile();
 
-    messagesController = module.get<MessagesController>(MessagesController);
+    app = module.createNestApplication<NestFastifyApplication>(
+      new FastifyAdapter()
+    );
+    app.useGlobalPipes(new ValidationPipe());
+    await app.init();
+    await app.getHttpAdapter().getInstance().ready();
   });
 
   afterAll(() => module.close());
 
-  describe("creating a new message", () => {
+  describe("create message", () => {
 
-    it("should create a new message", () => {
-      expect(messagesController.createMessage(0, null, 0, { text: "message content" })).toBeInstanceOf(Object);
+    it("should return 201", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/",
+        payload: { text: "a new message" }
+      });
+      expect(response.statusCode).toEqual(201);
     });
 
-    it("should throw server not found", () => {
-      expect(messagesController.createMessage(-1, null, 0, { text: "message content" })).toThrowError("server with id '-1' not found");
-    });
-
-    it("should throw group not found", () => {
-      expect(messagesController.createMessage(0, -1, 0, { text: "message content" })).toThrowError("group with id '-1' not found");
-    });
-
-    it("should throw channel not found", () => {
-      expect(messagesController.createMessage(0, null, -1, { text: "message content" })).toThrowError("channel with id '-1' not found");
-    });
-
-    it("should throw channel is not for texting", () => {
-      expect(messagesController.createMessage(0, null, 1, { text: "message content" })).toThrowError("channel with id '1' is not for texting");
-    });
-
-  });
-
-  describe("editing a message", () => {
-
-    it("should create a new message", () => {
-      expect(messagesController.editMessage(0, null, 0, 0, { text: "message content" })).toBeUndefined();
-    });
-
-    it("should throw server not found", () => {
-      expect(messagesController.editMessage(-1, null, 0, 0, { text: "message content" })).toThrowError("server with id '-1' not found");
-    });
-
-    it("should throw group not found", () => {
-      expect(messagesController.editMessage(0, -1, 0, 0, { text: "message content" })).toThrowError("group with id '-1' not found");
-    });
-
-    it("should throw channel not found", () => {
-      expect(messagesController.editMessage(0, null, -1, 0, { text: "message content" })).toThrowError("channel with id '-1' not found");
-    });
-
-    it("should throw channel is not for texting", () => {
-      expect(messagesController.editMessage(0, null, 1, 0, { text: "message content" })).toThrowError("channel with id '1' is not for texting");
-    });
-
-    it("should throw message not found", () => {
-      expect(messagesController.editMessage(0, null, 1, -1, { text: "message content" })).toThrowError("message with id '-1' not found");
+    it("should return 400 for a bad message", async () => {
+      let badTexts: any = [-1, 2, -Infinity, Infinity, -NaN, NaN, 3.14, "", "   "];
+      for (const text of badTexts) {
+        const response = await app.inject({
+          method: "POST",
+          url: "/",
+          payload: { text }
+        });
+        expect(response.statusCode).toStrictEqual(400);
+      }
     });
 
   });
 
-  describe("deleting a message", () => {
+  describe("message update", () => {
 
-    it("should return nothing", () => {
-      expect(messagesController.deleteMessage(0, null, 0, 0)).toBeUndefined();
+    it("should return 200", async () => {
+      const response = await app.inject({
+        method: "PUT",
+        url: "/0",
+        payload: { text: "a new message" }
+      });
+      expect(response.statusCode).toStrictEqual(200);
     });
 
-    it("should throw server not found", () => {
-      expect(messagesController.deleteMessage(-1, null, 0, 0)).toThrowError("server with id '-1' not found");
-    });
-
-    it("should throw group not found", () => {
-      expect(messagesController.deleteMessage(0, -1, 0, 0)).toThrowError("group with id '-1' not found");
-    });
-
-    it("should throw channel not found", () => {
-      expect(messagesController.deleteMessage(0, null, -1, 0)).toThrowError("channel with id '-1' not found");
-    });
-
-    it("should throw channel is not for texting", () => {
-      expect(messagesController.deleteMessage(0, null, 1, 0)).toThrowError("channel with id '1' is not for texting");
-    });
-
-    it("should throw message not found", () => {
-      expect(messagesController.deleteMessage(0, null, 1, -1)).toThrowError("message with id '-1' not found");
+    it("should return 400 for a bad text", async () => {
+      let badTexts: any = [-1, 2, -Infinity, Infinity, -NaN, NaN, 3.14, "", "   "];
+      for (const text of badTexts) {
+        const response = await app.inject({
+          method: "PUT",
+          url: "/0",
+          payload: { text }
+        });
+        expect(response.statusCode).toStrictEqual(400);
+      }
     });
 
   });
-  
+
+  describe("delete message", () => {
+
+    it("should return 200", async () => {
+      const response = await app.inject({
+        method: "DELETE",
+        url: "/0"
+      });
+      expect(response.statusCode).toStrictEqual(200);
+    });
+
+  });
+
 });

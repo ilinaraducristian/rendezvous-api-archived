@@ -5,9 +5,13 @@ import { Model } from "mongoose";
 import { Channel } from "../entities/channel";
 import { Group } from "../entities/group";
 import { ServersService } from "../servers/servers.service";
-import { GroupsService } from "../groups/groups.service";
-import { ChannelsService } from "../channels/channels.service";
 import { Message } from "../entities/message";
+import NotAMemberException from "../exceptions/NotAMember.exception";
+import ChannelNotFoundException from "../exceptions/ChannelNotFound.exception";
+import ChannelType from "../dtos/channel-type";
+import BadChannelTypeException from "../exceptions/BadChannelType.exception";
+import UpdateMessageRequest from "../dtos/update-message-request";
+import MessageNotFoundException from "../exceptions/MessageNotFound.exception";
 
 @Injectable()
 export class MessagesService {
@@ -17,36 +21,64 @@ export class MessagesService {
     @InjectModel(Group.name) private readonly groupModel: Model<Group>,
     @InjectModel(Channel.name) private readonly channelModel: Model<Channel>,
     @InjectModel(Message.name) private readonly messageModel: Model<Message>,
-    private readonly serversService: ServersService,
-    private readonly groupsService: GroupsService,
-    private readonly channelsService: ChannelsService
+    private readonly serversService: ServersService
   ) {
   }
 
-  // async createMessage(serverId: string, groupId: string | null, channelId: string, text: string): Promise<MessageDTO> {
-  //   const trimmedText = text.trim();
-  //   if (trimmedText.length === 0) throw MessageNotEmptyException;
-  //
-  //   const server = await this.serversService.getServer(serverId);
-  //   const channel = await this.channelsService.getChannel(channelId);
-  //   let group;
-  //
-  //   if (groupId !== null) {
-  //     group = await this.groupsService.getGroup(groupId);
-  //   }
-  //   const newMessage = new this.messageModel({
-  //     text: trimmedText,
-  //     serverId,
-  //     groupId: group?.id ?? null,
-  //     channelId,
-  //     timestamp: new Date(),
-  //     userId: "123"
-  //   });
-  //   await newMessage.save();
-  //   channel.messages.push(newMessage.id);
-  //   await channel.save();
-  //   return Message.toDTO(newMessage);
-  // }
+  async createMessage(userId: string, serverId: string, groupId: string | null, channelId: string, text: string) {
+
+    const isMember = await this.serversService.isMember(userId, serverId);
+    if (isMember === false) throw new NotAMemberException();
+
+    let channel;
+
+    try {
+      channel = await this.channelModel.find({ serverId, groupId, _id: channelId });
+      if (channel === null) throw new Error();
+    } catch (e) {
+      throw new ChannelNotFoundException();
+    }
+
+    if (channel.type === ChannelType.voice) throw new BadChannelTypeException();
+
+    const newMessage = new this.messageModel({
+      text,
+      serverId,
+      groupId: groupId,
+      channelId,
+      timestamp: new Date(),
+      userId
+    });
+    await newMessage.save();
+    channel.messages.push(newMessage.id);
+    await channel.save();
+    return Message.toDTO(newMessage);
+  }
+
+  async updateMessage(userId: string, serverId: string, groupId: string | null, channelId: string, id: string, messageUpdate: UpdateMessageRequest) {
+    const isMember = await this.serversService.isMember(userId, serverId);
+    if (isMember === false) throw new NotAMemberException();
+
+    let channel;
+
+    try {
+      channel = await this.channelModel.find({ serverId, groupId, _id: channelId });
+      if (channel === null) throw new Error();
+    } catch (e) {
+      throw new ChannelNotFoundException();
+    }
+
+    if (messageUpdate.text !== undefined) {
+      try {
+        const message = await this.messageModel.findOneAndUpdate({ serverId, groupId, channelId, _id: id }, {
+          text: messageUpdate.text
+        }, { new: true });
+      } catch (e) {
+        throw new ChannelNotFoundException();
+      }
+    }
+
+  }
 
   // async getMessages(serverId: string, groupId: string | null, channelId: string, offset: number = 0): Promise<MessageDTO[]> {
   //   const server = await this.serversService.getServer(serverId);
@@ -74,48 +106,19 @@ export class MessagesService {
   //
   // }
   //
-  // async updateMessageText(serverId: string, groupId: string | null, channelId: string, id: string, text: string): Promise<MessageDTO> {
-  //   const trimmedText = text.trim();
-  //   if (trimmedText.length === 0) throw MessageNotEmptyException;
-  //
-  //   await this.serversService.getServer(serverId);
-  //   if (groupId !== null)
-  //     await this.groupsService.getGroup(groupId);
-  //   await this.channelsService.getChannel(channelId);
-  //
-  //   try {
-  //     const newMessage = await this.messageModel.findOneAndUpdate({ _id: id }, { text: trimmedText }, { new: true });
-  //     return Message.toDTO(newMessage);
-  //   } catch (e) {
-  //     if (e === MessageNotFoundException)
-  //       throw MessageNotFoundException;
-  //     throw e;
-  //   }
-  // }
-  //
-  // async deleteMessage(serverId: string, groupId: string | null, channelId: string, id: string): Promise<void> {
-  //   let group;
-  //   const server = await this.serversService.getServer(serverId);
-  //   const channel = await this.channelsService.getChannel(channelId);
-  //
-  //   if (groupId !== null) {
-  //     group = await this.groupsService.getGroup(groupId);
-  //   }
-  //
-  //   try {
-  //     const message = await this.messageModel.findOneAndDelete({ _id: id });
-  //     if (message === null) throw new Error();
-  //   } catch (e) {
-  //     if (e === MessageNotFoundException)
-  //       throw MessageNotFoundException;
-  //     throw e;
-  //   }
-  //
-  //   const index = channel.messages.findIndex(message => message._id === id);
-  //   channel.messages.splice(index, 1);
-  //   await channel.save();
-  //
-  // }
+  async deleteMessage(userId: string, serverId: string, groupId: string | null, channelId: string, id: string) {
+    const isMember = await this.serversService.isMember(userId, serverId);
+    if (isMember === false) throw new NotAMemberException();
 
+    try {
+      const message = await this.channelModel.findOneAndDelete({ serverId, groupId, channelId, _id: id });
+      if (message === null) throw new Error();
+    } catch (e) {
+      throw new MessageNotFoundException();
+    }
+
+    await this.channelModel.findByIdAndUpdate(channelId, { $pullAll: { messages: [id] } });
+
+  }
 
 }

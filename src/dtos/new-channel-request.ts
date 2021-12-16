@@ -1,9 +1,10 @@
-import { IsEnum, IsString } from "class-validator";
+import { IsEnum } from "class-validator";
 import ChannelType from "./channel-type";
+import { IsNotBlank } from "../IsNotBlank";
 
 class NewChannelRequest {
 
-  @IsString()
+  @IsNotBlank()
   name: string;
 
   @IsEnum(ChannelType)

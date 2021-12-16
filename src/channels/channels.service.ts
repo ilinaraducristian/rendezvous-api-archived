@@ -5,7 +5,6 @@ import { Model } from "mongoose";
 import { Channel } from "../entities/channel";
 import { Group } from "../entities/group";
 import ChannelDTO from "../dtos/channel";
-import ChannelNameNotEmptyException from "../exceptions/ChannelNameNotEmpty.exception";
 import ChannelType from "../dtos/channel-type";
 import ChannelNotFoundException from "../exceptions/ChannelNotFound.exception";
 import { ServersService } from "../servers/servers.service";
@@ -26,16 +25,14 @@ export class ChannelsService {
   }
 
   async createChannel(userId: string, serverId: string, groupId: string | null, name: string, type: ChannelType): Promise<ChannelDTO> {
-    const trimmedName = name.trim();
-    if (trimmedName.length === 0) throw new ChannelNameNotEmptyException();
 
     const isMember = await this.serversService.isMember(userId, serverId);
     if (isMember === false) throw new NotAMemberException();
 
-    const channels = await this.channelModel.find({ serverId }).sort({ order: -1 }).limit(1);
+    const channels = await this.channelModel.find({ serverId, groupId }).sort({ order: -1 }).limit(1);
 
     const newChannel = new this.channelModel({
-      name: trimmedName,
+      name,
       serverId,
       groupId,
       type,
@@ -52,29 +49,25 @@ export class ChannelsService {
     return Channel.toDTO(newChannel);
   }
 
-  async updateChannel(userId: string, serverId: string, id: string, channelUpdate: UpdateChannelRequest) {
+  async updateChannel(userId: string, serverId: string, groupId: string | null, id: string, channelUpdate: UpdateChannelRequest) {
     const isMember = await this.serversService.isMember(userId, serverId);
     if (isMember === false) throw new NotAMemberException();
 
-    let trimmedName;
-    if (channelUpdate.name !== undefined) {
-      trimmedName = channelUpdate.name.trim();
-      if (trimmedName.length === 0) throw new ChannelNameNotEmptyException();
-    }
-
     let channel;
 
-    try {
-      channel = await this.channelModel.findOneAndUpdate({ _id: id }, {
-        name: trimmedName
-      }, { new: true });
-    } catch (e) {
-      throw new ChannelNotFoundException();
+    if (channelUpdate.name !== undefined) {
+      try {
+        channel = await this.channelModel.findOneAndUpdate({ serverId, groupId, _id: id }, {
+          name: channelUpdate.name
+        }, { new: true });
+      } catch (e) {
+        throw new ChannelNotFoundException();
+      }
     }
 
     let channels;
 
-    if (channelUpdate.order === undefined) return { name: trimmedName };
+    if (channelUpdate.order === undefined) return { name: channelUpdate.name };
     if (channel.groupId.toString() === channelUpdate.groupId) {
       channels = await this.channelModel.find({ groupId: channelUpdate.groupId }).sort({ order: 1 });
       let index = channels.findIndex(channel => channel.id.toString() === id);
@@ -119,21 +112,26 @@ export class ChannelsService {
       }));
     }
 
-    return { name: trimmedName, channels };
+    return { name: channelUpdate.name, channels };
 
   }
 
-  async deleteChannel(userId: string, serverId: string, groupId: string | null, id: string): Promise<void> {
+  async deleteChannel(userId: string, serverId: string, groupId: string | null, id: string) {
     const isMember = await this.serversService.isMember(userId, serverId);
     if (isMember === false) throw new NotAMemberException();
 
     try {
-      const channel = await this.channelModel.findOneAndDelete({ _id: id });
+      const channel = await this.channelModel.findOneAndDelete({ serverId, groupId, _id: id });
       if (channel === null) throw new Error();
     } catch (e) {
       throw new ChannelNotFoundException();
     }
 
+    const channels = await this.channelModel.find({ serverId, groupId }).sort({ order: 1 });
+    await this.channelModel.bulkSave(channels.map((channel, i) => {
+      channel.order = i;
+      return channel;
+    }));
     if (groupId === null) {
       try {
         const server = await this.serverModel.findByIdAndUpdate(serverId, { $pullAll: { channels: [id] } });

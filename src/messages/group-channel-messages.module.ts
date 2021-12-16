@@ -8,6 +8,7 @@ import { ChannelsService } from "../channels/channels.service";
 
 @Module({
   imports: [MongooseModules],
+  exports: [],
   controllers: [MessagesController],
   providers: [ServersService, GroupsService, ChannelsService, MessagesService]
 })
