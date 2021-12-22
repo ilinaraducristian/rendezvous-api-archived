@@ -9,6 +9,7 @@ import GroupNotFoundException from "../exceptions/GroupNotFound.exception";
 import { ServersService } from "../servers/servers.service";
 import NotAMemberException from "../exceptions/NotAMember.exception";
 import UpdateGroupRequest from "../dtos/update-group-request";
+import { insertAndSort } from "../util";
 
 @Injectable()
 export class GroupsService {
@@ -49,6 +50,7 @@ export class GroupsService {
           _id: id,
           serverId
         }, { name: groupUpdate.name }, { new: true });
+        if (newGroup === undefined || newGroup === null) throw new Error();
       } catch (e) {
         throw new GroupNotFoundException();
       }
@@ -56,19 +58,7 @@ export class GroupsService {
 
     if (groupUpdate.order === undefined) return { name: groupUpdate.name };
 
-    let groups: any = await this.groupModel.find({ serverId }).sort({ order: 1 });
-    let index = groups.findIndex(group => group.id.toString() === id);
-    const group = groups[index];
-    groups[index] = undefined;
-    groups.splice(groupUpdate.order, 0, group);
-    index = groups.findIndex(group => group === undefined);
-    groups.splice(index, 1);
-    groups = await this.groupModel.bulkSave(groups.map((group, i) => {
-      group.order = i;
-      return group;
-    }));
-    groups = groups.map(group => ({ id: group.id.toString(), order: group.order }));
-
+    const groups = await insertAndSort(this.groupModel, serverId, groupUpdate.order);
     return { name: groupUpdate.name, groups };
   }
 

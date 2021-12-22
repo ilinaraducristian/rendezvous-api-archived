@@ -12,6 +12,7 @@ import { v4 as uuid } from "uuid";
 import BadOrExpiredInvitationException from "../exceptions/BadOrExpiredInvitation.exception";
 import AlreadyMemberException from "../exceptions/AlreadyMember.exception";
 import UpdateServerRequest from "../dtos/update-server-request";
+import { insertAndSort } from "../util";
 
 @Injectable()
 export class ServersService {
@@ -196,20 +197,9 @@ export class ServersService {
 
     if (serverUpdate.order === undefined) return { name: serverUpdate.name };
 
-    let servers: any = await this.memberModel.find({ userId }).sort({ order: 1 });
-    let index = servers.findIndex(server => server.serverId.toString() === id);
-    const server = servers[index];
-    servers[index] = undefined;
-    servers.splice(serverUpdate.order, 0, server);
-    index = servers.findIndex(server => server === undefined);
-    servers.splice(index, 1);
-    servers = await this.memberModel.bulkSave(servers.map((server, i) => {
-      server.order = i;
-      return server;
-    }));
-    servers = servers.map(server => ({ id: server.serverId.toString(), order: server.order }));
+    const userServers = await insertAndSort(this.memberModel, userId, serverUpdate.order);
 
-    return { name: serverUpdate.name, servers };
+    return { name: serverUpdate.name, servers: userServers };
   }
 
   async deleteServer(userId: string, id: string): Promise<void> {
