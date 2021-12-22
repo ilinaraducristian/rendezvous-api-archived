@@ -1,17 +1,18 @@
-import { Injectable } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { Server } from "../entities/server";
-import { Model } from "mongoose";
-import { Channel } from "../entities/channel";
-import { Group } from "../entities/group";
-import ChannelDTO from "../dtos/channel";
-import ChannelType from "../dtos/channel-type";
-import ChannelNotFoundException from "../exceptions/ChannelNotFound.exception";
-import { ServersService } from "../servers/servers.service";
-import NotAMemberException from "../exceptions/NotAMember.exception";
-import ServerNotFoundException from "../exceptions/ServerNotFound.exception";
-import GroupNotFoundException from "../exceptions/GroupNotFound.exception";
-import UpdateChannelRequest from "../dtos/update-channel-request";
+import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Server } from '../entities/server';
+import { Model } from 'mongoose';
+import { Channel } from '../entities/channel';
+import { Group } from '../entities/group';
+import ChannelDTO from '../dtos/channel';
+import ChannelType from '../dtos/channel-type';
+import ChannelNotFoundException from '../exceptions/ChannelNotFound.exception';
+import { ServersService } from '../servers/servers.service';
+import NotAMemberException from '../exceptions/NotAMember.exception';
+import ServerNotFoundException from '../exceptions/ServerNotFound.exception';
+import GroupNotFoundException from '../exceptions/GroupNotFound.exception';
+import UpdateChannelRequest from '../dtos/update-channel-request';
+import { SocketIoService } from '../socket-io/socket-io.service';
 
 @Injectable()
 export class ChannelsService {
@@ -20,7 +21,8 @@ export class ChannelsService {
     @InjectModel(Server.name) private readonly serverModel: Model<Server>,
     @InjectModel(Channel.name) private readonly channelModel: Model<Channel>,
     @InjectModel(Group.name) private readonly groupModel: Model<Group>,
-    private readonly serversService: ServersService
+    private readonly serversService: ServersService,
+    private readonly socketIoService: SocketIoService,
   ) {
   }
 
@@ -36,7 +38,7 @@ export class ChannelsService {
       serverId,
       groupId,
       type,
-      order: (channels[0]?.order ?? -1) + 1
+      order: (channels[0]?.order ?? -1) + 1,
     });
 
     if (groupId === null) {
@@ -46,7 +48,9 @@ export class ChannelsService {
     }
 
     await newChannel.save();
-    return Channel.toDTO(newChannel);
+    const newChannelDto = Channel.toDTO(newChannel);
+    this.socketIoService.newChannel(serverId, newChannelDto);
+    return newChannelDto;
   }
 
   async updateChannel(userId: string, serverId: string, groupId: string | null, id: string, channelUpdate: UpdateChannelRequest) {
@@ -58,7 +62,7 @@ export class ChannelsService {
     if (channelUpdate.name !== undefined) {
       try {
         channel = await this.channelModel.findOneAndUpdate({ serverId, groupId, _id: id }, {
-          name: channelUpdate.name
+          name: channelUpdate.name,
         }, { new: true });
       } catch (e) {
         throw new ChannelNotFoundException();
@@ -83,7 +87,7 @@ export class ChannelsService {
       channels = channels.map(channel => ({
         id: channel.id.toString(),
         groupId: channel.groupId,
-        order: channel.order
+        order: channel.order,
       }));
     } else {
       let channels1 = await this.channelModel.find({ groupId: channel.groupId }).sort({ order: 1 });
@@ -108,7 +112,7 @@ export class ChannelsService {
       channels = channels.map(channel => ({
         id: channel.id.toString(),
         groupId: channel.groupId,
-        order: channel.order
+        order: channel.order,
       }));
     }
 
