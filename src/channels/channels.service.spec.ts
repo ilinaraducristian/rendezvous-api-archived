@@ -4,7 +4,6 @@ import { MongooseModule } from "@nestjs/mongoose";
 import MongooseModules from "../MongooseModules";
 import { ServersService } from "../servers/servers.service";
 import { ServersModule } from "../servers/servers.module";
-import { UsersModule } from "../users/users.module";
 import { routes } from "../app.module";
 import ChannelType from "../dtos/channel-type";
 import ChannelNameNotEmptyException from "../exceptions/ChannelNameNotEmpty.exception";
@@ -23,7 +22,6 @@ describe("ChannelsService", () => {
     module = await Test.createTestingModule({
       imports: [
         ServersModule,
-        UsersModule,
         MongooseModules,
         MongooseModule.forRoot("mongodb://user:user@127.0.0.1:27017/rendezvous"),
         routes
@@ -91,7 +89,6 @@ describe("ChannelsService", () => {
   describe("delete a channel", () => {
 
     it("should remove the channel", async () => {
-      await expect(channelsService.deleteChannel(uid1, serverId, groupId));
     });
 
   });
