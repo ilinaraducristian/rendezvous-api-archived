@@ -1,7 +1,7 @@
 type ChannelUpdate = {
 
   name: string | undefined,
-  groupId: string | null | undefined
+  groupId: string | undefined
 
 }
 

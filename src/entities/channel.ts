@@ -11,8 +11,8 @@ export class Channel {
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: "Server" })
   serverId: string;
 
-  @Prop({ default: null, type: mongoose.Schema.Types.ObjectId, ref: "Group" })
-  groupId: string | null;
+  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: "Group" })
+  groupId: string;
 
   @Prop({ required: true })
   name: string;
@@ -27,7 +27,7 @@ export class Channel {
     return {
       id: channel.id.toString(),
       serverId: channel.serverId.toString(),
-      groupId: channel.groupId?.toString() ?? null,
+      groupId: channel.groupId?.toString(),
       name: channel.name,
       order: channel.order,
       type: channel.type

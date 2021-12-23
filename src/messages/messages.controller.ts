@@ -17,7 +17,7 @@ export class MessagesController {
   async createMessage(
     @AuthenticatedUser() user: KeycloakUser,
     @Param("serverId") serverId: string,
-    @Param("groupId") groupId: string = null,
+    @Param("groupId") groupId: string,
     @Param("channelId") channelId: string,
     @Body() newMessage: NewMessageRequest
   ) {
@@ -27,7 +27,7 @@ export class MessagesController {
   async updateMessage(
     @AuthenticatedUser() user: KeycloakUser,
     @Param("serverId") serverId: string,
-    @Param("groupId") groupId: string = null,
+    @Param("groupId") groupId: string,
     @Param("channelId") channelId: string,
     @Param("messageId") id: string,
     @Body() messageUpdate: UpdateMessageRequest
@@ -39,7 +39,7 @@ export class MessagesController {
   deleteMessage(
     @AuthenticatedUser() user: KeycloakUser,
     @Param("serverId") serverId: string,
-    @Param("groupId") groupId: string = null,
+    @Param("groupId") groupId: string,
     @Param("channelId") channelId: string,
     @Param("messageId") id: string
   ) {

@@ -25,7 +25,7 @@ export class MessagesService {
   ) {
   }
 
-  async createMessage(userId: string, serverId: string, groupId: string | null, channelId: string, text: string) {
+  async createMessage(userId: string, serverId: string, groupId: string, channelId: string, text: string) {
 
     const isMember = await this.serversService.isMember(userId, serverId);
     if (isMember === false) throw new NotAMemberException();
@@ -55,7 +55,7 @@ export class MessagesService {
     return Message.toDTO(newMessage);
   }
 
-  async updateMessage(userId: string, serverId: string, groupId: string | null, channelId: string, id: string, messageUpdate: UpdateMessageRequest) {
+  async updateMessage(userId: string, serverId: string, groupId: string, channelId: string, id: string, messageUpdate: UpdateMessageRequest) {
     const isMember = await this.serversService.isMember(userId, serverId);
     if (isMember === false) throw new NotAMemberException();
 
@@ -80,7 +80,7 @@ export class MessagesService {
 
   }
 
-  // async getMessages(serverId: string, groupId: string | null, channelId: string, offset: number = 0): Promise<MessageDTO[]> {
+  // async getMessages(serverId: string, groupId: string, channelId: string, offset: number = 0): Promise<MessageDTO[]> {
   //   const server = await this.serversService.getServer(serverId);
   //   let group, channel;
   //
@@ -106,7 +106,7 @@ export class MessagesService {
   //
   // }
   //
-  async deleteMessage(userId: string, serverId: string, groupId: string | null, channelId: string, id: string) {
+  async deleteMessage(userId: string, serverId: string, groupId: string, channelId: string, id: string) {
     const isMember = await this.serversService.isMember(userId, serverId);
     if (isMember === false) throw new NotAMemberException();
 

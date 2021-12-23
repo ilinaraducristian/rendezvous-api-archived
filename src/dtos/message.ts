@@ -5,7 +5,7 @@ import ReplyMessage from "./reply-message";
 type Message = {
     id: string,
     serverId: string | null,
-    groupId: string | null,
+    groupId: string,
     channelId: string | null,
     friendId: string | null,
     timestamp: string,

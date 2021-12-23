@@ -15,7 +15,7 @@ export class Message {
   serverId: string;
 
   @Prop({ default: null, type: mongoose.Schema.Types.ObjectId, ref: "Group" })
-  groupId: string | null;
+  groupId: string;
 
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: "Channel" })
   channelId: string;
@@ -31,7 +31,7 @@ export class Message {
       id: message.id,
       serverId: message.serverId,
       channelId: message.channelId,
-      groupId: message.groupId ?? null,
+      groupId: message.groupId,
       friendId: null,
       timestamp: message.timestamp.toISOString(),
       text: message.text,

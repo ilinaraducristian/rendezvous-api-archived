@@ -5,7 +5,7 @@ import Member from "./member";
 type Channel = {
     id: string,
     serverId: string,
-    groupId: string | null,
+    groupId: string,
     name: string,
     order: number,
     type: ChannelType

@@ -75,7 +75,6 @@ describe("ChannelsController", () => {
       const payloads = [
         { name: "a new channel name" },
         { order: 1, groupId: "61b9e4a537e8556178e72207" },
-        { order: 1, groupId: null }
       ];
       for (const payload of payloads) {
         const response = await app.inject({
@@ -105,7 +104,7 @@ describe("ChannelsController", () => {
         const response = await app.inject({
           method: "PUT",
           url: "/0",
-          payload: { groupId: null, order }
+          payload: { groupId: "", order }
         });
         expect(response.statusCode).toStrictEqual(400);
       }

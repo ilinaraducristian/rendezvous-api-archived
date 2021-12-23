@@ -14,7 +14,7 @@ export class ChannelsController {
   async createChannel(
     @AuthenticatedUser() user: KeycloakUser,
     @Param("serverId") serverId: string,
-    @Param("groupId") groupId: string = null,
+    @Param("groupId") groupId: string,
     @Body() newChannel: NewChannelRequest
   ) {
   }
@@ -51,7 +51,7 @@ export class ChannelsController {
   // async deleteChannel(
   //   @AuthenticatedUser() user: KeycloakUser,
   //   @Param("serverId") serverId: string,
-  //   @Param("groupId") groupId: string = null,
+  //   @Param("groupId") groupId: string,
   //   @Param("channelId") id: string
   // ): Promise<void> {
   //   return this.channelsService.deleteChannel(user.sub, serverId, groupId, id);

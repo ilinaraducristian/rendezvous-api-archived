@@ -53,7 +53,7 @@ describe("ChannelsService", () => {
       await expect(channelsService.createChannel(uid1, serverId, null, `   ${channelName}   `, ChannelType.text))
         .resolves.toEqual(expect.objectContaining({
           serverId,
-          groupId: null,
+          groupId: "",
           name: channelName,
           type: ChannelType.text
         }));
