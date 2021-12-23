@@ -8,7 +8,9 @@ enum SocketIoEvents {
   channelDeleted = 'channel-deleted',
   newGroup = 'new-group',
   groupUpdate = 'group-update',
-  groupDeleted = 'group-deleted'
+  groupDeleted = 'group-deleted',
+  userOnline = 'user-online',
+  userOffline = 'user-offline',
 }
 
 export default SocketIoEvents;
