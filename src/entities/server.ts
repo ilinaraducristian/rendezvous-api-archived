@@ -2,9 +2,10 @@ import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import ServerDTO from "../dtos/server";
 import * as mongoose from "mongoose";
 import { Document } from "mongoose";
-import { Member } from "./member";
+import Member from "./member";
 import Group, { GroupDocument, GroupSchema } from "./group";
 import { ChannelDocument } from "./channel";
+import Invitation from "../dtos/invitation";
 
 @Schema()
 export class Server {
@@ -14,11 +15,8 @@ export class Server {
   @Prop({ required: true })
   name: string;
 
-  @Prop({ default: null })
-  invitation: string | null;
-
-  @Prop({ default: null })
-  invitation_exp: Date | null;
+  @Prop({ default: null, type: Object })
+  invitation: Invitation | null;
 
   @Prop({ default: [], type: [GroupSchema] })
   groups: Group[];
@@ -31,7 +29,6 @@ export class Server {
     delete dtoServer._id;
     delete dtoServer.__v;
     dtoServer.id = server._id.toString();
-    dtoServer.invitation_exp = server.invitation_exp?.toISOString() ?? null;
     dtoServer.groups = server.groups.map((group: GroupDocument) => {
       const dtoGroup: any = group.toObject();
       delete dtoGroup._id;

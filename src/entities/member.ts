@@ -3,7 +3,7 @@ import * as mongoose from "mongoose";
 import MemberDTO from "../dtos/member";
 
 @Schema()
-export class Member {
+class Member {
 
   _id: string = "";
 
@@ -28,3 +28,4 @@ export class Member {
 
 export type MemberDocument = Member & Document;
 export const MemberSchema = SchemaFactory.createForClass(Member);
+export default Member;

@@ -4,7 +4,7 @@ import { Server, ServerDocument } from "../entities/server";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import ServerNotFoundException from "../exceptions/ServerNotFound.exception";
-import { Member } from "../entities/member";
+import Member from "../entities/member";
 import NotAMemberException from "../exceptions/NotAMember.exception";
 import { v4 as uuid } from "uuid";
 import BadOrExpiredInvitationException from "../exceptions/BadOrExpiredInvitation.exception";
@@ -85,21 +85,22 @@ export class ServersService {
     const isMember = await this.isMember(userId, id);
     if (isMember === false) throw new NotAMemberException();
     const server = await this.serverModel.findById(id);
-    // TODO don't generate a new invitation if the previous one is not expired
-    server.invitation = uuid();
-    server.invitation_exp = new Date();
-    server.invitation_exp.setDate(server.invitation_exp.getDate() + 7);
+    if (server.invitation === null || server.invitation?.exp < new Date()) {
+      server.invitation = {
+        link: uuid(),
+        exp: new Date()
+      };
+      server.invitation.exp.setDate(server.invitation.exp.getDate() + 7);
+
+    }
     await server.save();
-    return {
-      invitation: server.invitation,
-      invitation_exp: server.invitation_exp.toISOString()
-    };
+    return server.invitation;
   }
 
   async createMember(userId: string, invitation: string) {
     let server;
     try {
-      server = await this.serverModel.findOne({ invitation }).populate("members");
+      server = await this.serverModel.findOne({ "invitation.link": invitation }).populate("members");
       if (server === null) throw new Error();
       if (new Date() > server.date) throw new Error();
     } catch (e) {
