@@ -1,16 +1,11 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import * as mongoose from "mongoose";
-import GroupDTO from "../dtos/group";
-import { Channel } from "./channel";
-
+import Channel, { ChannelSchema } from "./channel";
+import { Document } from "mongoose";
 
 @Schema()
-export class Group {
+class Group {
 
-  _id: string = "";
-
-  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: "Server" })
-  serverId: string;
+  _id?: string = "";
 
   @Prop({ required: true })
   name: string;
@@ -18,20 +13,11 @@ export class Group {
   @Prop({ default: 0 })
   order: number;
 
-  @Prop({ default: [], type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Channel" }] })
+  @Prop({ default: [], type: [ChannelSchema] })
   channels: Channel[];
-
-  static toDTO(group: Group & { id?: string }): GroupDTO {
-    return {
-      id: group.id.toString(),
-      serverId: group.serverId.toString(),
-      name: group.name,
-      order: group.order,
-      channels: []
-    };
-  }
 
 }
 
-export type GroupDocument = Group & Document;
+export type GroupDocument = Document<any, any, Group> & Group;
 export const GroupSchema = SchemaFactory.createForClass(Group);
+export default Group;

@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import * as mongoose from "mongoose";
-import { Channel } from "./channel";
+import Channel from "./channel";
 import MessageDTO from "../dtos/message";
 
 @Schema()

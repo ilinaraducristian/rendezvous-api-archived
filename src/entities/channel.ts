@@ -1,18 +1,11 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import ChannelType from "../dtos/channel-type";
-import * as mongoose from "mongoose";
-import ChannelDTO from "../dtos/channel";
+import { Document } from "mongoose";
 
 @Schema()
-export class Channel {
+class Channel {
 
-  _id: string = "";
-
-  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: "Server" })
-  serverId: string;
-
-  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: "Group" })
-  groupId: string;
+  _id?: string = "";
 
   @Prop({ required: true })
   name: string;
@@ -23,18 +16,8 @@ export class Channel {
   @Prop({ required: true })
   type: ChannelType;
 
-  static toDTO(channel: Channel & { id?: string }): ChannelDTO {
-    return {
-      id: channel.id.toString(),
-      serverId: channel.serverId.toString(),
-      groupId: channel.groupId?.toString(),
-      name: channel.name,
-      order: channel.order,
-      type: channel.type
-    };
-  }
-
 }
 
-export type ChannelDocument = Channel & Document;
+export type ChannelDocument = Document<any, any, Channel> & Channel;
 export const ChannelSchema = SchemaFactory.createForClass(Channel);
+export default Channel;
