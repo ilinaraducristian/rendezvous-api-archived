@@ -1,7 +1,7 @@
 import { Model } from "mongoose";
-import { Server } from "./entities/server";
-import { Group } from "./entities/group";
-import { Member } from "./entities/member";
+import Server from "./entities/server";
+import Group from "./entities/group";
+import Member from "./entities/member";
 
 async function insertAndSort(model: Model<Member | Group>, id: string, order: number) {
   let array, index;

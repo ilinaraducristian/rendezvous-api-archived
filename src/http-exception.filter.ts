@@ -1,7 +1,7 @@
 import { ArgumentsHost, Catch, ExceptionFilter } from "@nestjs/common";
 import { Request } from "express";
-import ResourceNotFoundException from "./exceptions/ResourceNotFound.exception";
-import BadRequestException from "./exceptions/BadRequest.exception";
+import BadRequestException from "./exceptions/BadRequestExceptions";
+import ResourceNotFoundException from "./exceptions/NotFoundExceptions";
 
 @Catch(Error)
 export class HttpExceptionFilter implements ExceptionFilter<Error> {

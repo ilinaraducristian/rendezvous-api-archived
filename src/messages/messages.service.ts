@@ -1,17 +1,15 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Server } from "../entities/server";
+import Server from "../entities/server";
 import { Model } from "mongoose";
-import { Channel } from "../entities/channel";
-import { Group } from "../entities/group";
+import Channel from "../entities/channel";
+import Group from "../entities/group";
 import { ServersService } from "../servers/servers.service";
 import { Message } from "../entities/message";
-import NotAMemberException from "../exceptions/NotAMember.exception";
-import ChannelNotFoundException from "../exceptions/ChannelNotFound.exception";
 import ChannelType from "../dtos/channel-type";
-import BadChannelTypeException from "../exceptions/BadChannelType.exception";
 import UpdateMessageRequest from "../dtos/update-message-request";
-import MessageNotFoundException from "../exceptions/MessageNotFound.exception";
+import { BadChannelTypeException, NotAMemberException } from "../exceptions/BadRequestExceptions";
+import { ChannelNotFoundException, MessageNotFoundException } from "../exceptions/NotFoundExceptions";
 
 @Injectable()
 export class MessagesService {

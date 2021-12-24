@@ -5,8 +5,6 @@ import { Document } from "mongoose";
 @Schema()
 class Channel {
 
-  _id?: string = "";
-
   @Prop({ required: true })
   name: string;
 
@@ -15,6 +13,15 @@ class Channel {
 
   @Prop({ required: true })
   type: ChannelType;
+
+  static toDTO(channel: ChannelDocument, serverId: string, groupId: string) {
+    const dtoChannel: any = channel.toObject();
+    delete dtoChannel._id;
+    dtoChannel.id = channel._id.toString();
+    dtoChannel.serverId = serverId;
+    dtoChannel.groupId = groupId;
+    return dtoChannel;
+  }
 
 }
 

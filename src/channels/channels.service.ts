@@ -1,17 +1,16 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Server } from "../entities/server";
+import Server from "../entities/server";
 import { Model } from "mongoose";
-import { Channel } from "../entities/channel";
-import { Group } from "../entities/group";
+import Channel from "../entities/channel";
+import Group from "../entities/group";
 import ChannelDTO from "../dtos/channel";
 import ChannelType from "../dtos/channel-type";
-import ChannelNotFoundException from "../exceptions/ChannelNotFound.exception";
 import { ServersService } from "../servers/servers.service";
-import NotAMemberException from "../exceptions/NotAMember.exception";
-import GroupNotFoundException from "../exceptions/GroupNotFound.exception";
 import UpdateChannelRequest from "../dtos/update-channel-request";
 import { SocketIoService } from "../socket-io/socket-io.service";
+import { NotAMemberException } from "../exceptions/BadRequestExceptions";
+import { ChannelNotFoundException, GroupNotFoundException } from "../exceptions/NotFoundExceptions";
 
 @Injectable()
 export class ChannelsService {
@@ -43,7 +42,7 @@ export class ChannelsService {
     await this.groupModel.findByIdAndUpdate(groupId, { $push: { channels: newChannel.id } });
 
     await newChannel.save();
-    const newChannelDto = Channel.toDTO(newChannel);
+    const newChannelDto = Channel.toDTO(newChannel, serverId, groupId);
     this.socketIoService.newChannel(serverId, newChannelDto);
     return newChannelDto;
   }
@@ -84,8 +83,6 @@ export class ChannelsService {
       let channels1 = await this.channelModel.find({ groupId: channel.groupId }).sort({ order: 1 });
       let channels2 = await this.channelModel.find({ groupId: channelUpdate.groupId }).sort({ order: 1 });
       const index = channels1.findIndex(channel => channel.id.toString() === id);
-
-      channels1[index].groupId = channelUpdate.groupId;
 
       channels2.splice(channelUpdate.order, 0, channels1[index]);
       channels1.splice(index, 1);

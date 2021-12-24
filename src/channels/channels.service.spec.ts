@@ -6,9 +6,9 @@ import { ServersService } from "../servers/servers.service";
 import { ServersModule } from "../servers/servers.module";
 import { routes } from "../app.module";
 import ChannelType from "../dtos/channel-type";
-import ChannelNameNotEmptyException from "../exceptions/ChannelNameNotEmpty.exception";
-import NotAMemberException from "../exceptions/NotAMember.exception";
-import GroupNotFoundException from "../exceptions/GroupNotFound.exception";
+import { NotAMemberException } from "../exceptions/BadRequestExceptions";
+import { ChannelNameNotEmptyException } from "../exceptions/NotEmptyExceptions";
+import { GroupNotFoundException } from "../exceptions/NotFoundExceptions";
 
 const uid1 = "d368a4be-b04a-44dd-a945-41f88c1e46f6";
 const uid2 = "d368a4be-b04a-44dd-a945-41f88c1e46f7";

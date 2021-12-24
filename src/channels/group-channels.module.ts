@@ -5,6 +5,7 @@ import MongooseModules from "../MongooseModules";
 import { ServersService } from "../servers/servers.service";
 import { GroupsService } from "../groups/groups.service";
 import { GroupChannelMessagesModule } from "../messages/group-channel-messages.module";
+import { SocketIoService } from "../socket-io/socket-io.service";
 
 @Module({
   imports: [
@@ -12,7 +13,7 @@ import { GroupChannelMessagesModule } from "../messages/group-channel-messages.m
     MongooseModules
   ],
   controllers: [ChannelsController],
-  providers: [ServersService, GroupsService, ChannelsService]
+  providers: [ServersService, GroupsService, ChannelsService, SocketIoService]
 })
 export class GroupChannelsModule {
 }

@@ -1,11 +1,9 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import Channel, { ChannelSchema } from "./channel";
+import Channel, { ChannelDocument, ChannelSchema } from "./channel";
 import { Document } from "mongoose";
 
 @Schema()
 class Group {
-
-  _id?: string = "";
 
   @Prop({ required: true })
   name: string;
@@ -15,6 +13,17 @@ class Group {
 
   @Prop({ default: [], type: [ChannelSchema] })
   channels: Channel[];
+
+  static toDTO(group: GroupDocument, serverId: string) {
+    const dtoGroup: any = group.toObject();
+    delete dtoGroup._id;
+    dtoGroup.id = group._id.toString();
+    dtoGroup.serverId = serverId;
+    dtoGroup.channels = group.channels.map((channel: ChannelDocument) =>
+      Channel.toDTO(channel, serverId, dtoGroup.id)
+    );
+    return dtoGroup;
+  }
 
 }
 

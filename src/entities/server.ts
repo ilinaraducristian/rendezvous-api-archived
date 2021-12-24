@@ -4,13 +4,10 @@ import * as mongoose from "mongoose";
 import { Document } from "mongoose";
 import Member from "./member";
 import Group, { GroupDocument, GroupSchema } from "./group";
-import { ChannelDocument } from "./channel";
 import Invitation from "../dtos/invitation";
 
 @Schema()
-export class Server {
-
-  _id: string = "";
+class Server {
 
   @Prop({ required: true })
   name: string;
@@ -29,21 +26,8 @@ export class Server {
     delete dtoServer._id;
     delete dtoServer.__v;
     dtoServer.id = server._id.toString();
-    dtoServer.groups = server.groups.map((group: GroupDocument) => {
-      const dtoGroup: any = group.toObject();
-      delete dtoGroup._id;
-      dtoGroup.id = group._id.toString();
-      dtoGroup.serverId = dtoServer.id;
-      dtoGroup.channels = group.channels.map((channel: ChannelDocument) => {
-        const dtoChannel: any = channel.toObject();
-        delete dtoChannel._id;
-        dtoChannel.id = channel._id.toString();
-        dtoChannel.serverId = dtoServer.id;
-        dtoChannel.groupId = dtoGroup.id;
-        return dtoChannel;
-      });
-      return dtoGroup;
-    });
+    dtoServer.groups = server.groups.map((group: GroupDocument) =>
+      Group.toDTO(group, dtoServer.id));
     dtoServer.members = server.members.map(memberId => memberId.toString());
     return dtoServer;
   }
@@ -52,3 +36,4 @@ export class Server {
 
 export type ServerDocument = Document<any, any, Server> & Server;
 export const ServerSchema = SchemaFactory.createForClass(Server);
+export default Server;

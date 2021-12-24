@@ -1,23 +1,22 @@
-import { Module } from '@nestjs/common';
-import { ServersModule } from './servers/servers.module';
-import { MongooseModule } from '@nestjs/mongoose';
-import MongooseModules from './MongooseModules';
-import { APP_GUARD, RouterModule } from '@nestjs/core';
-import { MessagesModule } from './messages/messages.module';
-import { GroupsModule } from './groups/groups.module';
-import { ChannelsModule } from './channels/channels.module';
-import { GroupChannelsModule } from './channels/group-channels.module';
-import { GroupChannelMessagesModule } from './messages/group-channel-messages.module';
-import { AuthGuard, KeycloakConnectModule } from 'nest-keycloak-connect';
-import { SocketIoService } from './socket-io/socket-io.service';
+import { Module } from "@nestjs/common";
+import { ServersModule } from "./servers/servers.module";
+import { MongooseModule } from "@nestjs/mongoose";
+import MongooseModules from "./MongooseModules";
+import { APP_GUARD, RouterModule } from "@nestjs/core";
+import { MessagesModule } from "./messages/messages.module";
+import { GroupsModule } from "./groups/groups.module";
+import { ChannelsModule } from "./channels/channels.module";
+import { GroupChannelsModule } from "./channels/group-channels.module";
+import { GroupChannelMessagesModule } from "./messages/group-channel-messages.module";
+import { AuthGuard, KeycloakConnectModule } from "nest-keycloak-connect";
 
 export const routes = RouterModule.register([
   {
-    path: 'servers',
+    path: "servers",
     module: ServersModule,
     children: [
       {
-        path: ':serverId/groups',
+        path: ":serverId/groups",
         module: GroupsModule,
         children: [
           {
@@ -61,7 +60,6 @@ export const routes = RouterModule.register([
       provide: APP_GUARD,
       useClass: AuthGuard,
     },
-    SocketIoService,
   ]
 })
 export class AppModule {

@@ -1,16 +1,16 @@
-import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Server } from '../entities/server';
-import { Model } from 'mongoose';
-import { Channel } from '../entities/channel';
-import { Group } from '../entities/group';
-import GroupDTO from '../dtos/group';
-import GroupNotFoundException from '../exceptions/GroupNotFound.exception';
-import { ServersService } from '../servers/servers.service';
-import NotAMemberException from '../exceptions/NotAMember.exception';
-import UpdateGroupRequest from '../dtos/update-group-request';
-import { insertAndSort } from '../util';
-import { SocketIoService } from '../socket-io/socket-io.service';
+import { Injectable } from "@nestjs/common";
+import { InjectModel } from "@nestjs/mongoose";
+import Server from "../entities/server";
+import { Model } from "mongoose";
+import Channel from "../entities/channel";
+import Group from "../entities/group";
+import GroupDTO from "../dtos/group";
+import { ServersService } from "../servers/servers.service";
+import UpdateGroupRequest from "../dtos/update-group-request";
+import { insertAndSort } from "../util";
+import { SocketIoService } from "../socket-io/socket-io.service";
+import { NotAMemberException } from "../exceptions/BadRequestExceptions";
+import { GroupNotFoundException } from "../exceptions/NotFoundExceptions";
 
 @Injectable()
 export class GroupsService {
@@ -20,7 +20,7 @@ export class GroupsService {
     @InjectModel(Channel.name) private readonly channelModel: Model<Channel>,
     @InjectModel(Group.name) private readonly groupModel: Model<Group>,
     private readonly serversService: ServersService,
-    private readonly socketIoService: SocketIoService,
+    private readonly socketIoService: SocketIoService
   ) {
   }
 
@@ -33,13 +33,13 @@ export class GroupsService {
     const newGroup = new this.groupModel({
       name,
       serverId,
-      order: (lastGroup?.order ?? -1) + 1,
+      order: (lastGroup?.order ?? -1) + 1
     });
 
     await this.serverModel.findByIdAndUpdate(serverId, { $push: { groups: newGroup.id } });
 
     await newGroup.save();
-    const newGroupDto = Group.toDTO(newGroup);
+    const newGroupDto = Group.toDTO(newGroup, serverId);
     this.socketIoService.newGroup(serverId, newGroupDto);
     return newGroupDto;
   }
@@ -52,7 +52,7 @@ export class GroupsService {
       try {
         const newGroup = await this.groupModel.findOneAndUpdate({
           _id: id,
-          serverId,
+          serverId
         }, { name: groupUpdate.name }, { new: true });
         if (newGroup === undefined || newGroup === null) throw new Error();
       } catch (e) {

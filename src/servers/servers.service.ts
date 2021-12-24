@@ -1,18 +1,20 @@
 import { Injectable } from "@nestjs/common";
 import ServerDTO from "../dtos/server";
-import { Server, ServerDocument } from "../entities/server";
+import Server, { ServerDocument } from "../entities/server";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import ServerNotFoundException from "../exceptions/ServerNotFound.exception";
 import Member from "../entities/member";
-import NotAMemberException from "../exceptions/NotAMember.exception";
 import { v4 as uuid } from "uuid";
-import BadOrExpiredInvitationException from "../exceptions/BadOrExpiredInvitation.exception";
-import AlreadyMemberException from "../exceptions/AlreadyMember.exception";
 import UpdateServerRequest from "../dtos/update-server-request";
 import { insertAndSort } from "../util";
 import { SocketIoService } from "../socket-io/socket-io.service";
 import ChannelType from "../dtos/channel-type";
+import {
+  AlreadyMemberException,
+  BadOrExpiredInvitationException,
+  NotAMemberException
+} from "../exceptions/BadRequestExceptions";
+import { ServerNotFoundException } from "../exceptions/NotFoundExceptions";
 
 @Injectable()
 export class ServersService {
@@ -120,10 +122,7 @@ export class ServersService {
     server.members.push(newMember.id);
     await server.save();
     this.socketIoService.newMember(server.id, Member.toDTO(newMember));
-    server = await this.serverModel.findById(server.id).populate(["channels", {
-      path: "groups",
-      populate: "channels"
-    }, "members"]);
+    server = await this.serverModel.findById(server.id).populate("members");
     const newServer = Server.toDTO(server);
     newServer.order = newOrder;
     newServer.members = server.members.map(member => Member.toDTO(member));
@@ -144,10 +143,7 @@ export class ServersService {
 
   async getServers(userId: string) {
     const members = await this.memberModel.find({ userId }).populate({
-      path: "serverId", populate: [{
-        path: "groups",
-        populate: "channels"
-      }, "members"]
+      path: "serverId", populate: "members"
     });
     return members.map(({ serverId, order }) => {
       const serverDocument = serverId as unknown as ServerDocument & { id: string };
