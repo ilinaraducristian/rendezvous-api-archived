@@ -2,65 +2,67 @@ import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import Server from "../entities/server";
 import { Model } from "mongoose";
-import Channel from "../entities/channel";
-import Group from "../entities/group";
+import Channel, { ChannelDocument } from "../entities/channel";
 import ChannelDTO from "../dtos/channel";
 import ChannelType from "../dtos/channel-type";
-import { ServersService } from "../servers/servers.service";
 import UpdateChannelRequest from "../dtos/update-channel-request";
 import { SocketIoService } from "../socket-io/socket-io.service";
 import { NotAMemberException } from "../exceptions/BadRequestExceptions";
 import { ChannelNotFoundException, GroupNotFoundException } from "../exceptions/NotFoundExceptions";
+import { MembersService } from "../members/members.service";
 
 @Injectable()
 export class ChannelsService {
 
   constructor(
     @InjectModel(Server.name) private readonly serverModel: Model<Server>,
-    @InjectModel(Channel.name) private readonly channelModel: Model<Channel>,
-    @InjectModel(Group.name) private readonly groupModel: Model<Group>,
-    private readonly serversService: ServersService,
+    private readonly membersService: MembersService,
     private readonly socketIoService: SocketIoService
   ) {
   }
 
   async createChannel(userId: string, serverId: string, groupId: string, name: string, type: ChannelType): Promise<ChannelDTO> {
 
-    const isMember = await this.serversService.isMember(userId, serverId);
+    const isMember = await this.membersService.isMember(userId, serverId);
     if (isMember === false) throw new NotAMemberException();
 
-    const channels = await this.channelModel.find({ serverId, groupId }).sort({ order: -1 }).limit(1);
+    const server = await this.serverModel.findById(serverId);
 
-    const newChannel = new this.channelModel({
+    let lastChannelOrder = 0;
+    const group = server.groups.find(group => group._id === groupId);
+    group.channels.forEach(channel => {
+      if (channel.order > lastChannelOrder) lastChannelOrder = channel.order;
+    });
+
+    const newChannel = {
       name,
       serverId,
       groupId,
       type,
-      order: (channels[0]?.order ?? -1) + 1
-    });
+      order: lastChannelOrder + 1
+    };
 
-    await this.groupModel.findByIdAndUpdate(groupId, { $push: { channels: newChannel.id } });
+    const index = group.channels.push(newChannel);
+    await server.save();
 
-    await newChannel.save();
-    const newChannelDto = Channel.toDTO(newChannel, serverId, groupId);
+    const newChannelDto = Channel.toDTO(group.channels[index] as ChannelDocument, serverId, groupId);
     this.socketIoService.newChannel(serverId, newChannelDto);
     return newChannelDto;
   }
 
   async updateChannel(userId: string, serverId: string, groupId: string, id: string, channelUpdate: UpdateChannelRequest) {
-    const isMember = await this.serversService.isMember(userId, serverId);
+    const isMember = await this.membersService.isMember(userId, serverId);
     if (isMember === false) throw new NotAMemberException();
 
-    let channel;
+    const server = await this.serverModel.findById(serverId);
+    const channel = server.groups.find(group => group._id === groupId).channels.find(channel => channel._id === id);
+    let isChannelModified = false;
 
     if (channelUpdate.name !== undefined) {
-      try {
-        channel = await this.channelModel.findOneAndUpdate({ serverId, groupId, _id: id }, {
-          name: channelUpdate.name
-        }, { new: true });
-      } catch (e) {
+      if (channel === undefined)
         throw new ChannelNotFoundException();
-      }
+      channel.name = channelUpdate.name;
+      isChannelModified = true;
     }
 
     let channels;
@@ -110,7 +112,7 @@ export class ChannelsService {
   }
 
   async deleteChannel(userId: string, serverId: string, groupId: string, id: string) {
-    const isMember = await this.serversService.isMember(userId, serverId);
+    const isMember = await this.membersService.isMember(userId, serverId);
     if (isMember === false) throw new NotAMemberException();
 
     try {

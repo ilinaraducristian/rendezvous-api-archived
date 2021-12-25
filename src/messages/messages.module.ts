@@ -2,14 +2,17 @@ import { Module } from "@nestjs/common";
 import { MessagesController } from "./messages.controller";
 import { MessagesService } from "./messages.service";
 import MongooseModules from "../MongooseModules";
-import { ServersService } from "../servers/servers.service";
-import { GroupsService } from "../groups/groups.service";
-import { ChannelsService } from "../channels/channels.service";
-import { SocketIoService } from "../socket-io/socket-io.service";
+import { SocketIoModule } from "../socket-io/socket-io.module";
+import { MembersModule } from "../members/members.module";
 
 @Module({
-  imports: [MongooseModules],
+  imports: [
+    SocketIoModule,
+    MembersModule,
+    MongooseModules
+  ],
   controllers: [MessagesController],
-  providers: [ServersService, GroupsService, ChannelsService, MessagesService, SocketIoService]
+  providers: [MessagesService]
 })
-export class MessagesModule {}
+export class MessagesModule {
+}

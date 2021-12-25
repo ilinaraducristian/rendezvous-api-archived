@@ -15,6 +15,7 @@ import {
   NotAMemberException
 } from "../exceptions/BadRequestExceptions";
 import { ServerNotFoundException } from "../exceptions/NotFoundExceptions";
+import { MembersService } from "../members/members.service";
 
 @Injectable()
 export class ServersService {
@@ -22,6 +23,7 @@ export class ServersService {
   constructor(
     @InjectModel(Server.name) private readonly serverModel: Model<Server>,
     @InjectModel(Member.name) private readonly memberModel: Model<Member>,
+    private readonly membersService: MembersService,
     private readonly socketIoService: SocketIoService
   ) {
   }
@@ -75,16 +77,8 @@ export class ServersService {
     return serverDto;
   }
 
-  async isMember(userId: string, serverId: string) {
-    try {
-      return await this.memberModel.exists({ userId, serverId });
-    } catch (e) {
-      return false;
-    }
-  }
-
   async createInvitation(userId: string, id: string) {
-    const isMember = await this.isMember(userId, id);
+    const isMember = await this.membersService.isMember(userId, id);
     if (isMember === false) throw new NotAMemberException();
     const server = await this.serverModel.findById(id);
     if (server.invitation === null || server.invitation?.exp < new Date()) {
@@ -107,7 +101,7 @@ export class ServersService {
     } catch (e) {
       throw new BadOrExpiredInvitationException();
     }
-    const isMember = await this.isMember(userId, server.id);
+    const isMember = await this.membersService.isMember(userId, server.id);
     if (isMember === true) throw new AlreadyMemberException();
     const servers = await this.memberModel.find({ userId }).sort({ order: -1 }).limit(1);
     const newOrder = (servers[0]?.order ?? -1) + 1;
@@ -155,7 +149,7 @@ export class ServersService {
 
   async updateServer(userId: string, id: string, serverUpdate: UpdateServerRequest) {
 
-    const isMember = await this.isMember(userId, id);
+    const isMember = await this.membersService.isMember(userId, id);
     if (isMember === false) throw new NotAMemberException();
 
     if (serverUpdate.name !== undefined) {
@@ -173,7 +167,7 @@ export class ServersService {
   }
 
   async deleteServer(userId: string, id: string): Promise<void> {
-    const isMember = await this.isMember(userId, id);
+    const isMember = await this.membersService.isMember(userId, id);
     if (isMember === false) throw new NotAMemberException();
 
     const members = await this.memberModel.find({ serverId: id }, "userId");

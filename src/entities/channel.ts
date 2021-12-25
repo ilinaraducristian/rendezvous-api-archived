@@ -5,6 +5,8 @@ import { Document } from "mongoose";
 @Schema()
 class Channel {
 
+  _id?: string;
+
   @Prop({ required: true })
   name: string;
 

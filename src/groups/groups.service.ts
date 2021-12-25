@@ -2,95 +2,104 @@ import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import Server from "../entities/server";
 import { Model } from "mongoose";
-import Channel from "../entities/channel";
-import Group from "../entities/group";
+import Group, { GroupDocument } from "../entities/group";
 import GroupDTO from "../dtos/group";
-import { ServersService } from "../servers/servers.service";
 import UpdateGroupRequest from "../dtos/update-group-request";
-import { insertAndSort } from "../util";
 import { SocketIoService } from "../socket-io/socket-io.service";
 import { NotAMemberException } from "../exceptions/BadRequestExceptions";
 import { GroupNotFoundException } from "../exceptions/NotFoundExceptions";
+import { MembersService } from "../members/members.service";
 
 @Injectable()
 export class GroupsService {
 
   constructor(
     @InjectModel(Server.name) private readonly serverModel: Model<Server>,
-    @InjectModel(Channel.name) private readonly channelModel: Model<Channel>,
-    @InjectModel(Group.name) private readonly groupModel: Model<Group>,
-    private readonly serversService: ServersService,
+    private readonly membersService: MembersService,
     private readonly socketIoService: SocketIoService
   ) {
   }
 
   async createGroup(userId: string, serverId: string, name: string): Promise<GroupDTO> {
-    const isMember = await this.serversService.isMember(userId, serverId);
+    const isMember = await this.membersService.isMember(userId, serverId);
     if (isMember === false) throw new NotAMemberException();
 
-    const lastGroup = (await this.groupModel.find({ serverId }).sort({ order: -1 }).limit(1))[0];
+    const server = await this.serverModel.findById(serverId);
 
-    const newGroup = new this.groupModel({
-      name,
-      serverId,
-      order: (lastGroup?.order ?? -1) + 1
+    let lastGroupOrder = 0;
+    server.groups.forEach(group => {
+      if (group.order > lastGroupOrder) lastGroupOrder = group.order;
     });
 
-    await this.serverModel.findByIdAndUpdate(serverId, { $push: { groups: newGroup.id } });
+    const newGroup = {
+      name,
+      serverId,
+      order: lastGroupOrder + 1,
+      channels: []
+    };
+    const index = server.groups.push(newGroup);
+    await server.save();
 
-    await newGroup.save();
-    const newGroupDto = Group.toDTO(newGroup, serverId);
+    const newGroupDto = Group.toDTO(server.groups[index] as GroupDocument, serverId);
     this.socketIoService.newGroup(serverId, newGroupDto);
     return newGroupDto;
   }
 
   async updateGroup(userId: string, serverId: string, id: string, groupUpdate: UpdateGroupRequest) {
-    const isMember = await this.serversService.isMember(userId, serverId);
+    const isMember = await this.membersService.isMember(userId, serverId);
     if (isMember === false) throw new NotAMemberException();
 
+    const server = await this.serverModel.findById(serverId);
+    const group = server.groups.find(group => group._id === id);
+    let isGroupModified = false;
+
     if (groupUpdate.name !== undefined) {
-      try {
-        const newGroup = await this.groupModel.findOneAndUpdate({
-          _id: id,
-          serverId
-        }, { name: groupUpdate.name }, { new: true });
-        if (newGroup === undefined || newGroup === null) throw new Error();
-      } catch (e) {
+      if (group === undefined)
         throw new GroupNotFoundException();
-      }
+      group.name = groupUpdate.name;
+      isGroupModified = true;
     }
 
-    if (groupUpdate.order === undefined) return { name: groupUpdate.name };
+    let groups;
 
-    const groups = await insertAndSort(this.groupModel, serverId, groupUpdate.order);
+    if (groupUpdate.order !== undefined && groupUpdate.order !== 0) {
+      // groups = await insertAndSort(this.groupModel, serverId, groupUpdate.order);
+      isGroupModified = true;
+      const sortedGroups = server.groups.sort((g1, g2) => g1.order - g2.order);
+      const index = sortedGroups.findIndex(group => group._id === id);
+      sortedGroups[index] = undefined;
+      sortedGroups[groupUpdate.order] = group;
+      server.groups = sortedGroups.filter(group => group !== undefined).map((group, i) => ({ ...group, order: i }));
+    }
+
+    if (isGroupModified) {
+      await server.save();
+    }
+
     return { name: groupUpdate.name, groups };
   }
 
   async deleteGroup(userId: string, serverId: string, id: string) {
-    const isMember = await this.serversService.isMember(userId, serverId);
+    const isMember = await this.membersService.isMember(userId, serverId);
     if (isMember === false) throw new NotAMemberException();
-    let group;
-    try {
-      group = await this.groupModel.findOneAndDelete({ _id: id });
-      if (group === null) throw new Error();
-    } catch (e) {
-      throw new GroupNotFoundException();
-    }
 
-    const groups = await this.groupModel.find({ serverId }).sort({ order: 1 });
-    const newGroups = await this.groupModel.bulkSave(groups.map((group, i) => {
-      group.order = i;
-      return group;
+    const server = await this.serverModel.findById(serverId);
+    const groupIndex = server.groups.findIndex(group => group._id === id);
+    server.groups.splice(groupIndex, 1);
+    server.groups = server.groups.sort((g1, g2) => g1.order - g2.order).map((group, i) => ({
+      ...group,
+      order: i
+    }));
+    await server.save();
+
+    const groups = server.groups.map(group => ({
+      id: group._id.toString(),
+      order: group.order
     }));
 
-    const groupsOrder = newGroups.result.upserted.map(group => ({ id: group.id, order: group.order }));
-
-    await this.serverModel.findByIdAndUpdate(serverId, { $pullAll: { groups: [id] } });
-
-    this.socketIoService.groupDelete(serverId, group.id, groupsOrder);
-    return groupsOrder;
+    this.socketIoService.groupDelete(serverId, id, groups);
+    return groups;
 
   }
-
 
 }

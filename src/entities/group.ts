@@ -5,6 +5,8 @@ import { Document } from "mongoose";
 @Schema()
 class Group {
 
+  _id?: string;
+
   @Prop({ required: true })
   name: string;
 

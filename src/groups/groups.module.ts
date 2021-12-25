@@ -2,17 +2,19 @@ import { Module } from "@nestjs/common";
 import { GroupsController } from "./groups.controller";
 import { GroupsService } from "./groups.service";
 import MongooseModules from "../MongooseModules";
-import { ServersService } from "../servers/servers.service";
 import { GroupChannelsModule } from "../channels/group-channels.module";
-import { SocketIoService } from "../socket-io/socket-io.service";
+import { SocketIoModule } from "../socket-io/socket-io.module";
+import { MembersModule } from "../members/members.module";
 
 @Module({
   imports: [
+    SocketIoModule,
+    MembersModule,
     GroupChannelsModule,
     MongooseModules
   ],
   controllers: [GroupsController],
-  providers: [ServersService, GroupsService, SocketIoService]
+  providers: [GroupsService]
 })
 export class GroupsModule {
 }

@@ -21,14 +21,14 @@ export const routes = RouterModule.register([
         module: GroupsModule,
         children: [
           {
-            path: ':groupId/channels',
+            path: ":groupId/channels",
             module: GroupChannelsModule,
             children: [{
-              path: ':channelId/messages',
-              module: GroupChannelMessagesModule,
-            }],
-          },
-        ],
+              path: ":channelId/messages",
+              module: GroupChannelMessagesModule
+            }]
+          }
+        ]
       },
       {
         path: ":serverId/channels",
@@ -64,8 +64,8 @@ export const routes = RouterModule.register([
   providers: [
     {
       provide: APP_GUARD,
-      useClass: AuthGuard,
-    },
+      useClass: AuthGuard
+    }
   ]
 })
 export class AppModule {
