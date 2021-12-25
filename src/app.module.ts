@@ -9,6 +9,7 @@ import { ChannelsModule } from "./channels/channels.module";
 import { GroupChannelsModule } from "./channels/group-channels.module";
 import { GroupChannelMessagesModule } from "./messages/group-channel-messages.module";
 import { AuthGuard, KeycloakConnectModule } from "nest-keycloak-connect";
+import { FriendshipsModule } from "./friendships/friendships.module";
 
 export const routes = RouterModule.register([
   {
@@ -38,12 +39,17 @@ export const routes = RouterModule.register([
         }]
       }
     ]
+  },
+  {
+    path: "friendships",
+    module: FriendshipsModule
   }
 ]);
 
 @Module({
   imports: [
     ServersModule,
+    FriendshipsModule,
     MongooseModules,
     MongooseModule.forRoot("mongodb://user:user@127.0.0.1:27017/rendezvous"),
     routes,

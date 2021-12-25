@@ -93,7 +93,6 @@ export class ServersService {
         exp: new Date()
       };
       server.invitation.exp.setDate(server.invitation.exp.getDate() + 7);
-
     }
     await server.save();
     return server.invitation;
@@ -169,9 +168,7 @@ export class ServersService {
     }
 
     if (serverUpdate.order === undefined) return { name: serverUpdate.name };
-
     const userServers = await insertAndSort(this.memberModel, userId, serverUpdate.order);
-
     return { name: serverUpdate.name, servers: userServers };
   }
 
@@ -191,9 +188,7 @@ export class ServersService {
     } catch (e) {
       throw e;
     }
-
     this.socketIoService.serverDeleted(id);
-
   }
 
   private async fixServersOrder(membersUserIds: string[]) {

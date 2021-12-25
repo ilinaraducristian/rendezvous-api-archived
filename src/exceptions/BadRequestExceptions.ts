@@ -40,10 +40,26 @@ class NotAMemberException extends BadRequestException {
 
 }
 
-class ResourceNotEmptyException extends BadRequestException {
+class AlreadyFriendsException extends BadRequestException {
 
-  constructor(resource: string) {
-    super(`${resource} must not be empty`);
+  constructor() {
+    super("you are already friends with this user");
+  }
+
+}
+
+class FriendshipCannotBeUpdatedException extends BadRequestException {
+
+  constructor() {
+    super("the friendship cannot be updated");
+  }
+
+}
+
+class BadFriendshipStatusException extends BadRequestException {
+
+  constructor() {
+    super("invalid status provided");
   }
 
 }
@@ -55,5 +71,7 @@ export {
   BadChannelTypeException,
   BadOrExpiredInvitationException,
   NotAMemberException,
-  ResourceNotEmptyException
+  AlreadyFriendsException,
+  FriendshipCannotBeUpdatedException,
+  BadFriendshipStatusException
 };

@@ -69,6 +69,18 @@ class ServerNotFoundException extends ResourceNotFoundException {
 
 }
 
+class FriendshipNotFoundException extends ResourceNotFoundException {
+
+  constructor() {
+    super("friendship");
+  }
+
+  toHttpException(): NotFoundException {
+    return new NotFoundException(this.resource);
+  }
+
+}
+
 export default ResourceNotFoundException;
 
 export {
@@ -76,5 +88,6 @@ export {
   ChannelNotFoundException,
   GroupNotFoundException,
   MessageNotFoundException,
-  ServerNotFoundException
+  ServerNotFoundException,
+  FriendshipNotFoundException
 };
