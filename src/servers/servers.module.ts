@@ -1,22 +1,26 @@
 import { Module } from "@nestjs/common";
 import { ServersController } from "./servers.controller";
-import { GroupsModule } from "../groups/groups.module";
-import { ChannelsModule } from "../channels/channels.module";
 import { ServersService } from "./servers.service";
-import MongooseModules from "../MongooseModules";
 import { SocketIoModule } from "../socket-io/socket-io.module";
 import { MembersModule } from "../members/members.module";
+import { MongooseModule } from "@nestjs/mongoose";
+import Server, { ServerSchema } from "../entities/server";
 
 @Module({
   imports: [
-    SocketIoModule,
+    MongooseModule.forFeature([
+      { name: Server.name, schema: ServerSchema }
+    ]),
     MembersModule,
-    GroupsModule,
-    ChannelsModule,
-    MongooseModules
+    SocketIoModule
   ],
   controllers: [ServersController],
-  providers: [ServersService]
+  providers: [ServersService],
+  exports: [
+    MembersModule,
+    SocketIoModule,
+    ServersService
+  ]
 })
 export class ServersModule {
 }

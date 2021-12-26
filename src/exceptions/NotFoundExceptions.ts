@@ -18,8 +18,11 @@ class ChannelNotFoundException extends ResourceNotFoundException {
 
 class GroupNotFoundException extends ResourceNotFoundException {
 
-  constructor() {
-    super("group");
+  constructor(groupId?: string) {
+    if (groupId === undefined)
+      super("group");
+    else
+      super(`group with id: ${groupId}`);
   }
 
 }

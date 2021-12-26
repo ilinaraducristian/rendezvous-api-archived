@@ -1,15 +1,16 @@
 import { Module } from "@nestjs/common";
 import { MessagesController } from "./messages.controller";
 import { MessagesService } from "./messages.service";
-import MongooseModules from "../MongooseModules";
-import { SocketIoModule } from "../socket-io/socket-io.module";
-import { MembersModule } from "../members/members.module";
+import { ServersModule } from "../servers/servers.module";
+import { MongooseModule } from "@nestjs/mongoose";
+import Message, { MessageSchema } from "../entities/message";
 
 @Module({
   imports: [
-    SocketIoModule,
-    MembersModule,
-    MongooseModules
+    MongooseModule.forFeature([
+      { name: Message.name, schema: MessageSchema }
+    ]),
+    ServersModule
   ],
   controllers: [MessagesController],
   providers: [MessagesService]

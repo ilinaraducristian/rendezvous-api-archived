@@ -1,4 +1,4 @@
-import { IsDecimal, IsNumber, Min, ValidateIf } from "class-validator";
+import { IsNumber, Min, ValidateIf } from "class-validator";
 import { IsNotBlank } from "../IsNotBlank";
 
 class UpdateGroupRequest {
@@ -8,9 +8,8 @@ class UpdateGroupRequest {
   name?: string;
 
   @ValidateIf((_, val) => val !== undefined)
-  @IsNumber()
-  @IsDecimal()
-  @Min(0)
+  @IsNumber({ maxDecimalPlaces: 0 })
+  @Min(1)
   order?: number;
 
 }

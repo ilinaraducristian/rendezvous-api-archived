@@ -1,44 +1,33 @@
 import { Injectable } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import Server from "../entities/server";
-import { Model } from "mongoose";
 import Channel, { ChannelDocument } from "../entities/channel";
-import ChannelDTO from "../dtos/channel";
-import ChannelType from "../dtos/channel-type";
 import UpdateChannelRequest from "../dtos/update-channel-request";
 import { SocketIoService } from "../socket-io/socket-io.service";
-import { NotAMemberException } from "../exceptions/BadRequestExceptions";
 import { ChannelNotFoundException, GroupNotFoundException } from "../exceptions/NotFoundExceptions";
 import { MembersService } from "../members/members.service";
+import { ServersService } from "../servers/servers.service";
+import { getMaxOrder } from "../util";
 
 @Injectable()
 export class ChannelsService {
 
   constructor(
-    @InjectModel(Server.name) private readonly serverModel: Model<Server>,
+    private readonly serversService: ServersService,
     private readonly membersService: MembersService,
     private readonly socketIoService: SocketIoService
   ) {
   }
 
-  async createChannel(userId: string, serverId: string, groupId: string, name: string, type: ChannelType): Promise<ChannelDTO> {
+  async createChannel(userId: string, serverId: string, groupId: string, newChannelRequest: Pick<Channel, "name" | "type">) {
 
-    const isMember = await this.membersService.isMember(userId, serverId);
-    if (isMember === false) throw new NotAMemberException();
-
-    const server = await this.serverModel.findById(serverId);
-
-    let lastChannelOrder = 0;
+    const server = await this.serversService.getById(userId, serverId);
     const group = server.groups.find(group => group._id === groupId);
-    group.channels.forEach(channel => {
-      if (channel.order > lastChannelOrder) lastChannelOrder = channel.order;
-    });
+    const lastChannelOrder = getMaxOrder(group.channels);
 
     const newChannel = {
-      name,
+      name: newChannelRequest.name,
       serverId,
       groupId,
-      type,
+      type: newChannelRequest.type,
       order: lastChannelOrder + 1
     };
 
@@ -47,92 +36,95 @@ export class ChannelsService {
 
     const newChannelDto = Channel.toDTO(group.channels[index] as ChannelDocument, serverId, groupId);
     this.socketIoService.newChannel(serverId, newChannelDto);
-    return newChannelDto;
   }
 
-  async updateChannel(userId: string, serverId: string, groupId: string, id: string, channelUpdate: UpdateChannelRequest) {
-    const isMember = await this.membersService.isMember(userId, serverId);
-    if (isMember === false) throw new NotAMemberException();
+  async updateChannel(userId: string, serverId: string, groupId: string, channelId: string, channelUpdate: UpdateChannelRequest) {
 
-    const server = await this.serverModel.findById(serverId);
-    const channel = server.groups.find(group => group._id === groupId).channels.find(channel => channel._id === id);
+    const server = await this.serversService.getById(userId, serverId);
+    const group1 = server.groups.find(group => group._id === groupId);
+    const group2 = server.groups.find(group => group._id === channelUpdate.groupId);
+
+    if (group1 === undefined || group2 === undefined) throw new GroupNotFoundException();
+
+    const channel = group1.channels.find(channel => channel._id === channelId);
+
+    if (channel === undefined) throw new ChannelNotFoundException();
+
     let isChannelModified = false;
 
     if (channelUpdate.name !== undefined) {
-      if (channel === undefined)
-        throw new ChannelNotFoundException();
-      channel.name = channelUpdate.name;
       isChannelModified = true;
+      channel.name = channelUpdate.name;
     }
 
     let channels;
 
-    if (channelUpdate.order === undefined) return { name: channelUpdate.name };
-
-    if (channel.groupId.toString() === channelUpdate.groupId) {
-      channels = await this.channelModel.find({ groupId: channelUpdate.groupId }).sort({ order: 1 });
-      let index = channels.findIndex(channel => channel.id.toString() === id);
-      channel = channels[index];
-      channels[index] = undefined;
-      channels.splice(channelUpdate.order, 0, channel);
-      index = channels.findIndex(channel => channel === undefined);
-      channels.splice(index, 1);
-      channels = channels.map((channel, i) => {
-        channel.order = i;
-        return channel;
-      });
-    } else {
-      let channels1 = await this.channelModel.find({ groupId: channel.groupId }).sort({ order: 1 });
-      let channels2 = await this.channelModel.find({ groupId: channelUpdate.groupId }).sort({ order: 1 });
-      const index = channels1.findIndex(channel => channel.id.toString() === id);
-
-      channels2.splice(channelUpdate.order, 0, channels1[index]);
-      channels1.splice(index, 1);
-
-      channels1 = channels1.map((channel, i) => {
-        channel.order = i;
-        return channel;
-      });
-      channels2 = channels2.map((channel, i) => {
-        channel.order = i;
-        return channel;
-      });
-
-      channels = channels1.concat(channels2);
+    if (channelUpdate.order !== undefined) {
+      isChannelModified = true;
+      if (groupId === channelUpdate.groupId) {
+        const sortedChannels = group1.channels.sort((c1, c2) => c1.order - c2.order);
+        const index = sortedChannels.findIndex(channel => channel._id === channelId);
+        sortedChannels[index] = undefined;
+        sortedChannels.splice(channelUpdate.order, 0, channel);
+        group1.channels = sortedChannels.filter(channel => channel !== undefined).map((channel, i) => ({
+          ...channel,
+          order: i
+        }));
+        channels = group1.channels;
+      } else {
+        const sortedChannels1 = group1.channels.sort((c1, c2) => c1.order - c2.order);
+        const sortedChannels2 = group2.channels.sort((c1, c2) => c1.order - c2.order);
+        const index1 = sortedChannels1.findIndex(channel => channel._id === channelId);
+        sortedChannels2.splice(channelUpdate.order, 0, sortedChannels1.splice(index1, 1)[0]);
+        group1.channels = sortedChannels1.map((channel, i) => ({
+          ...channel,
+          order: i
+        }));
+        group2.channels = sortedChannels2.map((channel, i) => ({
+          ...channel,
+          order: i
+        }));
+        channels = group1.channels.concat(group2.channels);
+      }
+      channels = channels.map(channel => ({
+        id: channel.id.toString(),
+        groupId: channel.groupId,
+        order: channel.order
+      }));
     }
-    await this.channelModel.bulkSave(channels);
-    channels = channels.map(channel => ({
-      id: channel.id.toString(),
-      groupId: channel.groupId,
-      order: channel.order
-    }));
+
+    if (isChannelModified) {
+      await server.save();
+    }
 
     return { name: channelUpdate.name, channels };
 
   }
 
-  async deleteChannel(userId: string, serverId: string, groupId: string, id: string) {
-    const isMember = await this.membersService.isMember(userId, serverId);
-    if (isMember === false) throw new NotAMemberException();
+  async deleteChannel(userId: string, serverId: string, groupId: string, channelId: string) {
 
-    try {
-      const channel = await this.channelModel.findOneAndDelete({ serverId, groupId, _id: id });
-      if (channel === null) throw new Error();
-    } catch (e) {
-      throw new ChannelNotFoundException();
-    }
+    const server = await this.serversService.getById(userId, serverId);
+    const group = server.groups.find(group => group._id === groupId);
 
-    const channels = await this.channelModel.find({ serverId, groupId }).sort({ order: 1 });
-    await this.channelModel.bulkSave(channels.map((channel, i) => {
-      channel.order = i;
-      return channel;
+    if (group === undefined) throw new GroupNotFoundException();
+
+    const index = group.channels.findIndex(channel => channel._id === channelId);
+
+    if (index === -1) throw new ChannelNotFoundException();
+
+    group.channels.slice(index, 1);
+    group.channels = group.channels.sort((c1, c2) => c1.order - c2.order).map((channel, i) => ({
+      ...channel,
+      order: i
     }));
-    try {
-      const group = await this.groupModel.findByIdAndUpdate(groupId, { $pullAll: { channels: [id] } });
-      if (group === null) throw new Error();
-    } catch (e) {
-      throw new GroupNotFoundException();
-    }
+    await server.save();
+
+    const channels = group.channels.map(channel => ({
+      id: channel._id.toString(),
+      order: channel.order
+    }));
+
+    this.socketIoService.channelDelete(serverId, channelId, channels);
 
   }
 

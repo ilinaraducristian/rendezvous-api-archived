@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import Member from '../dtos/member';
-import SocketIoEvents from '../dtos/SocketIoEvents';
-import { Server as SocketIoServer } from 'socket.io';
-import Server from '../dtos/server';
-import Channel from '../dtos/channel';
-import { WebSocketServer } from '@nestjs/websockets';
-import Group from '../dtos/group';
+import { Injectable } from "@nestjs/common";
+import Member from "../dtos/member";
+import SocketIoEvents from "../dtos/SocketIoEvents";
+import { Server as SocketIoServer } from "socket.io";
+import Server from "../dtos/server";
+import Channel from "../dtos/channel";
+import { WebSocketServer } from "@nestjs/websockets";
+import Group from "../dtos/group";
 
 @Injectable()
 export class SocketIoService {
@@ -37,7 +37,7 @@ export class SocketIoService {
     this.emit(serverId, SocketIoEvents.channelUpdate, payload);
   }
 
-  channelDelete(serverId: string, channelId: string) {
+  channelDelete(serverId: string, channelId: string, channels: Pick<Channel, "id" | "order">[]) {
     this.emit(serverId, SocketIoEvents.channelDeleted, channelId);
   }
 

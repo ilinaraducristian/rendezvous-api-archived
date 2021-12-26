@@ -1,13 +1,10 @@
 import { Module } from "@nestjs/common";
 import { ServersModule } from "./servers/servers.module";
 import { MongooseModule } from "@nestjs/mongoose";
-import MongooseModules from "./MongooseModules";
 import { APP_GUARD, RouterModule } from "@nestjs/core";
 import { MessagesModule } from "./messages/messages.module";
 import { GroupsModule } from "./groups/groups.module";
 import { ChannelsModule } from "./channels/channels.module";
-import { GroupChannelsModule } from "./channels/group-channels.module";
-import { GroupChannelMessagesModule } from "./messages/group-channel-messages.module";
 import { AuthGuard, KeycloakConnectModule } from "nest-keycloak-connect";
 import { FriendshipsModule } from "./friendships/friendships.module";
 
@@ -22,21 +19,15 @@ export const routes = RouterModule.register([
         children: [
           {
             path: ":groupId/channels",
-            module: GroupChannelsModule,
-            children: [{
-              path: ":channelId/messages",
-              module: GroupChannelMessagesModule
-            }]
+            module: ChannelsModule,
+            children: [
+              {
+                path: ":channelId/messages",
+                module: MessagesModule
+              }
+            ]
           }
         ]
-      },
-      {
-        path: ":serverId/channels",
-        module: ChannelsModule,
-        children: [{
-          path: ":channelId/messages",
-          module: MessagesModule
-        }]
       }
     ]
   },
@@ -50,7 +41,6 @@ export const routes = RouterModule.register([
   imports: [
     ServersModule,
     FriendshipsModule,
-    MongooseModules,
     MongooseModule.forRoot("mongodb://user:user@127.0.0.1:27017/rendezvous"),
     routes,
     KeycloakConnectModule.register({

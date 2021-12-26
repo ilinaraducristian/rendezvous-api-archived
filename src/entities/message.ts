@@ -1,15 +1,12 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import * as mongoose from "mongoose";
+import { Document } from "mongoose";
 import Channel from "./channel";
-import MessageDTO from "../dtos/message";
 
 @Schema()
-export class Message {
+class Message {
 
-  _id: string = "";
-
-  @Prop({ required: true })
-  text: string;
+  _id?: string;
 
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: "Server" })
   serverId: string;
@@ -21,28 +18,23 @@ export class Message {
   channelId: string;
 
   @Prop({ required: true })
-  timestamp: Date;
-
-  @Prop({ required: true })
   userId: string;
 
-  static toDTO(message: Message & { id?: string }): MessageDTO {
-    return {
-      id: message.id,
-      serverId: message.serverId,
-      channelId: message.channelId,
-      groupId: message.groupId,
-      friendId: null,
-      timestamp: message.timestamp.toISOString(),
-      text: message.text,
-      userId: message.userId,
-      replyMessage: null,
-      reactions: [],
-      attachments: []
-    };
+  @Prop({ required: true })
+  text: string;
+
+  @Prop({ required: true })
+  timestamp: Date;
+
+  static toDTO(message: MessageDocument) {
+    const dtoMessage: any = message.toObject();
+    delete dtoMessage._id;
+    dtoMessage.id = message._id.toString();
+    return dtoMessage;
   }
 
 }
 
-export type MessageDocument = Message & Document;
+export type MessageDocument = Document<any, any, Message> & Message;
 export const MessageSchema = SchemaFactory.createForClass(Message);
+export default Message;

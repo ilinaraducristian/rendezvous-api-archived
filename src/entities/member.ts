@@ -1,11 +1,12 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import * as mongoose from "mongoose";
+import { Document } from "mongoose";
 import MemberDTO from "../dtos/member";
 
 @Schema()
 class Member {
 
-  _id: string = "";
+  _id?: string;
 
   @Prop({ required: true })
   userId: string;
@@ -26,6 +27,6 @@ class Member {
 
 }
 
-export type MemberDocument = Member & Document;
+export type MemberDocument = Document<any, any, Member> & Member;
 export const MemberSchema = SchemaFactory.createForClass(Member);
 export default Member;

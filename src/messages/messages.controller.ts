@@ -1,9 +1,8 @@
-import { Body, Controller, Delete, Param, Post, Put } from "@nestjs/common";
+import { Body, Controller, Delete, Param, Post } from "@nestjs/common";
 import { MessagesService } from "./messages.service";
 import NewMessageRequest from "../dtos/new-message-request";
 import { AuthenticatedUser } from "nest-keycloak-connect";
 import KeycloakUser from "../keycloak-user";
-import UpdateMessageRequest from "../dtos/update-message-request";
 
 @Controller()
 export class MessagesController {
@@ -21,18 +20,7 @@ export class MessagesController {
     @Param("channelId") channelId: string,
     @Body() newMessage: NewMessageRequest
   ) {
-  }
-
-  @Put(":messageId")
-  async updateMessage(
-    @AuthenticatedUser() user: KeycloakUser,
-    @Param("serverId") serverId: string,
-    @Param("groupId") groupId: string,
-    @Param("channelId") channelId: string,
-    @Param("messageId") id: string,
-    @Body() messageUpdate: UpdateMessageRequest
-  ) {
-    // return this.serversService.updateServer(user.sub, id, serverUpdate);
+    return this.messagesService.createMessage(user.sub, serverId, groupId, channelId, newMessage.text);
   }
 
   @Delete(":messageId")
@@ -41,9 +29,9 @@ export class MessagesController {
     @Param("serverId") serverId: string,
     @Param("groupId") groupId: string,
     @Param("channelId") channelId: string,
-    @Param("messageId") id: string
+    @Param("messageId") messageId: string
   ) {
-    // return this.serversService.deleteServer(user.sub, id);
+    return this.messagesService.deleteMessage(user.sub, serverId, groupId, channelId, messageId);
   }
 
 

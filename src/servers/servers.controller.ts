@@ -4,11 +4,14 @@ import UpdateServerRequest from "../dtos/update-server-request";
 import { AuthenticatedUser } from "nest-keycloak-connect";
 import KeycloakUser from "../keycloak-user";
 import JoinServerRequest from "../dtos/JoinServerRequest";
+import { ServersService } from "./servers.service";
 
 @Controller()
 export class ServersController {
 
-  constructor() {
+  constructor(
+    private readonly serversService: ServersService
+  ) {
   }
 
   @Post()
@@ -16,55 +19,55 @@ export class ServersController {
     @AuthenticatedUser() user: KeycloakUser,
     @Body() newServer: NewServerRequest
   ) {
-    // return this.serversService.createServer(user.sub, newServer.name);
+    return this.serversService.createServer(user.sub, newServer.name);
   }
 
   @Get()
   async getServers(
     @AuthenticatedUser() user: KeycloakUser
   ) {
-    // return this.serversService.getServers(user.sub);
+    return this.serversService.getServers(user.sub);
   }
 
   @Post(":serverId/invitations")
   async createInvitation(
     @AuthenticatedUser() user: KeycloakUser,
-    @Param("serverId") id: string
+    @Param("serverId") serverId: string
   ) {
-    // return this.serversService.createInvitation(user.sub, id);
+    return this.serversService.createInvitation(user.sub, serverId);
   }
 
   @Put(":serverId")
   async updateServer(
     @AuthenticatedUser() user: KeycloakUser,
-    @Param("serverId") id: string,
+    @Param("serverId") serverId: string,
     @Body() serverUpdate: UpdateServerRequest
   ) {
-    // return this.serversService.updateServer(user.sub, id, serverUpdate);
+    return this.serversService.updateServer(user.sub, serverId, serverUpdate);
   }
 
   @Post("members")
   async createMember(
     @AuthenticatedUser() user: KeycloakUser,
-    @Body() { invitation }: JoinServerRequest
+    @Body() joinServerRequest: JoinServerRequest
   ) {
-    // return this.serversService.createMember(user.sub, invitation);
+    return this.serversService.createMember(user.sub, joinServerRequest.invitation);
   }
 
   @Delete(":serverId/members")
   async deleteMember(
     @AuthenticatedUser() user: KeycloakUser,
-    @Param("serverId") id: string
+    @Param("serverId") serverId: string
   ) {
-    // return this.serversService.deleteMember(user.sub, id);
+    return this.serversService.deleteMember(user.sub, serverId);
   }
 
   @Delete(":serverId")
   deleteServer(
     @AuthenticatedUser() user: KeycloakUser,
-    @Param("serverId") id: string
+    @Param("serverId") serverId: string
   ) {
-    // return this.serversService.deleteServer(user.sub, id);
+    return this.serversService.deleteServer(user.sub, serverId);
   }
 
 }

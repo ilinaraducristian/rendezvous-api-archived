@@ -3,11 +3,14 @@ import { AuthenticatedUser } from "nest-keycloak-connect";
 import KeycloakUser from "../keycloak-user";
 import NewChannelRequest from "../dtos/new-channel-request";
 import UpdateChannelRequest from "../dtos/update-channel-request";
+import { ChannelsService } from "./channels.service";
 
 @Controller()
 export class ChannelsController {
 
-  constructor() {
+  constructor(
+    private readonly channelsService: ChannelsService
+  ) {
   }
 
   @Post()
@@ -17,44 +20,28 @@ export class ChannelsController {
     @Param("groupId") groupId: string,
     @Body() newChannel: NewChannelRequest
   ) {
+    return this.channelsService.createChannel(user.sub, serverId, groupId, newChannel);
   }
 
   @Put(":channelId")
   async updateChannel(
     @AuthenticatedUser() user: KeycloakUser,
     @Param("serverId") serverId: string,
+    @Param("groupId") groupId: string,
     @Param("channelId") channelId: string,
     @Body() updateChannel: UpdateChannelRequest
   ) {
+    return this.channelsService.updateChannel(user.sub, serverId, groupId, channelId, updateChannel);
   }
 
   @Delete(":channelId")
   async deleteChannel(
     @AuthenticatedUser() user: KeycloakUser,
     @Param("serverId") serverId: string,
+    @Param("groupId") groupId: string,
     @Param("channelId") channelId: string
   ) {
+    return this.channelsService.deleteChannel(user.sub, serverId, groupId, channelId);
   }
-
-  //
-  // @Put(":channelId")
-  // async updateChannel(
-  //   @AuthenticatedUser() user: KeycloakUser,
-  //   @Param("serverId") serverId: string,
-  //   @Param("channelId") id: string,
-  //   @Body() channel: ChannelUpdate
-  // ): Promise<Channel> {
-  //   return this.channelsService.updateChannel(user.sub, serverId, id, channel);
-  // }
-  //
-  // @Delete(":channelId")
-  // async deleteChannel(
-  //   @AuthenticatedUser() user: KeycloakUser,
-  //   @Param("serverId") serverId: string,
-  //   @Param("groupId") groupId: string,
-  //   @Param("channelId") id: string
-  // ): Promise<void> {
-  //   return this.channelsService.deleteChannel(user.sub, serverId, groupId, id);
-  // }
 
 }

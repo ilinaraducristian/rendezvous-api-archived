@@ -1,7 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { ChannelsService } from "./channels.service";
 import { MongooseModule } from "@nestjs/mongoose";
-import MongooseModules from "../MongooseModules";
+// import MongooseModules from "../MongooseModules";
 import { ServersService } from "../servers/servers.service";
 import { ServersModule } from "../servers/servers.module";
 import { routes } from "../app.module";

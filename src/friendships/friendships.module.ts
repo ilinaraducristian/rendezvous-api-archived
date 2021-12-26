@@ -1,10 +1,15 @@
 import { Module } from "@nestjs/common";
 import { FriendshipsService } from "./friendships.service";
 import { FriendshipsController } from "./friendships.controller";
-import MongooseModules from "../MongooseModules";
+import Friendship, { FriendshipSchema } from "../entities/friendship";
+import { MongooseModule } from "@nestjs/mongoose";
 
 @Module({
-  imports: [MongooseModules],
+  imports: [
+    MongooseModule.forFeature([
+      { name: Friendship.name, schema: FriendshipSchema }
+    ])
+  ],
   providers: [FriendshipsService],
   controllers: [FriendshipsController]
 })

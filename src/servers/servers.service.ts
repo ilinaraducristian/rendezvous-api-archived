@@ -6,7 +6,6 @@ import { Model } from "mongoose";
 import Member from "../entities/member";
 import { v4 as uuid } from "uuid";
 import UpdateServerRequest from "../dtos/update-server-request";
-import { insertAndSort } from "../util";
 import { SocketIoService } from "../socket-io/socket-io.service";
 import ChannelType from "../dtos/channel-type";
 import {
@@ -22,7 +21,6 @@ export class ServersService {
 
   constructor(
     @InjectModel(Server.name) private readonly serverModel: Model<Server>,
-    @InjectModel(Member.name) private readonly memberModel: Model<Member>,
     private readonly membersService: MembersService,
     private readonly socketIoService: SocketIoService
   ) {
@@ -30,7 +28,7 @@ export class ServersService {
 
   async createServer(userId: string, name: string): Promise<ServerDTO> {
     let newServer = new this.serverModel({ name });
-    const servers = await this.memberModel.find({ userId }).sort({ order: -1 }).limit(1);
+    const servers = await this.membersService.getUserLastServer(userId);
     let newOrder = 0;
     if (servers.length > 0) newOrder = servers[0].order + 1;
 
@@ -59,7 +57,7 @@ export class ServersService {
       }]
     };
 
-    const newMember = new this.memberModel({
+    const newMember = this.membersService.newMember({
       userId,
       serverId: newServer.id,
       order: newOrder
@@ -75,6 +73,14 @@ export class ServersService {
     const serverDto = Server.toDTO(newServer);
     serverDto.order = newOrder;
     return serverDto;
+  }
+
+  async getById(userId: string, serverId: string) {
+    const isMember = await this.membersService.isMember(userId, serverId);
+    if (isMember === false) throw new NotAMemberException();
+    const server = this.serverModel.findById(serverId);
+    if (server === null || server === undefined) throw new ServerNotFoundException();
+    return server;
   }
 
   async createInvitation(userId: string, id: string) {
@@ -96,17 +102,16 @@ export class ServersService {
     let server;
     try {
       server = await this.serverModel.findOne({ "invitation.link": invitation }).populate("members");
-      if (server === null) throw new Error();
-      if (new Date() > server.date) throw new Error();
     } catch (e) {
       throw new BadOrExpiredInvitationException();
     }
+    if (server === null || new Date() > server.date) throw new BadOrExpiredInvitationException();
     const isMember = await this.membersService.isMember(userId, server.id);
     if (isMember === true) throw new AlreadyMemberException();
-    const servers = await this.memberModel.find({ userId }).sort({ order: -1 }).limit(1);
+    const servers = await this.membersService.getUserLastServer(userId);
     const newOrder = (servers[0]?.order ?? -1) + 1;
 
-    const newMember = new this.memberModel({
+    const newMember = this.membersService.newMember({
       userId,
       serverId: server.id,
       order: newOrder
@@ -125,19 +130,17 @@ export class ServersService {
   async deleteMember(userId: string, memberId: string) {
     let member: Member;
     try {
-      member = await this.memberModel.findOneAndDelete({ _id: memberId, userId });
-      if (member === undefined || member === null) throw new Error();
+      member = await this.membersService.deleteMember(memberId, userId);
     } catch (e) {
       throw new NotAMemberException();
     }
+    if (member === undefined || member === null) throw new NotAMemberException();
     this.socketIoService.memberLeft(member.serverId, memberId);
     await this.fixServersOrder([userId]);
   }
 
   async getServers(userId: string) {
-    const members = await this.memberModel.find({ userId }).populate({
-      path: "serverId", populate: "members"
-    });
+    const members = await this.membersService.getServers(userId);
     return members.map(({ serverId, order }) => {
       const serverDocument = serverId as unknown as ServerDocument & { id: string };
       const server = Server.toDTO(serverDocument);
@@ -153,30 +156,32 @@ export class ServersService {
     if (isMember === false) throw new NotAMemberException();
 
     if (serverUpdate.name !== undefined) {
+      let newServer;
       try {
-        const newServer = await this.serverModel.findOneAndUpdate({ _id: id }, { name: serverUpdate.name }, { new: true });
-        if (newServer === null) throw new Error();
+        newServer = await this.serverModel.findOneAndUpdate({ _id: id }, { name: serverUpdate.name }, { new: true });
       } catch (e) {
         throw new ServerNotFoundException();
       }
+      if (newServer === null || newServer === undefined) throw new ServerNotFoundException();
     }
 
     if (serverUpdate.order === undefined) return { name: serverUpdate.name };
-    const userServers = await insertAndSort(this.memberModel, userId, serverUpdate.order);
-    return { name: serverUpdate.name, servers: userServers };
+    // TODO reorder servers
+    // const userServers = await insertAndSort(this.memberModel, userId, serverUpdate.order);
+    return { name: serverUpdate.name, servers: [] };
   }
 
   async deleteServer(userId: string, id: string): Promise<void> {
     const isMember = await this.membersService.isMember(userId, id);
     if (isMember === false) throw new NotAMemberException();
 
-    const members = await this.memberModel.find({ serverId: id }, "userId");
+    const members = await this.membersService.getMembers(id);
     const membersUserIds = members.map(member => member.userId);
 
     try {
       await Promise.all([
         this.serverModel.findOneAndRemove({ _id: id }),
-        this.memberModel.deleteMany({ serverId: id })
+        this.membersService.deleteServerMembers(id)
       ]);
       await this.fixServersOrder(membersUserIds);
     } catch (e) {
@@ -188,9 +193,9 @@ export class ServersService {
   private async fixServersOrder(membersUserIds: string[]) {
     await Promise.all(
       membersUserIds.map(memberUserId =>
-        this.memberModel.find({ userId: memberUserId }).sort({ order: 1 })
+        this.membersService.getUserSortedServers(memberUserId)
           .then(servers =>
-            this.memberModel.bulkSave(servers.map((server, i) => {
+            this.membersService.saveMembers(servers.map((server, i) => {
               server.order = i;
               return server;
             }))

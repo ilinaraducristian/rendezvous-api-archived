@@ -64,6 +64,14 @@ class BadFriendshipStatusException extends BadRequestException {
 
 }
 
+class DefaultGroupCannotBeDeletedException extends BadRequestException {
+
+  constructor() {
+    super("the server's default group cannot be deleted");
+  }
+
+}
+
 export default BadRequestException;
 
 export {
@@ -73,5 +81,6 @@ export {
   NotAMemberException,
   AlreadyFriendsException,
   FriendshipCannotBeUpdatedException,
-  BadFriendshipStatusException
+  BadFriendshipStatusException,
+  DefaultGroupCannotBeDeletedException
 };

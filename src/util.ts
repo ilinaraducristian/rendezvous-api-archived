@@ -26,4 +26,8 @@ async function insertAndSort(model: Model<Member | Group>, id: string, order: nu
   return newGroups.result.upserted.map(element => ({ id: element.id.toString(), order: element.order }));
 }
 
-export { insertAndSort };
+function getMaxOrder(elements: { order: number }[]) {
+  return elements.reduce((c1, c2) => c1.order > c2.order ? c1 : c2).order;
+}
+
+export { insertAndSort, getMaxOrder };
