@@ -1,14 +1,17 @@
 import { Module } from "@nestjs/common";
 import { ChannelsController } from "./channels.controller";
 import { ChannelsService } from "./channels.service";
-import { ServersModule } from "../servers/servers.module";
+import { GroupsModule } from "../groups/groups.module";
 
 @Module({
   imports: [
-    ServersModule
+    GroupsModule
   ],
   controllers: [ChannelsController],
-  providers: [ChannelsService]
+  providers: [
+    GroupsModule,
+    ChannelsService
+  ]
 })
 export class ChannelsModule {
 }

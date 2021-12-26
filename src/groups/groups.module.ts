@@ -8,7 +8,11 @@ import { ServersModule } from "../servers/servers.module";
     ServersModule
   ],
   controllers: [GroupsController],
-  providers: [GroupsService]
+  providers: [GroupsService],
+  exports: [
+    ServersModule,
+    GroupsService
+  ]
 })
 export class GroupsModule {
 }

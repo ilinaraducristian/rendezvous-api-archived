@@ -57,10 +57,10 @@ export class FriendshipsService {
 
     try {
       friendship = await this.friendshipModel.findOne({ _id: friendshipId, user2Id: userId });
-      if (friendship === null || friendship === undefined) throw new Error();
     } catch (e) {
       throw new FriendshipNotFoundException();
     }
+    if (friendship === null || friendship === undefined) throw new FriendshipNotFoundException();
 
     if (friendship.status !== FriendshipStatus.pending) {
       throw new FriendshipCannotBeUpdatedException();
@@ -80,12 +80,14 @@ export class FriendshipsService {
 
   async deleteFriendship(userId: string, friendshipId: string) {
 
+    let deleteResult;
+
     try {
-      const deleteResult = await this.friendshipModel.deleteOne({ _id: friendshipId, user1Id: userId });
-      if (deleteResult === null || deleteResult === undefined) throw new Error();
+      deleteResult = await this.friendshipModel.deleteOne({ _id: friendshipId, user1Id: userId });
     } catch (e) {
       throw new FriendshipNotFoundException();
     }
+    if (deleteResult === null || deleteResult === undefined) throw new FriendshipNotFoundException();
 
   }
 

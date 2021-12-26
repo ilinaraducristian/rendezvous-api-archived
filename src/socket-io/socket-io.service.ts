@@ -38,7 +38,7 @@ export class SocketIoService {
   }
 
   channelDelete(serverId: string, channelId: string, channels: Pick<Channel, "id" | "order">[]) {
-    this.emit(serverId, SocketIoEvents.channelDeleted, channelId);
+    this.emit(serverId, SocketIoEvents.channelDeleted, { channelId, channels });
   }
 
   newGroup(serverId: string, group: Group) {

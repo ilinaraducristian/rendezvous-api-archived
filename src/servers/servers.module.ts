@@ -17,7 +17,6 @@ import Server, { ServerSchema } from "../entities/server";
   controllers: [ServersController],
   providers: [ServersService],
   exports: [
-    MembersModule,
     SocketIoModule,
     ServersService
   ]
