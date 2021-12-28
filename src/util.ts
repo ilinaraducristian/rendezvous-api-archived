@@ -1,4 +1,4 @@
-import { Model } from "mongoose";
+import { Document, Model } from "mongoose";
 import Server from "./entities/server";
 import Group from "./entities/group";
 import Member from "./entities/member";
@@ -26,8 +26,20 @@ async function insertAndSort(model: Model<Member | Group>, id: string, order: nu
   return newGroups.result.upserted.map(element => ({ id: element.id.toString(), order: element.order }));
 }
 
-function getMaxOrder(elements: { order: number }[]) {
-  return elements.reduce((c1, c2) => c1.order > c2.order ? c1 : c2).order;
+function sortDocuments<T extends Document & { order: number }>(documents: T[]) {
+  return documents.sort((c1, c2) => c1.order - c2.order)
+    .map((document, i) => ({
+      ...document.toObject(),
+      order: i
+    }));
 }
 
-export { insertAndSort, getMaxOrder };
+function getMaxOrder(elements: { order: number }[]) {
+  try {
+    return elements.reduce((c1, c2) => c1.order > c2.order ? c1 : c2).order;
+  } catch (e) {
+    return -1;
+  }
+}
+
+export { sortDocuments, getMaxOrder };

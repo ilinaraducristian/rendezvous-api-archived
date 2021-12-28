@@ -4,11 +4,10 @@ import { ChannelsService } from "./channels.service";
 import { GroupsModule } from "../groups/groups.module";
 
 @Module({
-  imports: [
-    GroupsModule
-  ],
+  imports: [GroupsModule],
   controllers: [ChannelsController],
-  providers: [
+  providers: [ChannelsService],
+  exports: [
     GroupsModule,
     ChannelsService
   ]

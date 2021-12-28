@@ -6,6 +6,7 @@ import { DefaultGroupCannotBeDeletedException } from "../exceptions/BadRequestEx
 import { GroupNotFoundException } from "../exceptions/NotFoundExceptions";
 import { ServersService } from "../servers/servers.service";
 import { getMaxOrder } from "../util";
+import { ServerDocument } from "../entities/server";
 
 @Injectable()
 export class GroupsService {
@@ -24,27 +25,27 @@ export class GroupsService {
     const newGroup = {
       name,
       serverId,
-      order: lastGroupOrder + 1,
+      order: lastGroupOrder == -1 ? 0 : lastGroupOrder + 1,
       channels: []
     };
-    const index = server.groups.push(newGroup);
+    const length = server.groups.push(newGroup);
     await server.save();
 
-    const newGroupDto = Group.toDTO(server.groups[index] as GroupDocument, serverId);
-    this.socketIoService.newGroup(serverId, newGroupDto);
+    const newGroupDto = Group.toDTO(server.groups[length - 1] as GroupDocument, serverId);
+    // this.socketIoService.newGroup(serverId, newGroupDto);
   }
 
   async getById(userId: string, serverId: string, groupId: string) {
     const server = await this.serversService.getById(userId, serverId);
-    const group = server.groups.find(group => group._id === groupId);
+    const group = server.groups.find(group => group._id.toString() === groupId);
     if (group === undefined) throw new GroupNotFoundException();
-    group.server = server;
     return group as GroupDocument;
   }
 
   async updateGroup(userId: string, serverId: string, groupId: string, groupUpdate: UpdateGroupRequest) {
 
     const group = await this.getById(userId, serverId, groupId);
+    const server = group.$parent() as ServerDocument;
 
     let isGroupModified = false;
 
@@ -57,22 +58,22 @@ export class GroupsService {
 
     if (groupUpdate.order !== undefined) {
       isGroupModified = true;
-      const sortedGroups = group.server.groups.sort((g1, g2) => g1.order - g2.order);
-      const index = sortedGroups.findIndex(group => group._id === groupId);
+      const sortedGroups = server.groups.sort((g1, g2) => g1.order - g2.order);
+      const index = sortedGroups.findIndex(group => group._id.toString() === groupId);
       sortedGroups[index] = undefined;
       sortedGroups.splice(groupUpdate.order, 0, group);
-      group.server.groups = sortedGroups.filter(group => group !== undefined).map((group, i) => ({
+      server.groups = sortedGroups.filter(group => group !== undefined).map((group, i) => ({
         ...group,
         order: i
       }));
-      groups = group.server.groups.map(group => ({
+      groups = server.groups.map(group => ({
         id: group._id.toString(),
         order: group.order
       }));
     }
 
     if (isGroupModified) {
-      await group.server.save();
+      await server.save();
     }
 
     return { name: groupUpdate.name, groups };
@@ -81,26 +82,25 @@ export class GroupsService {
   async deleteGroup(userId: string, serverId: string, groupId: string) {
 
     const group = await this.getById(userId, serverId, groupId);
-    const index = group.server.groups.findIndex(group => group._id === groupId);
+    const server = group.$parent() as ServerDocument;
+    const index = server.groups.findIndex(group => group._id.toString() === groupId);
 
-    if (index === -1) throw new GroupNotFoundException();
+    if (group.order === 0) throw new DefaultGroupCannotBeDeletedException();
 
-    if (group.server.groups[index].order === 0) throw new DefaultGroupCannotBeDeletedException();
-
-    group.server.groups.splice(index, 1);
-    group.server.groups = group.server.groups.sort((g1, g2) => g1.order - g2.order).map((group, i) => ({
-      ...group,
+    server.groups.splice(index, 1);
+    server.groups = server.groups.sort((g1, g2) => g1.order - g2.order).map((group: GroupDocument, i) => ({
+      ...group.toObject(),
       order: i
     }));
 
-    await group.server.save();
+    await server.save();
 
-    const groups = group.server.groups.map(group => ({
+    const groups = server.groups.map(group => ({
       id: group._id.toString(),
       order: group.order
     }));
 
-    this.socketIoService.groupDelete(serverId, groupId, groups);
+    // this.socketIoService.groupDelete(serverId, groupId, groups);
 
   }
 

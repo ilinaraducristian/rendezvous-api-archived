@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import ServerDTO from "../dtos/server";
-import Server, { ServerDocument } from "../entities/server";
+import Server from "../entities/server";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import Member from "../entities/member";
@@ -72,15 +72,16 @@ export class ServersService {
     ]);
     const serverDto = Server.toDTO(newServer);
     serverDto.order = newOrder;
+    await this.socketIoService.joinServer(userId, serverDto.id);
     return serverDto;
   }
 
   async getById(userId: string, serverId: string) {
+    const serverExists = await this.serverModel.exists({ serverId });
+    if (!serverExists) throw new ServerNotFoundException();
     const isMember = await this.membersService.isMember(userId, serverId);
     if (isMember === false) throw new NotAMemberException();
-    const server = this.serverModel.findById(serverId);
-    if (server === null || server === undefined) throw new ServerNotFoundException();
-    return server;
+    return this.serverModel.findById(serverId);
   }
 
   async createInvitation(userId: string, id: string) {
@@ -124,6 +125,7 @@ export class ServersService {
     const newServer = Server.toDTO(server);
     newServer.order = newOrder;
     newServer.members = server.members.map(member => Member.toDTO(member));
+    await this.socketIoService.joinServer(userId, newServer.id);
     return newServer;
   }
 
@@ -135,19 +137,9 @@ export class ServersService {
       throw new NotAMemberException();
     }
     if (member === undefined || member === null) throw new NotAMemberException();
+    await this.socketIoService.leaveServer(userId, member.serverId);
     this.socketIoService.memberLeft(member.serverId, memberId);
     await this.fixServersOrder([userId]);
-  }
-
-  async getServers(userId: string) {
-    const members = await this.membersService.getServers(userId);
-    return members.map(({ serverId, order }) => {
-      const serverDocument = serverId as unknown as ServerDocument & { id: string };
-      const server = Server.toDTO(serverDocument);
-      server.order = order;
-      server.members = serverDocument.members.map(member => Member.toDTO(member));
-      return server;
-    });
   }
 
   async updateServer(userId: string, id: string, serverUpdate: UpdateServerRequest) {
@@ -171,23 +163,26 @@ export class ServersService {
     return { name: serverUpdate.name, servers: [] };
   }
 
-  async deleteServer(userId: string, id: string): Promise<void> {
-    const isMember = await this.membersService.isMember(userId, id);
+  async deleteServer(userId: string, serverId: string): Promise<void> {
+    const isMember = await this.membersService.isMember(userId, serverId);
     if (isMember === false) throw new NotAMemberException();
 
-    const members = await this.membersService.getMembers(id);
+    const members = await this.membersService.getMembers(serverId);
     const membersUserIds = members.map(member => member.userId);
 
     try {
       await Promise.all([
-        this.serverModel.findOneAndRemove({ _id: id }),
-        this.membersService.deleteServerMembers(id)
+        this.serverModel.findOneAndRemove({ _id: serverId }),
+        this.membersService.deleteServerMembers(serverId)
       ]);
       await this.fixServersOrder(membersUserIds);
     } catch (e) {
       throw e;
     }
-    this.socketIoService.serverDeleted(id);
+    // this.socketIoService.serverDeleted(serverId);
+    // await Promise.all(membersUserIds.map(userId =>
+    //   this.socketIoService.leaveServer(userId, serverId)
+    // ))
   }
 
   private async fixServersOrder(membersUserIds: string[]) {

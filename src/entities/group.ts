@@ -1,7 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import Channel, { ChannelDocument, ChannelSchema } from "./channel";
 import { Document } from "mongoose";
-import { ServerDocument } from "./server";
 
 @Schema()
 class Group {
@@ -16,8 +15,6 @@ class Group {
 
   @Prop({ default: [], type: [ChannelSchema] })
   channels: Channel[];
-
-  server?: ServerDocument;
 
   static toDTO(group: GroupDocument, serverId: string) {
     const dtoGroup: any = group.toObject();

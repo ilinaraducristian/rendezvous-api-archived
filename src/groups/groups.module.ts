@@ -4,9 +4,7 @@ import { GroupsService } from "./groups.service";
 import { ServersModule } from "../servers/servers.module";
 
 @Module({
-  imports: [
-    ServersModule
-  ],
+  imports: [ServersModule],
   controllers: [GroupsController],
   providers: [GroupsService],
   exports: [

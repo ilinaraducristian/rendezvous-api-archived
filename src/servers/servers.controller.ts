@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
+import { Body, Controller, Delete, Param, Post, Put } from "@nestjs/common";
 import NewServerRequest from "../dtos/new-server-request";
 import UpdateServerRequest from "../dtos/update-server-request";
 import { AuthenticatedUser } from "nest-keycloak-connect";
@@ -20,13 +20,6 @@ export class ServersController {
     @Body() newServer: NewServerRequest
   ) {
     return this.serversService.createServer(user.sub, newServer.name);
-  }
-
-  @Get()
-  async getServers(
-    @AuthenticatedUser() user: KeycloakUser
-  ) {
-    return this.serversService.getServers(user.sub);
   }
 
   @Post(":serverId/invitations")

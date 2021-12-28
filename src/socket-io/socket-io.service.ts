@@ -13,6 +13,34 @@ export class SocketIoService {
   @WebSocketServer()
   socketIoServer: SocketIoServer;
 
+  private socketsUsers: Map<string, string> = new Map();
+
+  addSocketUserPair(pair: { socketId: string, userId: string }) {
+    this.socketsUsers.set(pair.socketId, pair.userId);
+    this.socketsUsers.set(pair.userId, pair.socketId);
+  }
+
+  removeSocketUserPair(pair: { socketId: string, userId: string }) {
+    this.socketsUsers.delete(pair.socketId);
+    this.socketsUsers.delete(pair.userId);
+  }
+
+  getSocketUserPairBySocketIdOrUserId(socketIdOrUserId: string) {
+    return this.socketsUsers.get(socketIdOrUserId);
+  }
+
+  async joinServer(userId: string, serverId: string) {
+    const pair = this.getSocketUserPairBySocketIdOrUserId(userId);
+    if (pair === undefined) return;
+    await this.socketIoServer.sockets.sockets.get(pair).join(serverId);
+  }
+
+  async leaveServer(userId: string, serverId: string) {
+    const pair = this.getSocketUserPairBySocketIdOrUserId(userId);
+    if (pair === undefined) return;
+    await this.socketIoServer.sockets.sockets.get(pair).leave(serverId);
+  }
+
   newMember(serverId: string, member: Member) {
     this.emit(serverId, SocketIoEvents.newMember, member);
   }

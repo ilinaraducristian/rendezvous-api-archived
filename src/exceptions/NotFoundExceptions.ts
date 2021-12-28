@@ -3,7 +3,7 @@ import { NotFoundException } from "@nestjs/common";
 class ResourceNotFoundException extends Error {
 
   toHttpException(): NotFoundException {
-    return new NotFoundException(this.message);
+    return new NotFoundException(`${this.message} not found`);
   }
 
 }
