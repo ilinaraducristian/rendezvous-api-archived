@@ -24,10 +24,10 @@ export class FriendshipsController {
   @Put(":friendshipId")
   updateFriendship(
     @AuthenticatedUser() user: KeycloakUser,
-    @Param("friendshipId") id: string,
+    @Param("friendshipId") friendshipId: string,
     @Body() updateFriendshipRequest: UpdateFriendshipRequest
   ) {
-    return this.friendshipsService.updateFriendship(user.sub, id, updateFriendshipRequest.status);
+    return this.friendshipsService.updateFriendship(user.sub, friendshipId, updateFriendshipRequest.status);
   }
 
   @Delete(":friendshipId")

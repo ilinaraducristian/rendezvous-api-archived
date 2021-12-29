@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import Message, { MessageDocument } from "../entities/message";
+import Message from "../entities/message";
 import ChannelType from "../dtos/channel-type";
 import { MessageNotFoundException } from "../exceptions/NotFoundExceptions";
 import { InjectModel } from "@nestjs/mongoose";
@@ -20,8 +20,6 @@ export class MessagesService {
     await this.channelsService.getByIdAndType(userId, serverId, groupId, channelId, ChannelType.text);
 
     const newMessage = new this.messageModel({
-      serverId,
-      groupId: groupId,
       channelId,
       userId,
       text,
@@ -29,7 +27,7 @@ export class MessagesService {
     });
     await newMessage.save();
 
-    return Message.toDTO(newMessage as MessageDocument);
+    return Message.toDTO(newMessage, serverId, groupId);
   }
 
   async getMessages(userId: string, serverId: string, groupId: string, channelId: string, offset: number) {
@@ -42,7 +40,7 @@ export class MessagesService {
       channelId
     }).sort({ date: 1 }).skip(offset).limit(30);
 
-    return messages.map(message => Message.toDTO(message));
+    return messages.map(message => Message.toDTO(message, serverId, groupId));
 
   }
 
@@ -57,7 +55,7 @@ export class MessagesService {
     } catch (e) {
       throw new MessageNotFoundException();
     }
-    if (message === null) throw new MessageNotFoundException();
+    if (message === null || message === undefined) throw new MessageNotFoundException();
 
   }
 

@@ -39,12 +39,17 @@ export class FriendshipsService {
 
     await newFriendship.save();
 
-    return {
-      user1Id,
-      user2Id,
-      status: FriendshipStatus.pending
-    };
+    return newFriendship.toObject();
 
+  }
+
+  async getById(userId: string, friendshipId: string) {
+    const friendship = await this.friendshipModel.findOne({
+      _id: friendshipId,
+      $or: [{ user1Id: userId }, { user2Id: userId }]
+    });
+    if (friendship === undefined) throw new FriendshipNotFoundException();
+    return friendship as FriendshipDocument;
   }
 
   async updateFriendship(userId: string, friendshipId: string, status: FriendshipStatus) {

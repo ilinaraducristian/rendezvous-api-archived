@@ -8,13 +8,7 @@ class Message {
 
   _id?: string;
 
-  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: "Server" })
-  serverId: string;
-
-  @Prop({ default: null, type: mongoose.Schema.Types.ObjectId, ref: "Group" })
-  groupId: string;
-
-  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: "Channel" })
+  @Prop({ required: true, type: { type: mongoose.Schema.Types.ObjectId, ref: "Channel" } })
   channelId: string;
 
   @Prop({ required: true })
@@ -26,10 +20,12 @@ class Message {
   @Prop({ required: true })
   timestamp: Date;
 
-  static toDTO(message: MessageDocument) {
+  static toDTO(message: MessageDocument, serverId: string, groupId: string) {
     const dtoMessage: any = message.toObject();
     delete dtoMessage._id;
     dtoMessage.id = message._id.toString();
+    dtoMessage.serverId = serverId;
+    dtoMessage.groupId = groupId;
     return dtoMessage;
   }
 
