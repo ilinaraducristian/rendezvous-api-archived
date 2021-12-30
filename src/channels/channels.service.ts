@@ -3,7 +3,7 @@ import Channel, { ChannelDocument } from "../entities/channel";
 import UpdateChannelRequest from "../dtos/update-channel-request";
 import { SocketIoService } from "../socket-io/socket-io.service";
 import { ChannelNotFoundException } from "../exceptions/NotFoundExceptions";
-import { getMaxOrder, sortDocuments } from "../util";
+import { changeDocumentOrder, getMaxOrder, sortDocuments } from "../util";
 import { GroupsService } from "../groups/groups.service";
 import ChannelType from "../dtos/channel-type";
 import { ServerDocument } from "../entities/server";
@@ -68,32 +68,20 @@ export class ChannelsService {
     if (channelUpdate.order !== undefined) {
       isChannelModified = true;
       if (groupId === channelUpdate.groupId) {
-        const sortedChannels = group1.channels.sort((c1, c2) => c1.order - c2.order);
-        const index = sortedChannels.findIndex(channel => channel._id.toString() === channelId);
-        sortedChannels[index] = undefined;
-        sortedChannels.splice(channelUpdate.order, 0, channel);
-        group1.channels = sortedChannels.filter(channel => channel !== undefined).map((channel, i) => ({
-          ...channel,
-          order: i
-        }));
-        channels = group1.channels;
+        channels = group1.channels = changeDocumentOrder(
+          group1.channels as ChannelDocument[], channelId, channelUpdate.order
+        );
       } else {
-        const sortedChannels1 = group1.channels.sort((c1, c2) => c1.order - c2.order);
-        const sortedChannels2 = group2.channels.sort((c1, c2) => c1.order - c2.order);
+        const sortedChannels1 = sortDocuments(group1.channels as ChannelDocument[]);
+        const sortedChannels2 = sortDocuments(group2.channels as ChannelDocument[]);
         const index1 = sortedChannels1.findIndex(channel => channel._id.toString() === channelId);
         sortedChannels2.splice(channelUpdate.order, 0, sortedChannels1.splice(index1, 1)[0]);
-        group1.channels = sortedChannels1.map((channel, i) => ({
-          ...channel,
-          order: i
-        }));
-        group2.channels = sortedChannels2.map((channel, i) => ({
-          ...channel,
-          order: i
-        }));
+        group1.channels = sortedChannels1;
+        group2.channels = sortedChannels2;
         channels = group1.channels.concat(group2.channels);
       }
       channels = channels.map(channel => ({
-        id: channel._id.toString(),
+        id: channel.id,
         groupId: channel.groupId,
         order: channel.order
       }));

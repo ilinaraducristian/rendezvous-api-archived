@@ -5,7 +5,7 @@ import { SocketIoService } from "../socket-io/socket-io.service";
 import { DefaultGroupCannotBeDeletedException } from "../exceptions/BadRequestExceptions";
 import { GroupNotFoundException } from "../exceptions/NotFoundExceptions";
 import { ServersService } from "../servers/servers.service";
-import { getMaxOrder } from "../util";
+import { changeDocumentOrder, getMaxOrder } from "../util";
 import { ServerDocument } from "../entities/server";
 
 @Injectable()
@@ -58,16 +58,11 @@ export class GroupsService {
 
     if (groupUpdate.order !== undefined) {
       isGroupModified = true;
-      const sortedGroups = server.groups.sort((g1, g2) => g1.order - g2.order);
-      const index = sortedGroups.findIndex(group => group._id.toString() === groupId);
-      sortedGroups[index] = undefined;
-      sortedGroups.splice(groupUpdate.order, 0, group);
-      server.groups = sortedGroups.filter(group => group !== undefined).map((group, i) => ({
-        ...group,
-        order: i
-      }));
-      groups = server.groups.map(group => ({
-        id: group._id.toString(),
+      const sortedGroups = changeDocumentOrder(server.groups as GroupDocument[], groupId, groupUpdate.order);
+      server.groups = sortedGroups;
+
+      groups = sortedGroups.map(group => ({
+        id: group.id,
         order: group.order
       }));
     }
