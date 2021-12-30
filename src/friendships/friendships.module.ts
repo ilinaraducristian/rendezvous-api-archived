@@ -3,19 +3,16 @@ import { FriendshipsService } from "./friendships.service";
 import { FriendshipsController } from "./friendships.controller";
 import Friendship, { FriendshipSchema } from "../entities/friendship";
 import { MongooseModule } from "@nestjs/mongoose";
-import FriendshipMessage, { FriendshipMessageSchema } from "../entities/friendship-message";
-import { FriendshipsMessagesService } from "./friendships-messages.service";
-import { FriendshipsMessagesController } from "./friendships-messages.controller";
 
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { name: Friendship.name, schema: FriendshipSchema },
-      { name: FriendshipMessage.name, schema: FriendshipMessageSchema }
+      { name: Friendship.name, schema: FriendshipSchema }
     ])
   ],
-  providers: [FriendshipsService, FriendshipsMessagesService],
-  controllers: [FriendshipsController, FriendshipsMessagesController]
+  providers: [FriendshipsService],
+  controllers: [FriendshipsController],
+  exports: [FriendshipsService]
 })
 export class FriendshipsModule {
 }

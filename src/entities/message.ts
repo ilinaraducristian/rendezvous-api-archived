@@ -1,14 +1,12 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import * as mongoose from "mongoose";
-import { Document } from "mongoose";
-import Channel from "./channel";
+import { Document, Types } from "mongoose";
 
 @Schema()
 class Message {
 
   _id?: string;
 
-  @Prop({ required: true, type: { type: mongoose.Schema.Types.ObjectId, ref: "Channel" } })
+  @Prop({ type: Types.ObjectId, ref: "Member" })
   channelId: string;
 
   @Prop({ required: true })

@@ -13,7 +13,8 @@ import { ChannelsModule } from "../channels/channels.module";
     ChannelsModule
   ],
   controllers: [MessagesController],
-  providers: [MessagesService]
+  providers: [MessagesService],
+  exports: [MessagesService]
 })
 export class MessagesModule {
 }

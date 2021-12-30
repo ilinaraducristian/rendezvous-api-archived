@@ -1,41 +1,52 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { MessagesService } from "./messages.service";
-// import MongooseModules from "../MongooseModules";
 import { MongooseModule } from "@nestjs/mongoose";
-import { MessagesController } from "./messages.controller";
+import { MessagesModule } from "./messages.module";
 import { ServersService } from "../servers/servers.service";
-import { GroupsService } from "../groups/groups.service";
-import { ChannelsService } from "../channels/channels.service";
+import ChannelType from "../dtos/channel-type";
 
-describe('MessagesService', () => {
-  let messagesService: MessagesService;
+describe("MessagesService", () => {
+  let messagesService: MessagesService,
+    serversService: ServersService;
   let module: TestingModule;
+
+  jest.setTimeout(30000);
 
   beforeAll(async () => {
     module = await Test.createTestingModule({
       imports: [
-        MongooseModules,
-        MongooseModule.forRoot("mongodb://user:user@127.0.0.1:27017/rendezvous"),
-      ],
-      controllers: [MessagesController],
-      providers: [ServersService, GroupsService, ChannelsService, MessagesService]
+        MessagesModule,
+        MongooseModule.forRoot("mongodb://user:user@127.0.0.1:27017/rendezvous")
+      ]
     }).compile();
 
     messagesService = module.get<MessagesService>(MessagesService);
+    serversService = module.get<ServersService>(ServersService);
   });
 
-  afterAll(() => module.close())
+  afterAll(() => module.close());
 
+  let userId = "61aa0b90c85c37292276eb39",
+    serverId, groupId, channelId;
 
-  it('should create a new message', async () => {
-    for(let i = 2 ; i < 22 ; i++)
-    await messagesService.createMessage('61aa0b90c85c37292276eb39', null, '61aa0b90c85c37292276eb40', 'a new message ' + i);
-    expect(true).toBeTruthy();
-  })
-
-  it('should return the messages in reverse order', async () => {
-    // create message in 61aa0b90c85c37292276eb40
-    const res = await messagesService.getMessages('61aa0b90c85c37292276eb39', null, '61aa0b90c85c37292276eb40')
-    expect(messagesService).toBeDefined();
+  beforeEach(async () => {
+    const server = await serversService.createServer(userId, "a new server");
+    serverId = server.id;
+    groupId = server.groups.find(group => group.channels.find(channel => channel.type === ChannelType.text) !== undefined).id;
+    channelId = server.groups.find(group => group.id === groupId).channels[0].id;
+    for (let i = 0; i < 100; i++) {
+      // await new Promise(r => setTimeout(r, 100));
+      await messagesService.createMessage(userId, serverId, groupId, channelId, `message_${i}`);
+    }
   });
+
+  afterEach(async () => {
+    await serversService.deleteServer(userId, serverId);
+  });
+
+  it("should return the messages", async () => {
+    const messages = await messagesService.getMessages(userId, serverId, groupId, channelId, 130);
+    expect(messages.length).toBeGreaterThan(0);
+  });
+
 });

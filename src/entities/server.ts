@@ -1,7 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import ServerDTO from "../dtos/server";
-import * as mongoose from "mongoose";
-import { Document } from "mongoose";
+import { Document, Types } from "mongoose";
 import Member from "./member";
 import Group, { GroupDocument, GroupSchema } from "./group";
 import Invitation from "../dtos/invitation";
@@ -18,7 +17,7 @@ class Server {
   @Prop({ default: [], type: [GroupSchema] })
   groups: Group[];
 
-  @Prop({ default: [], type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Member" }] })
+  @Prop({ default: [], type: [{ type: Types.ObjectId, ref: "Member" }] })
   members: Member[];
 
   static toDTO(server: ServerDocument): ServerDTO {

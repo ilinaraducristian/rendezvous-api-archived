@@ -8,6 +8,7 @@ import { ChannelsModule } from "./channels/channels.module";
 import { AuthGuard, KeycloakConnectModule } from "nest-keycloak-connect";
 import { FriendshipsModule } from "./friendships/friendships.module";
 import { SocketIoModule } from "./socket-io/socket-io.module";
+import { FriendshipMessagesModule } from "./friendship-messages/friendship-messages.module";
 
 export const routes = RouterModule.register([
   {
@@ -34,7 +35,13 @@ export const routes = RouterModule.register([
   },
   {
     path: "friendships",
-    module: FriendshipsModule
+    module: FriendshipsModule,
+    children: [
+      {
+        path: ":friendshipId/messages",
+        module: FriendshipMessagesModule
+      }
+    ]
   }
 ]);
 
@@ -53,7 +60,8 @@ export const routes = RouterModule.register([
     MessagesModule,
     FriendshipsModule,
     SocketIoModule,
-    routes
+    routes,
+    FriendshipMessagesModule
   ],
   controllers: [],
   providers: [

@@ -35,10 +35,8 @@ export class MessagesService {
     await this.channelsService.getByIdAndType(userId, serverId, groupId, channelId, ChannelType.text);
 
     const messages = await this.messageModel.find({
-      serverId,
-      groupId,
       channelId
-    }).sort({ date: 1 }).skip(offset).limit(30);
+    }).sort({ timestamp: -1 }).skip(offset).limit(30);
 
     return messages.map(message => Message.toDTO(message, serverId, groupId));
 

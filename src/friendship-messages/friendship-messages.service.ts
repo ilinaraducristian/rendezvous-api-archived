@@ -2,11 +2,11 @@ import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import FriendshipMessage from "../entities/friendship-message";
-import { FriendshipsService } from "./friendships.service";
+import { FriendshipsService } from "../friendships/friendships.service";
 import { MessageNotFoundException } from "../exceptions/NotFoundExceptions";
 
 @Injectable()
-export class FriendshipsMessagesService {
+export class FriendshipMessagesService {
 
   constructor(
     private readonly friendshipsService: FriendshipsService,
@@ -27,6 +27,18 @@ export class FriendshipsMessagesService {
     await newMessage.save();
 
     return FriendshipMessage.toDTO(newMessage);
+  }
+
+  async getMessages(userId: string, friendshipId: string, offset: number) {
+
+    await this.friendshipsService.getById(userId, friendshipId);
+
+    const messages = await this.messageModel.find({
+      friendshipId
+    }).sort({ timestamp: -1 }).skip(offset).limit(30);
+
+    return messages.map(message => FriendshipMessage.toDTO(message));
+
   }
 
   async deleteMessage(userId: string, friendshipId: string, messageId: string) {
