@@ -1,22 +1,12 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document, Types } from "mongoose";
+import Message from "./message";
 
 @Schema()
-class FriendshipMessage {
-
-  _id?: string;
+class FriendshipMessage extends Message {
 
   @Prop({ type: Types.ObjectId, ref: "Friendship" })
   friendshipId: string;
-
-  @Prop({ required: true })
-  userId: string;
-
-  @Prop({ required: true })
-  text: string;
-
-  @Prop({ required: true })
-  timestamp: Date;
 
   static toDTO(message: FriendshipMessageDocument) {
     const dtoMessage: any = message.toObject();

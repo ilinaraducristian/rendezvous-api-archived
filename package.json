@@ -33,6 +33,7 @@
     "keycloak-connect": "^15.0.2",
     "mongoose": "^6.0.14",
     "nest-keycloak-connect": "^1.7.6",
+    "nestjs-minio-client": "^1.1.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^7.4.0",

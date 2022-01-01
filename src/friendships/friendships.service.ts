@@ -9,12 +9,14 @@ import {
 } from "../exceptions/BadRequestExceptions";
 import FriendshipStatus from "../dtos/friendship-status";
 import { FriendshipNotFoundException } from "../exceptions/NotFoundExceptions";
+import FriendshipMessage from "../entities/friendship-message";
 
 @Injectable()
 export class FriendshipsService {
 
   constructor(
-    @InjectModel(Friendship.name) private readonly friendshipModel: Model<Friendship>
+    @InjectModel(Friendship.name) private readonly friendshipModel: Model<Friendship>,
+    @InjectModel(FriendshipMessage.name) private readonly messageModel: Model<FriendshipMessage>
   ) {
   }
 
@@ -86,6 +88,8 @@ export class FriendshipsService {
   async deleteFriendship(userId: string, friendshipId: string) {
 
     let deleteResult;
+
+    await this.messageModel.deleteMany({ friendshipId });
 
     try {
       deleteResult = await this.friendshipModel.deleteOne({ _id: friendshipId, user1Id: userId });

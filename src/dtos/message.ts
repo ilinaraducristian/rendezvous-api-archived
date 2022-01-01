@@ -1,19 +1,17 @@
-import Reaction from "./reaction";
-import Attachment from "./attachment";
-import ReplyMessage from "./reply-message";
-
 type Message = {
-    id: string,
-    serverId: string | null,
-    groupId: string,
-    channelId: string | null,
-    friendId: string | null,
-    timestamp: string,
-    text: string,
-    userId: string,
-    replyMessage: ReplyMessage | null,
-    reactions: Reaction[],
-    attachments: Attachment[]
+  id: string
+  userId: string
+  text: string
+  timestamp: Date
+  files: string[]
+}
+
+export type ChannelMessage = Message & {
+  channelId: string
+}
+
+export type FriendshipMessage = Message & {
+  friendshipId: string
 }
 
 export default Message;

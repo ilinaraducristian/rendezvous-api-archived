@@ -15,12 +15,14 @@ import {
 } from "../exceptions/BadRequestExceptions";
 import { ServerNotFoundException } from "../exceptions/NotFoundExceptions";
 import { MembersService } from "../members/members.service";
+import ChannelMessage from "../entities/channel-message";
 
 @Injectable()
 export class ServersService {
 
   constructor(
     @InjectModel(Server.name) private readonly serverModel: Model<Server>,
+    @InjectModel(ChannelMessage.name) private readonly messageModel: Model<ChannelMessage>,
     private readonly membersService: MembersService,
     private readonly socketIoService: SocketIoService
   ) {
@@ -157,18 +159,16 @@ export class ServersService {
       if (newServer === null || newServer === undefined) throw new ServerNotFoundException();
     }
 
-    if (serverUpdate.order === undefined) return { name: serverUpdate.name };
-    // TODO reorder servers
-    // const userServers = await insertAndSort(this.memberModel, userId, serverUpdate.order);
     return { name: serverUpdate.name, servers: [] };
   }
 
   async deleteServer(userId: string, serverId: string): Promise<void> {
-    const isMember = await this.membersService.isMember(userId, serverId);
-    if (isMember === false) throw new NotAMemberException();
+    const server = await this.getById(userId, serverId);
 
     const members = await this.membersService.getMembers(serverId);
     const membersUserIds = members.map(member => member.userId);
+    const textChannelsIds = server.groups.map(group => group.channels).flat().filter(channel => channel.type === ChannelType.text).map(channel => ({ channelId: channel._id.toString() }));
+    await this.messageModel.deleteMany({ $or: textChannelsIds });
 
     try {
       await Promise.all([

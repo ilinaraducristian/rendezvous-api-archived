@@ -1,19 +1,8 @@
 import { Module } from "@nestjs/common";
-import { MembersService } from "./members.service";
-import { MongooseModule } from "@nestjs/mongoose";
-import Member, { MemberSchema } from "../entities/member";
+import { MembersController } from "./members.controller";
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([
-      {
-        name: Member.name,
-        schema: MemberSchema
-      }
-    ])
-  ],
-  providers: [MembersService],
-  exports: [MembersService]
+  controllers: [MembersController]
 })
 export class MembersModule {
 }

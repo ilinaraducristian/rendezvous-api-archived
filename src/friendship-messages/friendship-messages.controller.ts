@@ -8,7 +8,7 @@ import NewMessageRequest from "../dtos/new-message-request";
 export class FriendshipMessagesController {
 
   constructor(
-    private readonly friendshipsMessagesService: FriendshipMessagesService
+    private readonly friendshipMessagesService: FriendshipMessagesService
   ) {
   }
 
@@ -18,7 +18,7 @@ export class FriendshipMessagesController {
     @Param("friendshipId") friendshipId: string,
     @Body() newMessage: NewMessageRequest
   ) {
-    return this.friendshipsMessagesService.createMessage(user.sub, friendshipId, newMessage.text);
+    return this.friendshipMessagesService.createMessage(user.sub, friendshipId, newMessage.text);
   }
 
   @Delete(":messageId")
@@ -27,7 +27,7 @@ export class FriendshipMessagesController {
     @Param("friendshipId") friendshipId: string,
     @Param("messageId") messageId: string
   ) {
-    return this.friendshipsMessagesService.deleteMessage(user.sub, friendshipId, messageId);
+    return this.friendshipMessagesService.deleteMessage(user.sub, friendshipId, messageId);
   }
 
 }

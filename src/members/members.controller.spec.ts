@@ -1,7 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { FastifyAdapter, NestFastifyApplication } from "@nestjs/platform-fastify";
 import { ValidationPipe } from "@nestjs/common";
-import { MessagesController } from "./messages.controller";
+import { MembersController } from "./members.controller";
 
 describe("MessagesController", () => {
   let app: NestFastifyApplication;
@@ -10,7 +10,7 @@ describe("MessagesController", () => {
   beforeAll(async () => {
     module = await Test.createTestingModule({
       imports: [],
-      controllers: [MessagesController],
+      controllers: [MembersController],
       providers: []
     }).compile();
 

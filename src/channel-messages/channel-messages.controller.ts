@@ -1,14 +1,14 @@
 import { Body, Controller, Delete, Get, Param, Post, Query } from "@nestjs/common";
-import { MessagesService } from "./messages.service";
+import { ChannelMessagesService } from "./channel-messages.service";
 import NewMessageRequest from "../dtos/new-message-request";
 import { AuthenticatedUser } from "nest-keycloak-connect";
 import KeycloakUser from "../keycloak-user";
 
 @Controller()
-export class MessagesController {
+export class ChannelMessagesController {
 
   constructor(
-    private readonly messagesService: MessagesService
+    private readonly messagesService: ChannelMessagesService
   ) {
   }
 
