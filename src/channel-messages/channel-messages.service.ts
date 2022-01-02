@@ -15,7 +15,7 @@ export class ChannelMessagesService {
   ) {
   }
 
-  async createMessage(userId: string, serverId: string, groupId: string, channelId: string, text: string) {
+  async createMessage(userId: string, serverId: string, groupId: string, channelId: string, text: string, files: string[]) {
 
     await this.channelsService.getByIdAndType(userId, serverId, groupId, channelId, ChannelType.text);
 
@@ -23,7 +23,8 @@ export class ChannelMessagesService {
       channelId,
       userId,
       text,
-      timestamp: new Date()
+      timestamp: new Date(),
+      files
     });
     await newMessage.save();
 

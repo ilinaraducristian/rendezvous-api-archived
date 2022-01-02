@@ -20,7 +20,7 @@ export class ChannelMessagesController {
     @Param("channelId") channelId: string,
     @Body() newMessage: NewMessageRequest
   ) {
-    return this.messagesService.createMessage(user.sub, serverId, groupId, channelId, newMessage.text);
+    return this.messagesService.createMessage(user.sub, serverId, groupId, channelId, newMessage.text, newMessage.files);
   }
 
   @Get()

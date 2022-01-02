@@ -1,11 +1,11 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { Document, Types } from "mongoose";
+import { Document } from "mongoose";
 import Message from "./message";
 
 @Schema()
 class ChannelMessage extends Message {
 
-  @Prop({ type: Types.ObjectId, ref: "Member" })
+  @Prop({ required: true })
   channelId: string;
 
   static toDTO(message: ChannelMessageDocument, serverId: string, groupId: string) {

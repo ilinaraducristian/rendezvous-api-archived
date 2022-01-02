@@ -14,6 +14,9 @@ class Message {
   @Prop({ required: true })
   timestamp: Date;
 
+  @Prop({ default: [] })
+  files: string[];
+
 }
 
 export default Message;

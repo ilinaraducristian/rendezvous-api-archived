@@ -51,6 +51,14 @@ class FriendshipNotFoundException extends ResourceNotFoundException {
 
 }
 
+class EmojiNotFoundException extends ResourceNotFoundException {
+
+  constructor() {
+    super("emoji");
+  }
+
+}
+
 export default ResourceNotFoundException;
 
 export {
@@ -58,5 +66,6 @@ export {
   GroupNotFoundException,
   MessageNotFoundException,
   ServerNotFoundException,
-  FriendshipNotFoundException
+  FriendshipNotFoundException,
+  EmojiNotFoundException
 };

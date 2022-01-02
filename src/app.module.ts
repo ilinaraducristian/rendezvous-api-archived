@@ -23,45 +23,38 @@ import { MembersModule } from "./members/members.module";
 import SocketIoGateway from "./socket-io/socket-io.gateway";
 import { SocketIoService } from "./socket-io/socket-io.service";
 import { FriendshipsService } from "./friendships/friendships.service";
+import { EmojisModule } from "./emojis/emojis.module";
+import { EmojisService } from "./emojis/emojis.service";
 
-export const routes = RouterModule.register([
-  {
-    path: "servers",
-    module: ServersModule,
-    children: [
-      {
-        path: ":serverId/groups",
-        module: GroupsModule,
-        children: [
-          {
-            path: ":groupId/channels",
-            module: ChannelsModule,
-            children: [
-              {
-                path: ":channelId/channel-messages",
-                module: ChannelMessagesModule
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  },
-  {
-    path: "members",
-    module: MembersModule
-  },
-  {
-    path: "friendships",
-    module: FriendshipsModule,
-    children: [
-      {
-        path: ":friendshipId/channel-messages",
-        module: FriendshipMessagesModule
-      }
-    ]
-  }
-]);
+export const routes = RouterModule.register([{
+  path: "servers",
+  module: ServersModule,
+  children: [{
+    path: ":serverId/groups",
+    module: GroupsModule,
+    children: [{
+      path: ":groupId/channels",
+      module: ChannelsModule,
+      children: [{
+        path: ":channelId/channel-messages",
+        module: ChannelMessagesModule
+      }]
+    }]
+  }, {
+    path: ":serverId/emojis",
+    module: EmojisModule
+  }]
+}, {
+  path: "members",
+  module: MembersModule
+}, {
+  path: "friendships",
+  module: FriendshipsModule,
+  children: [{
+    path: ":friendshipId/channel-messages",
+    module: FriendshipMessagesModule
+  }]
+}]);
 
 @Module({
   imports: [
@@ -72,13 +65,6 @@ export const routes = RouterModule.register([
       clientId: "rendezvous-api",
       secret: "7841029b-8636-4085-93bd-890ce135aa28"
     }),
-    // MinioModule.register({
-    //   endPoint: "127.0.0.1",
-    //   port: 9000,
-    //   useSSL: false,
-    //   accessKey: "minioadmin",
-    //   secretKey: "minioadmin"
-    // }),
     MongooseModule.forFeature([
       { name: Server.name, schema: ServerSchema },
       { name: ChannelMessage.name, schema: ChannelMessageSchema },
@@ -88,6 +74,7 @@ export const routes = RouterModule.register([
     ]),
     ServersModule,
     GroupsModule,
+    EmojisModule,
     ChannelsModule,
     ChannelMessagesModule,
     MembersModule,
@@ -95,7 +82,6 @@ export const routes = RouterModule.register([
     FriendshipMessagesModule,
     routes
   ],
-  controllers: [],
   providers: [
     {
       provide: APP_GUARD,
@@ -103,6 +89,7 @@ export const routes = RouterModule.register([
     },
     ServersService,
     GroupsService,
+    EmojisService,
     ChannelsService,
     ChannelMessagesService,
     FriendshipMessagesService,

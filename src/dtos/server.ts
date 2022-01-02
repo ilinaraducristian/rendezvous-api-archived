@@ -8,7 +8,8 @@ type Server = {
     invitation: Invitation | null,
     order: number,
     groups: Group[],
-    members: Member[]
+    members: Member[],
+    emojis: string[]
 }
 
 export default Server;

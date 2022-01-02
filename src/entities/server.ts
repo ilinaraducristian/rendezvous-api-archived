@@ -4,6 +4,7 @@ import { Document, Types } from "mongoose";
 import Member from "./member";
 import Group, { GroupDocument, GroupSchema } from "./group";
 import Invitation from "../dtos/invitation";
+import Emoji from "../dtos/emoji";
 
 @Schema()
 class Server {
@@ -19,6 +20,9 @@ class Server {
 
   @Prop({ default: [], type: [{ type: Types.ObjectId, ref: "Member" }] })
   members: Member[];
+
+  @Prop({ default: [] })
+  emojis: Emoji[];
 
   static toDTO(server: ServerDocument): ServerDTO {
     const dtoServer: any = server.toObject();
