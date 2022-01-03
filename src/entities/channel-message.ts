@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
 import Message from "./message";
-import Reaction from "./reaction";
+import Reaction, { ReactionDocument } from "./reaction";
 
 @Schema()
 class ChannelMessage extends Message {
@@ -18,6 +18,7 @@ class ChannelMessage extends Message {
     dtoMessage.id = message._id.toString();
     dtoMessage.serverId = serverId;
     dtoMessage.groupId = groupId;
+    dtoMessage.reactions = message.reactions.map((reaction: ReactionDocument) => Reaction.toDTO(reaction));
     return dtoMessage;
   }
 

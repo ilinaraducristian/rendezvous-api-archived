@@ -7,11 +7,16 @@ import { GroupNotFoundException } from "../exceptions/NotFoundExceptions";
 import { ServersService } from "../servers/servers.service";
 import { changeDocumentOrder, getMaxOrder } from "../util";
 import { ServerDocument } from "../entities/server";
+import ChannelType from "../dtos/channel-type";
+import { InjectModel } from "@nestjs/mongoose";
+import ChannelMessage from "../entities/channel-message";
+import { Model } from "mongoose";
 
 @Injectable()
 export class GroupsService {
 
   constructor(
+    @InjectModel(ChannelMessage.name) private readonly messageModel: Model<ChannelMessage>,
     private readonly serversService: ServersService,
     private readonly socketIoService: SocketIoService
   ) {
@@ -81,6 +86,9 @@ export class GroupsService {
     const index = server.groups.findIndex(group => group._id.toString() === groupId);
 
     if (group.order === 0) throw new DefaultGroupCannotBeDeletedException();
+
+    const textChannelsIds = group.channels.filter(channel => channel.type === ChannelType.text).map(channel => ({ channelId: channel._id.toString() }));
+    await this.messageModel.deleteMany({ $or: textChannelsIds });
 
     server.groups.splice(index, 1);
     server.groups = server.groups.sort((g1, g2) => g1.order - g2.order).map((group: GroupDocument, i) => ({

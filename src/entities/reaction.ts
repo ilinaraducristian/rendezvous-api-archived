@@ -19,6 +19,7 @@ class Reaction {
   static toDTO(reaction: ReactionDocument): ReactionDTO {
     const dtoReaction: any = reaction.toObject();
     delete dtoReaction._id;
+    dtoReaction.id = reaction._id.toString();
     return dtoReaction;
   }
 

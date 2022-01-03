@@ -8,11 +8,15 @@ import { GroupsService } from "../groups/groups.service";
 import ChannelType from "../dtos/channel-type";
 import { ServerDocument } from "../entities/server";
 import { GroupDocument } from "../entities/group";
+import ChannelMessage from "../entities/channel-message";
+import { Model } from "mongoose";
+import { InjectModel } from "@nestjs/mongoose";
 
 @Injectable()
 export class ChannelsService {
 
   constructor(
+    @InjectModel(ChannelMessage.name) private readonly messageModel: Model<ChannelMessage>,
     private readonly groupsService: GroupsService,
     private readonly socketIoService: SocketIoService
   ) {
@@ -107,6 +111,9 @@ export class ChannelsService {
     const server = group.$parent() as ServerDocument;
 
     const index = group.channels.findIndex(channel => channel._id.toString() === channelId);
+
+    await this.messageModel.deleteMany({ channelId });
+
     group.channels.splice(index, 1);
     group.channels = sortDocuments(group.channels as ChannelDocument[]);
     await server.save();
