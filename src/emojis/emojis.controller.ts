@@ -14,31 +14,31 @@ export class EmojisController {
   }
 
   @Post()
-  createEmojis(
+  async createEmojis(
     @AuthenticatedUser() user: KeycloakUser,
     @Param("serverId") serverId: string,
     @Body() { emojis }: NewEmojisRequest
   ) {
-    return this.emojisService.createEmojis(user.sub, serverId, emojis);
+    await this.emojisService.createEmojis(user.sub, serverId, emojis);
   }
 
   @Put(":emojiId")
-  updateEmoji(
+  async updateEmoji(
     @AuthenticatedUser() user: KeycloakUser,
     @Param("serverId") serverId: string,
     @Param("emojiId") emojiId: string,
-    @Body() { emoji }: UpdateEmojiRequest
+    @Body() emojiUpdate: UpdateEmojiRequest
   ) {
-    return this.emojisService.updateEmoji(user.sub, serverId, emojiId, emoji);
+    await this.emojisService.updateEmoji(user.sub, serverId, emojiId, emojiUpdate);
   }
 
   @Delete(":emojiId")
-  deleteEmojis(
+  async deleteEmojis(
     @AuthenticatedUser() user: KeycloakUser,
     @Param("serverId") serverId: string,
     @Param("emojiId") emojiId: string
   ) {
-    return this.emojisService.deleteEmoji(user.sub, serverId, emojiId);
+    await this.emojisService.deleteEmoji(user.sub, serverId, emojiId);
   }
 
 }

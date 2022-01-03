@@ -20,7 +20,7 @@ export class ChannelMessagesController {
     @Param("channelId") channelId: string,
     @Body() newMessage: NewMessageRequest
   ) {
-    return this.messagesService.createMessage(user.sub, serverId, groupId, channelId, newMessage.text, newMessage.files);
+    await this.messagesService.createMessage(user.sub, serverId, groupId, channelId, newMessage.text, newMessage.files);
   }
 
   @Get()
@@ -31,18 +31,18 @@ export class ChannelMessagesController {
     @Param("channelId") channelId: string,
     @Query("offset") offset: number = 0
   ) {
-    return this.messagesService.getMessages(user.sub, serverId, groupId, channelId, offset);
+    await this.messagesService.getMessages(user.sub, serverId, groupId, channelId, offset);
   }
 
   @Delete(":messageId")
-  deleteMessage(
+  async deleteMessage(
     @AuthenticatedUser() user: KeycloakUser,
     @Param("serverId") serverId: string,
     @Param("groupId") groupId: string,
     @Param("channelId") channelId: string,
     @Param("messageId") messageId: string
   ) {
-    return this.messagesService.deleteMessage(user.sub, serverId, groupId, channelId, messageId);
+    await this.messagesService.deleteMessage(user.sub, serverId, groupId, channelId, messageId);
   }
 
 

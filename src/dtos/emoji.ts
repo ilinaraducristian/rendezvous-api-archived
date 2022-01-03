@@ -1,12 +1,7 @@
-import { IsNotBlank } from "../IsNotBlank";
-import { IsHash } from "class-validator";
+type Emoji = {
 
-class Emoji {
-
-  @IsNotBlank()
+  id: string;
   alias: string;
-
-  @IsHash("md5")
   md5: string;
 
 }

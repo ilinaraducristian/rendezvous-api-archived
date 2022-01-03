@@ -1,7 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { ServersService } from "../servers/servers.service";
-import Emoji from "../dtos/emoji";
+import EmojiDTO from "../dtos/emoji";
 import { EmojiNotFoundException } from "../exceptions/NotFoundExceptions";
+import UpdateEmojiRequest from "../dtos/update-emoji-request";
 
 @Injectable()
 export class EmojisService {
@@ -11,19 +12,19 @@ export class EmojisService {
   ) {
   }
 
-  async createEmojis(userId: string, serverId: string, emojis: Emoji[]) {
+  async createEmojis(userId: string, serverId: string, emojis: EmojiDTO[]) {
     const server = await this.serversService.getById(userId, serverId);
     server.emojis.push(...emojis);
     await server.save();
   }
 
-  async updateEmoji(userId: string, serverId: string, emojiId: string, emoji: Emoji) {
+  async updateEmoji(userId: string, serverId: string, emojiId: string, emojiUpdate: UpdateEmojiRequest) {
     const server = await this.serversService.getById(userId, serverId);
     const foundEmoji = server.emojis.find(emoji => emoji._id.toString() === emojiId);
     if (foundEmoji === undefined) throw new EmojiNotFoundException();
-    if (foundEmoji.alias !== emoji.alias || foundEmoji.md5 !== emoji.md5) {
-      foundEmoji.alias = emoji.alias;
-      foundEmoji.md5 = emoji.md5;
+    if (foundEmoji.alias !== emojiUpdate.alias || foundEmoji.md5 !== emojiUpdate.md5) {
+      foundEmoji.alias = emojiUpdate.alias;
+      foundEmoji.md5 = emojiUpdate.md5;
       await server.save();
     }
   }

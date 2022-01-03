@@ -25,6 +25,8 @@ import { SocketIoService } from "./socket-io/socket-io.service";
 import { FriendshipsService } from "./friendships/friendships.service";
 import { EmojisModule } from "./emojis/emojis.module";
 import { EmojisService } from "./emojis/emojis.service";
+import { ReactionsModule } from "./reactions/reactions.module";
+import { ReactionsService } from "./reactions/reactions.service";
 
 export const routes = RouterModule.register([{
   path: "servers",
@@ -36,8 +38,12 @@ export const routes = RouterModule.register([{
       path: ":groupId/channels",
       module: ChannelsModule,
       children: [{
-        path: ":channelId/channel-messages",
-        module: ChannelMessagesModule
+        path: ":channelId/messages",
+        module: ChannelMessagesModule,
+        children: [{
+          path: ":messageId/reactions",
+          module: ReactionsModule
+        }]
       }]
     }]
   }, {
@@ -77,6 +83,7 @@ export const routes = RouterModule.register([{
     EmojisModule,
     ChannelsModule,
     ChannelMessagesModule,
+    ReactionsModule,
     MembersModule,
     FriendshipsModule,
     FriendshipMessagesModule,
@@ -92,6 +99,7 @@ export const routes = RouterModule.register([{
     EmojisService,
     ChannelsService,
     ChannelMessagesService,
+    ReactionsService,
     FriendshipMessagesService,
     MembersService,
     SocketIoGateway,

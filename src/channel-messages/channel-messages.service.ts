@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import ChannelMessage from "../entities/channel-message";
+import ChannelMessage, { ChannelMessageDocument } from "../entities/channel-message";
 import ChannelType from "../dtos/channel-type";
 import { MessageNotFoundException } from "../exceptions/NotFoundExceptions";
 import { InjectModel } from "@nestjs/mongoose";
@@ -29,6 +29,18 @@ export class ChannelMessagesService {
     await newMessage.save();
 
     return ChannelMessage.toDTO(newMessage, serverId, groupId);
+  }
+
+  async getById(userId: string, serverId: string, groupId: string, channelId: string, messageId: string) {
+    const channel = await this.channelsService.getById(userId, serverId, groupId, channelId);
+    let message: ChannelMessageDocument;
+    try {
+      message = await this.messageModel.findOne({ _id: messageId, channelId });
+    } catch (e) {
+      throw new MessageNotFoundException();
+    }
+    if (message === undefined || message === null) throw new MessageNotFoundException();
+    return { message, channel };
   }
 
   async getMessages(userId: string, serverId: string, groupId: string, channelId: string, offset: number) {

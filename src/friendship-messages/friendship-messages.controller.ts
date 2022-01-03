@@ -18,16 +18,16 @@ export class FriendshipMessagesController {
     @Param("friendshipId") friendshipId: string,
     @Body() newMessage: NewMessageRequest
   ) {
-    return this.friendshipMessagesService.createMessage(user.sub, friendshipId, newMessage.text);
+    await this.friendshipMessagesService.createMessage(user.sub, friendshipId, newMessage.text);
   }
 
   @Delete(":messageId")
-  deleteMessage(
+  async deleteMessage(
     @AuthenticatedUser() user: KeycloakUser,
     @Param("friendshipId") friendshipId: string,
     @Param("messageId") messageId: string
   ) {
-    return this.friendshipMessagesService.deleteMessage(user.sub, friendshipId, messageId);
+    await this.friendshipMessagesService.deleteMessage(user.sub, friendshipId, messageId);
   }
 
 }

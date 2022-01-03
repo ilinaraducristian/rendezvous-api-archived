@@ -1,12 +1,16 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
 import Message from "./message";
+import Reaction from "./reaction";
 
 @Schema()
 class ChannelMessage extends Message {
 
   @Prop({ required: true })
   channelId: string;
+
+  @Prop({ default: [] })
+  reactions: Reaction[];
 
   static toDTO(message: ChannelMessageDocument, serverId: string, groupId: string) {
     const dtoMessage: any = message.toObject();

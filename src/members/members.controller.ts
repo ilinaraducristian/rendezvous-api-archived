@@ -19,7 +19,7 @@ export class MembersController {
     @AuthenticatedUser() user: KeycloakUser,
     @Body() joinServerRequest: JoinServerRequest
   ) {
-    return this.serversService.createMember(user.sub, joinServerRequest.invitation);
+    await this.serversService.createMember(user.sub, joinServerRequest.invitation);
   }
 
   @Get("servers")
@@ -42,7 +42,7 @@ export class MembersController {
     @AuthenticatedUser() user: KeycloakUser,
     @Param("serverId") serverId: string
   ) {
-    return this.serversService.deleteMember(user.sub, serverId);
+    await this.serversService.deleteMember(user.sub, serverId);
   }
 
 }

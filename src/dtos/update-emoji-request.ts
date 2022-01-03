@@ -1,10 +1,13 @@
-import Emoji from "./emoji";
-import { IsInstance } from "class-validator";
+import { IsNotBlank } from "../IsNotBlank";
+import { IsHash } from "class-validator";
 
 class UpdateEmojiRequest {
 
-  @IsInstance(Emoji)
-  emoji: Emoji;
+  @IsNotBlank()
+  alias: string;
+
+  @IsHash("md5")
+  md5: string;
 
 }
 

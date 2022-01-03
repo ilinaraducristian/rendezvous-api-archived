@@ -4,7 +4,7 @@ import { Document, Types } from "mongoose";
 import Member from "./member";
 import Group, { GroupDocument, GroupSchema } from "./group";
 import Invitation from "../dtos/invitation";
-import Emoji from "../entities/emoji";
+import Emoji, { EmojiDocument } from "../entities/emoji";
 
 @Schema()
 class Server {
@@ -32,6 +32,7 @@ class Server {
     dtoServer.groups = server.groups.map((group: GroupDocument) =>
       Group.toDTO(group, dtoServer.id));
     dtoServer.members = server.members.map(memberId => memberId.toString());
+    dtoServer.emojis = server.emojis.map((emoji: EmojiDocument) => Emoji.toDTO(emoji));
     return dtoServer;
   }
 

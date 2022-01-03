@@ -39,6 +39,10 @@ export class ChannelsService {
     // this.socketIoService.newChannel(serverId, newChannelDto);
   }
 
+  async getById(userId: string, serverId: string, groupId: string, channelId: string) {
+    return this.getByIdAndType(userId, serverId, groupId, channelId);
+  }
+
   async getByIdAndType(userId: string, serverId: string, groupId: string, channelId: string, type?: ChannelType) {
     const group = await this.groupsService.getById(userId, serverId, groupId);
     const channel = group.channels.find(channel => channel._id.toString() === channelId);

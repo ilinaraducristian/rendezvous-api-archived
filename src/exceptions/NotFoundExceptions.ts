@@ -59,6 +59,14 @@ class EmojiNotFoundException extends ResourceNotFoundException {
 
 }
 
+class ReactionNotFoundException extends ResourceNotFoundException {
+
+  constructor() {
+    super("reaction");
+  }
+
+}
+
 export default ResourceNotFoundException;
 
 export {
@@ -67,5 +75,6 @@ export {
   MessageNotFoundException,
   ServerNotFoundException,
   FriendshipNotFoundException,
-  EmojiNotFoundException
+  EmojiNotFoundException,
+  ReactionNotFoundException
 };

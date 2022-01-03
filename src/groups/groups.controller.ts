@@ -19,7 +19,7 @@ export class GroupsController {
     @Param("serverId") serverId: string,
     @Body() newGroup: NewGroupRequest
   ) {
-    return this.groupsService.createGroup(user.sub, serverId, newGroup.name);
+    await this.groupsService.createGroup(user.sub, serverId, newGroup.name);
   }
 
   @Put(":groupId")
@@ -29,7 +29,7 @@ export class GroupsController {
     @Param("groupId") groupId: string,
     @Body() groupUpdate: UpdateGroupRequest
   ) {
-    return this.groupsService.updateGroup(user.sub, serverId, groupId, groupUpdate);
+    await this.groupsService.updateGroup(user.sub, serverId, groupId, groupUpdate);
   }
 
   @Delete(":groupId")
@@ -38,7 +38,7 @@ export class GroupsController {
     @Param("serverId") serverId: string,
     @Param("groupId") groupId: string
   ) {
-    return this.groupsService.deleteGroup(user.sub, serverId, groupId);
+    await this.groupsService.deleteGroup(user.sub, serverId, groupId);
   }
 
 }

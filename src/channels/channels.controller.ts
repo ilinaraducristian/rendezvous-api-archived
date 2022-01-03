@@ -20,7 +20,7 @@ export class ChannelsController {
     @Param("groupId") groupId: string,
     @Body() newChannel: NewChannelRequest
   ) {
-    return this.channelsService.createChannel(user.sub, serverId, groupId, newChannel);
+    await this.channelsService.createChannel(user.sub, serverId, groupId, newChannel);
   }
 
   @Put(":channelId")
@@ -31,7 +31,7 @@ export class ChannelsController {
     @Param("channelId") channelId: string,
     @Body() updateChannel: UpdateChannelRequest
   ) {
-    return this.channelsService.updateChannel(user.sub, serverId, groupId, channelId, updateChannel);
+    await this.channelsService.updateChannel(user.sub, serverId, groupId, channelId, updateChannel);
   }
 
   @Delete(":channelId")
@@ -41,7 +41,7 @@ export class ChannelsController {
     @Param("groupId") groupId: string,
     @Param("channelId") channelId: string
   ) {
-    return this.channelsService.deleteChannel(user.sub, serverId, groupId, channelId);
+    await this.channelsService.deleteChannel(user.sub, serverId, groupId, channelId);
   }
 
 }

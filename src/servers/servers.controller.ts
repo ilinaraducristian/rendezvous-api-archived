@@ -18,7 +18,7 @@ export class ServersController {
     @AuthenticatedUser() user: KeycloakUser,
     @Body() newServer: NewServerRequest
   ) {
-    return this.serversService.createServer(user.sub, newServer.name);
+    await this.serversService.createServer(user.sub, newServer.name);
   }
 
   @Post(":serverId/invitations")
@@ -26,7 +26,7 @@ export class ServersController {
     @AuthenticatedUser() user: KeycloakUser,
     @Param("serverId") serverId: string
   ) {
-    return this.serversService.createInvitation(user.sub, serverId);
+    await this.serversService.createInvitation(user.sub, serverId);
   }
 
   @Put(":serverId")
@@ -35,16 +35,16 @@ export class ServersController {
     @Param("serverId") serverId: string,
     @Body() serverUpdate: UpdateServerRequest
   ) {
-    return this.serversService.updateServer(user.sub, serverId, serverUpdate);
+    await this.serversService.updateServer(user.sub, serverId, serverUpdate);
   }
 
 
   @Delete(":serverId")
-  deleteServer(
+  async deleteServer(
     @AuthenticatedUser() user: KeycloakUser,
     @Param("serverId") serverId: string
   ) {
-    return this.serversService.deleteServer(user.sub, serverId);
+    await this.serversService.deleteServer(user.sub, serverId);
   }
 
 }
