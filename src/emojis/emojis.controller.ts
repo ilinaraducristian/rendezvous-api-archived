@@ -3,7 +3,6 @@ import { EmojisService } from "./emojis.service";
 import { AuthenticatedUser } from "nest-keycloak-connect";
 import KeycloakUser from "../keycloak-user";
 import NewEmojisRequest from "../dtos/new-emojis-request";
-import DeleteEmojisRequest from "../dtos/delete-emojis-request";
 import UpdateEmojiRequest from "../dtos/update-emoji-request";
 
 @Controller()
@@ -23,23 +22,23 @@ export class EmojisController {
     return this.emojisService.createEmojis(user.sub, serverId, emojis);
   }
 
-  @Put(":emojiMd5")
+  @Put(":emojiId")
   updateEmoji(
     @AuthenticatedUser() user: KeycloakUser,
     @Param("serverId") serverId: string,
-    @Param("emojiMd5") emojiMd5: string,
-    @Body() { alias }: UpdateEmojiRequest
+    @Param("emojiId") emojiId: string,
+    @Body() { emoji }: UpdateEmojiRequest
   ) {
-    return this.emojisService.updateEmoji(user.sub, serverId, emojiMd5, alias);
+    return this.emojisService.updateEmoji(user.sub, serverId, emojiId, emoji);
   }
 
-  @Delete()
+  @Delete(":emojiId")
   deleteEmojis(
     @AuthenticatedUser() user: KeycloakUser,
     @Param("serverId") serverId: string,
-    @Body() { emojisMd5s }: DeleteEmojisRequest
+    @Param("emojiId") emojiId: string
   ) {
-    return this.emojisService.deleteEmojis(user.sub, serverId, emojisMd5s);
+    return this.emojisService.deleteEmoji(user.sub, serverId, emojiId);
   }
 
 }

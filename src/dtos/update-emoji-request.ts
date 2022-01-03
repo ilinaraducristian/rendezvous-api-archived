@@ -1,9 +1,10 @@
-import { IsNotBlank } from "../IsNotBlank";
+import Emoji from "./emoji";
+import { IsInstance } from "class-validator";
 
 class UpdateEmojiRequest {
 
-  @IsNotBlank()
-  alias: string;
+  @IsInstance(Emoji)
+  emoji: Emoji;
 
 }
 

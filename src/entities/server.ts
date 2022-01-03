@@ -4,7 +4,7 @@ import { Document, Types } from "mongoose";
 import Member from "./member";
 import Group, { GroupDocument, GroupSchema } from "./group";
 import Invitation from "../dtos/invitation";
-import Emoji from "../dtos/emoji";
+import Emoji from "../entities/emoji";
 
 @Schema()
 class Server {

@@ -17,18 +17,22 @@ export class EmojisService {
     await server.save();
   }
 
-  async updateEmoji(userId: string, serverId: string, emojiMd5: string, alias: string) {
+  async updateEmoji(userId: string, serverId: string, emojiId: string, emoji: Emoji) {
     const server = await this.serversService.getById(userId, serverId);
-    const foundEmoji = server.emojis.find(_emoji => _emoji.md5 === emojiMd5);
+    const foundEmoji = server.emojis.find(emoji => emoji._id.toString() === emojiId);
     if (foundEmoji === undefined) throw new EmojiNotFoundException();
-    if (foundEmoji.alias !== alias) return;
-    foundEmoji.alias = alias;
-    await server.save();
+    if (foundEmoji.alias !== emoji.alias || foundEmoji.md5 !== emoji.md5) {
+      foundEmoji.alias = emoji.alias;
+      foundEmoji.md5 = emoji.md5;
+      await server.save();
+    }
   }
 
-  async deleteEmojis(userId: string, serverId: string, emojis: string[]) {
+  async deleteEmoji(userId: string, serverId: string, emojiId: string) {
     const server = await this.serversService.getById(userId, serverId);
-    server.emojis = server.emojis.filter(emoji => !emojis.includes(emoji.md5));
+    const index = server.emojis.findIndex(emoji => emoji._id.toString() === emojiId);
+    if (index === -1) throw new EmojiNotFoundException();
+    server.emojis.splice(index, 1);
     await server.save();
   }
 
