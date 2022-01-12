@@ -1,6 +1,6 @@
 import { IsEnum } from "class-validator";
-import ChannelType from "./channel-type";
-import { IsNotBlank } from "../IsNotBlank";
+import { ChannelType } from "../channel";
+import { IsNotBlank } from "../../IsNotBlank";
 
 class NewChannelRequest {
 

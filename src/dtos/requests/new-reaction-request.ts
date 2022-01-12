@@ -1,4 +1,4 @@
-import { IsNotBlank } from "../IsNotBlank";
+import { IsNotBlank } from "../../IsNotBlank";
 
 class NewReactionRequest {
 

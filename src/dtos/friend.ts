@@ -1,8 +1,8 @@
 import Message from "./message";
 
 type Friend = {
-    id: number,
-    userId: string,
+    id: number
+    userId: string
     messages: Message[]
 }
 

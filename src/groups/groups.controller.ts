@@ -1,11 +1,11 @@
 import { Body, Controller, Delete, Param, Post, Put } from "@nestjs/common";
-import NewGroupRequest from "../dtos/new-group-request";
+import NewGroupRequest from "../dtos/requests/new-group-request";
 import { AuthenticatedUser } from "nest-keycloak-connect";
 import KeycloakUser from "../keycloak-user";
-import UpdateGroupRequest from "../dtos/update-group-request";
+import UpdateGroupRequest from "../dtos/requests/update-group-request";
 import { GroupsService } from "./groups.service";
 
-@Controller()
+@Controller("servers/:serverId/groups")
 export class GroupsController {
 
   constructor(

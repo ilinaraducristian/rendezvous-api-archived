@@ -1,5 +1,5 @@
 import { IsEnum } from "class-validator";
-import FriendshipStatus from "./friendship-status";
+import FriendshipStatus from "../friendship-status";
 
 class UpdateFriendshipRequest {
 

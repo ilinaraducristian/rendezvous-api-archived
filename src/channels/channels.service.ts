@@ -1,11 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import Channel, { ChannelDocument } from "../entities/channel";
-import UpdateChannelRequest from "../dtos/update-channel-request";
+import UpdateChannelRequest from "../dtos/requests/update-channel-request";
 import { SocketIoService } from "../socket-io/socket-io.service";
 import { ChannelNotFoundException } from "../exceptions/NotFoundExceptions";
 import { changeDocumentOrder, getMaxOrder, sortDocuments } from "../util";
 import { GroupsService } from "../groups/groups.service";
-import ChannelType from "../dtos/channel-type";
+import { ChannelType } from "../dtos/channel";
 import { ServerDocument } from "../entities/server";
 import { GroupDocument } from "../entities/group";
 import ChannelMessage from "../entities/channel-message";
@@ -40,7 +40,7 @@ export class ChannelsService {
     await server.save();
 
     const newChannelDto = Channel.toDTO(group.channels[length - 1] as ChannelDocument, serverId, groupId);
-    // this.socketIoService.newChannel(serverId, newChannelDto);
+    this.socketIoService.newChannel({serverId, groupId}, newChannelDto);
   }
 
   async getById(userId: string, serverId: string, groupId: string, channelId: string) {
@@ -122,8 +122,6 @@ export class ChannelsService {
       id: channel._id.toString(),
       order: channel.order
     }));
-
-    // this.socketIoService.channelDelete(serverId, channelId, channels);
 
   }
 

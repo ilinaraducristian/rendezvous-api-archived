@@ -1,4 +1,4 @@
-import { IsNotBlank } from "../IsNotBlank";
+import { IsNotBlank } from "../../IsNotBlank";
 import { IsHash } from "class-validator";
 
 class UpdateEmojiRequest {

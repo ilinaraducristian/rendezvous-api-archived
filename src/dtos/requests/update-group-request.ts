@@ -1,5 +1,5 @@
 import { IsNumber, Min, ValidateIf } from "class-validator";
-import { IsNotBlank } from "../IsNotBlank";
+import { IsNotBlank } from "../../IsNotBlank";
 
 class UpdateGroupRequest {
 

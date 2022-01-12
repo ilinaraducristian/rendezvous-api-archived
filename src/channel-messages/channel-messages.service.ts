@@ -1,17 +1,20 @@
 import { Injectable } from "@nestjs/common";
 import ChannelMessage, { ChannelMessageDocument } from "../entities/channel-message";
-import ChannelType from "../dtos/channel-type";
+import { ChannelType } from "../dtos/channel";
 import { MessageNotFoundException } from "../exceptions/NotFoundExceptions";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { ChannelsService } from "../channels/channels.service";
+import SocketIoServerEvents from "src/dtos/SocketIoServerEvents";
+import { SocketIoService } from "src/socket-io/socket-io.service";
 
 @Injectable()
 export class ChannelMessagesService {
 
   constructor(
     @InjectModel(ChannelMessage.name) private readonly messageModel: Model<ChannelMessage>,
-    private readonly channelsService: ChannelsService
+    private readonly channelsService: ChannelsService,
+    private readonly socketIoService: SocketIoService
   ) {
   }
 
@@ -28,7 +31,8 @@ export class ChannelMessagesService {
     });
     await newMessage.save();
 
-    return ChannelMessage.toDTO(newMessage, serverId, groupId);
+    this.socketIoService.newChannelMessage({serverId, groupId, channelId}, ChannelMessage.toDTO(newMessage, serverId, groupId))
+
   }
 
   async getById(userId: string, serverId: string, groupId: string, channelId: string, messageId: string) {

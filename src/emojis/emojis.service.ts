@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { ServersService } from "../servers/servers.service";
 import EmojiDTO from "../dtos/emoji";
 import { EmojiNotFoundException } from "../exceptions/NotFoundExceptions";
-import UpdateEmojiRequest from "../dtos/update-emoji-request";
+import UpdateEmojiRequest from "../dtos/requests/update-emoji-request";
 
 @Injectable()
 export class EmojisService {

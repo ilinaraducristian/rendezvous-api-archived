@@ -1,11 +1,11 @@
 import { Body, Controller, Delete, Param, Post, Put } from "@nestjs/common";
-import NewServerRequest from "../dtos/new-server-request";
-import UpdateServerRequest from "../dtos/update-server-request";
+import NewServerRequest from "../dtos/requests/new-server-request";
+import UpdateServerRequest from "../dtos/requests/update-server-request";
 import { AuthenticatedUser } from "nest-keycloak-connect";
 import KeycloakUser from "../keycloak-user";
 import { ServersService } from "./servers.service";
 
-@Controller()
+@Controller("servers")
 export class ServersController {
 
   constructor(
@@ -18,7 +18,7 @@ export class ServersController {
     @AuthenticatedUser() user: KeycloakUser,
     @Body() newServer: NewServerRequest
   ) {
-    await this.serversService.createServer(user.sub, newServer.name);
+    return await this.serversService.createServer(user.sub, newServer.name);
   }
 
   @Post(":serverId/invitations")
@@ -26,7 +26,7 @@ export class ServersController {
     @AuthenticatedUser() user: KeycloakUser,
     @Param("serverId") serverId: string
   ) {
-    await this.serversService.createInvitation(user.sub, serverId);
+    return await this.serversService.createInvitation(user.sub, serverId);
   }
 
   @Put(":serverId")

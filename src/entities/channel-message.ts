@@ -9,9 +9,6 @@ class ChannelMessage extends Message {
   @Prop({ required: true })
   channelId: string;
 
-  @Prop({ default: [] })
-  reactions: Reaction[];
-
   static toDTO(message: ChannelMessageDocument, serverId: string, groupId: string) {
     const dtoMessage: any = message.toObject();
     delete dtoMessage._id;

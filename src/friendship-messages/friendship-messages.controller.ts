@@ -2,9 +2,9 @@ import { Body, Controller, Delete, Param, Post } from "@nestjs/common";
 import { AuthenticatedUser } from "nest-keycloak-connect";
 import KeycloakUser from "../keycloak-user";
 import { FriendshipMessagesService } from "./friendship-messages.service";
-import NewMessageRequest from "../dtos/new-message-request";
+import NewMessageRequest from "../dtos/requests/new-message-request";
 
-@Controller()
+@Controller("friendships/:friendshipId/messages")
 export class FriendshipMessagesController {
 
   constructor(

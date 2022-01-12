@@ -5,28 +5,22 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import Member from "../entities/member";
 import { v4 as uuid } from "uuid";
-import UpdateServerRequest from "../dtos/update-server-request";
+import UpdateServerRequest from "../dtos/requests/update-server-request";
 import { SocketIoService } from "../socket-io/socket-io.service";
-import ChannelType from "../dtos/channel-type";
-import {
-  AlreadyMemberException,
-  BadOrExpiredInvitationException,
-  NotAMemberException
-} from "../exceptions/BadRequestExceptions";
+import { ChannelType } from "../dtos/channel";
+import { AlreadyMemberException, BadOrExpiredInvitationException, NotAMemberException } from "../exceptions/BadRequestExceptions";
 import { ServerNotFoundException } from "../exceptions/NotFoundExceptions";
 import { MembersService } from "../members/members.service";
 import ChannelMessage from "../entities/channel-message";
 
 @Injectable()
 export class ServersService {
-
   constructor(
     @InjectModel(Server.name) private readonly serverModel: Model<Server>,
     @InjectModel(ChannelMessage.name) private readonly messageModel: Model<ChannelMessage>,
     private readonly membersService: MembersService,
     private readonly socketIoService: SocketIoService
-  ) {
-  }
+  ) {}
 
   async createServer(userId: string, name: string): Promise<ServerDTO> {
     let newServer = new this.serverModel({ name });
@@ -37,41 +31,43 @@ export class ServersService {
     const defaultGroup = {
       name: "default",
       order: 0,
-      channels: []
+      channels: [],
     };
 
     const textGroup = {
       name: "Text Channels",
       order: 1,
-      channels: [{
-        name: "general",
-        order: 0,
-        type: ChannelType.text
-      }]
+      channels: [
+        {
+          name: "general",
+          order: 0,
+          type: ChannelType.text,
+        },
+      ],
     };
     const voiceGroup = {
       name: "Voice Channels",
       order: 2,
-      channels: [{
-        name: "General",
-        order: 0,
-        type: ChannelType.voice
-      }]
+      channels: [
+        {
+          name: "General",
+          order: 0,
+          type: ChannelType.voice,
+        },
+      ],
     };
 
     const newMember = this.membersService.newMember({
       userId,
       serverId: newServer.id,
-      order: newOrder
+      order: newOrder,
     });
 
     newServer.groups.push(defaultGroup, textGroup, voiceGroup);
     newServer.members.push(newMember.id);
 
-    await Promise.all([
-      newServer.save(),
-      newMember.save()
-    ]);
+    await Promise.all([newServer.save(), newMember.save()]);
+    newServer.members = [newMember];
     const serverDto = Server.toDTO(newServer);
     serverDto.order = newOrder;
     await this.socketIoService.joinServer(userId, serverDto.id);
@@ -93,7 +89,7 @@ export class ServersService {
     if (server.invitation === null || server.invitation?.exp < new Date()) {
       server.invitation = {
         link: uuid(),
-        exp: new Date()
+        exp: new Date(),
       };
       server.invitation.exp.setDate(server.invitation.exp.getDate() + 7);
     }
@@ -117,16 +113,15 @@ export class ServersService {
     const newMember = this.membersService.newMember({
       userId,
       serverId: server.id,
-      order: newOrder
+      order: newOrder,
     });
-    await newMember.save();
     server.members.push(newMember.id);
-    await server.save();
-    this.socketIoService.newMember(server.id, Member.toDTO(newMember));
+    await Promise.all([newMember.save(), server.save()]);
+    this.socketIoService.newMember(Member.toDTO(newMember));
     server = await this.serverModel.findById(server.id).populate("members");
     const newServer = Server.toDTO(server);
     newServer.order = newOrder;
-    newServer.members = server.members.map(member => Member.toDTO(member));
+    newServer.members = server.members.map((member) => Member.toDTO(member));
     await this.socketIoService.joinServer(userId, newServer.id);
     return newServer;
   }
@@ -140,12 +135,11 @@ export class ServersService {
     }
     if (member === undefined || member === null) throw new NotAMemberException();
     await this.socketIoService.leaveServer(userId, member.serverId);
-    this.socketIoService.memberLeft(member.serverId, memberId);
+    this.socketIoService.memberLeft({serverId: member.serverId, memberId});
     await this.fixServersOrder([userId]);
   }
 
   async updateServer(userId: string, id: string, serverUpdate: UpdateServerRequest) {
-
     const isMember = await this.membersService.isMember(userId, id);
     if (isMember === false) throw new NotAMemberException();
 
@@ -166,37 +160,35 @@ export class ServersService {
     const server = await this.getById(userId, serverId);
 
     const members = await this.membersService.getMembers(serverId);
-    const membersUserIds = members.map(member => member.userId);
-    const textChannelsIds = server.groups.map(group => group.channels).flat().filter(channel => channel.type === ChannelType.text).map(channel => ({ channelId: channel._id.toString() }));
+    const membersUserIds = members.map((member) => member.userId);
+    const textChannelsIds = server.groups
+      .map((group) => group.channels)
+      .flat()
+      .filter((channel) => channel.type === ChannelType.text)
+      .map((channel) => ({ channelId: channel._id.toString() }));
     await this.messageModel.deleteMany({ $or: textChannelsIds });
 
     try {
-      await Promise.all([
-        this.serverModel.findOneAndRemove({ _id: serverId }),
-        this.membersService.deleteServerMembers(serverId)
-      ]);
+      await Promise.all([this.serverModel.findOneAndRemove({ _id: serverId }), this.membersService.deleteServerMembers(serverId)]);
       await this.fixServersOrder(membersUserIds);
     } catch (e) {
       throw e;
     }
-    // this.socketIoService.serverDeleted(serverId);
-    // await Promise.all(membersUserIds.map(userId =>
-    //   this.socketIoService.leaveServer(userId, serverId)
-    // ))
+    this.socketIoService.serverDeleted(serverId);
   }
 
   private async fixServersOrder(membersUserIds: string[]) {
     await Promise.all(
-      membersUserIds.map(memberUserId =>
-        this.membersService.getUserSortedServers(memberUserId)
-          .then(servers =>
-            this.membersService.saveMembers(servers.map((server, i) => {
+      membersUserIds.map((memberUserId) =>
+        this.membersService.getUserSortedServers(memberUserId).then((servers) =>
+          this.membersService.saveMembers(
+            servers.map((server, i) => {
               server.order = i;
               return server;
-            }))
+            })
           )
+        )
       )
     );
   }
-
 }

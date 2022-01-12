@@ -1,0 +1,2 @@
+use('rendezvous');
+db.dropDatabase();

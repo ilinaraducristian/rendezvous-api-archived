@@ -1,5 +1,3 @@
-import ChannelType from "./channel-type";
-
 type Channel = {
   id: string,
   serverId: string,
@@ -7,6 +5,11 @@ type Channel = {
   name: string,
   order: number,
   type: ChannelType
+}
+
+export enum ChannelType {
+  text,
+  voice
 }
 
 export default Channel;

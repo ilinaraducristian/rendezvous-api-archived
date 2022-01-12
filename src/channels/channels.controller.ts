@@ -1,11 +1,11 @@
 import { Body, Controller, Delete, Param, Post, Put } from "@nestjs/common";
 import { AuthenticatedUser } from "nest-keycloak-connect";
 import KeycloakUser from "../keycloak-user";
-import NewChannelRequest from "../dtos/new-channel-request";
-import UpdateChannelRequest from "../dtos/update-channel-request";
+import NewChannelRequest from "../dtos/requests/new-channel-request";
+import UpdateChannelRequest from "../dtos/requests/update-channel-request";
 import { ChannelsService } from "./channels.service";
 
-@Controller()
+@Controller("servers/:serverId/groups/:groupId/channels")
 export class ChannelsController {
 
   constructor(

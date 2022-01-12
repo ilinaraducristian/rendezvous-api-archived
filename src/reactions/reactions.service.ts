@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { ChannelMessagesService } from "../channel-messages/channel-messages.service";
-import NewReactionRequest from "../dtos/new-reaction-request";
+import NewReactionRequest from "../dtos/requests/new-reaction-request";
 import { EmojiNotFoundException, ReactionNotFoundException } from "../exceptions/NotFoundExceptions";
 import { ServerDocument } from "../entities/server";
 

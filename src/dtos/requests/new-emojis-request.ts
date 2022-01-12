@@ -1,4 +1,4 @@
-import Emoji from "./emoji";
+import Emoji from "../emoji";
 import { IsArray } from "class-validator";
 
 class NewEmojisRequest {

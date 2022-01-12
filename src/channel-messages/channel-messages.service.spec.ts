@@ -3,7 +3,7 @@ import { ChannelMessagesService } from "./channel-messages.service";
 import { MongooseModule } from "@nestjs/mongoose";
 import { ChannelMessagesModule } from "./channel-messages.module";
 import { ServersService } from "../servers/servers.service";
-import ChannelType from "../dtos/channel-type";
+import { ChannelType } from "../dtos/channel";
 
 describe("ChannelMessagesService", () => {
   let messagesService: ChannelMessagesService,

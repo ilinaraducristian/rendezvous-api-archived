@@ -1,13 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import Group, { GroupDocument } from "../entities/group";
-import UpdateGroupRequest from "../dtos/update-group-request";
+import UpdateGroupRequest from "../dtos/requests/update-group-request";
 import { SocketIoService } from "../socket-io/socket-io.service";
 import { DefaultGroupCannotBeDeletedException } from "../exceptions/BadRequestExceptions";
 import { GroupNotFoundException } from "../exceptions/NotFoundExceptions";
 import { ServersService } from "../servers/servers.service";
 import { changeDocumentOrder, getMaxOrder } from "../util";
 import { ServerDocument } from "../entities/server";
-import ChannelType from "../dtos/channel-type";
+import { ChannelType } from "../dtos/channel";
 import { InjectModel } from "@nestjs/mongoose";
 import ChannelMessage from "../entities/channel-message";
 import { Model } from "mongoose";
@@ -37,7 +37,7 @@ export class GroupsService {
     await server.save();
 
     const newGroupDto = Group.toDTO(server.groups[length - 1] as GroupDocument, serverId);
-    // this.socketIoService.newGroup(serverId, newGroupDto);
+    this.socketIoService.newGroup(serverId, newGroupDto);
   }
 
   async getById(userId: string, serverId: string, groupId: string) {
@@ -102,8 +102,6 @@ export class GroupsService {
       id: group._id.toString(),
       order: group.order
     }));
-
-    // this.socketIoService.groupDelete(serverId, groupId, groups);
 
   }
 

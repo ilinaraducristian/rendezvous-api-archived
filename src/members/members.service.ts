@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import Member, { MemberDocument } from "../entities/member";
 import { AnyKeys, AnyObject, Model } from "mongoose";
+import Server, { ServerDocument } from "src/entities/server";
 
 @Injectable()
 export class MembersService {
@@ -19,10 +20,10 @@ export class MembersService {
     return this.memberModel.findOneAndDelete({ _id: id, userId });
   }
 
-  getServers(userId: string) {
-    return this.memberModel.find({ userId }).populate({
+  async getServers(userId: string) {
+    return (await this.memberModel.find({ userId }).populate({
       path: "serverId", populate: "members"
-    });
+    }) as (Member & {serverId: ServerDocument})[]).map(member => member.serverId as ServerDocument);
   }
 
   getMembers(serverId: string) {

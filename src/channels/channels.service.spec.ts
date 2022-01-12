@@ -5,7 +5,7 @@ import { MongooseModule } from "@nestjs/mongoose";
 import { ServersService } from "../servers/servers.service";
 import { ServersModule } from "../servers/servers.module";
 import { routes } from "../app.module";
-import ChannelType from "../dtos/channel-type";
+import { ChannelType } from "../dtos/channel";
 import { NotAMemberException } from "../exceptions/BadRequestExceptions";
 import { ChannelNameNotEmptyException } from "../exceptions/NotEmptyExceptions";
 import { GroupNotFoundException } from "../exceptions/NotFoundExceptions";

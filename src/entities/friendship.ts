@@ -4,6 +4,7 @@ import FriendshipStatus from "../dtos/friendship-status";
 
 @Schema()
 class Friendship {
+  _id?: string;
 
   @Prop({ required: true })
   user1Id: string;
@@ -13,7 +14,6 @@ class Friendship {
 
   @Prop({ default: FriendshipStatus.pending })
   status: FriendshipStatus;
-
 }
 
 export type FriendshipDocument = Document<any, any, Friendship> & Friendship;

@@ -1,10 +1,10 @@
 import { Body, Controller, Delete, Get, Param, Post, Query } from "@nestjs/common";
 import { ChannelMessagesService } from "./channel-messages.service";
-import NewMessageRequest from "../dtos/new-message-request";
+import NewMessageRequest from "../dtos/requests/new-message-request";
 import { AuthenticatedUser } from "nest-keycloak-connect";
 import KeycloakUser from "../keycloak-user";
 
-@Controller()
+@Controller("servers/:serverId/groups/:groupId/channels/:channelId/messages")
 export class ChannelMessagesController {
 
   constructor(
@@ -31,7 +31,7 @@ export class ChannelMessagesController {
     @Param("channelId") channelId: string,
     @Query("offset") offset: number = 0
   ) {
-    await this.messagesService.getMessages(user.sub, serverId, groupId, channelId, offset);
+    return await this.messagesService.getMessages(user.sub, serverId, groupId, channelId, offset);
   }
 
   @Delete(":messageId")

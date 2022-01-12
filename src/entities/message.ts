@@ -1,4 +1,5 @@
 import { Prop, Schema } from "@nestjs/mongoose";
+import Reaction from "./reaction";
 
 @Schema()
 class Message {
@@ -16,6 +17,9 @@ class Message {
 
   @Prop({ default: [] })
   files: string[];
+
+  @Prop({ default: [] })
+  reactions: Reaction[];
 
 }
 

@@ -1,8 +1,8 @@
 type Emoji = {
 
-  id: string;
-  alias: string;
-  md5: string;
+  id: string
+  alias: string
+  md5: string
 
 }
 

@@ -27,40 +27,14 @@ import { EmojisModule } from "./emojis/emojis.module";
 import { EmojisService } from "./emojis/emojis.service";
 import { ReactionsModule } from "./reactions/reactions.module";
 import { ReactionsService } from "./reactions/reactions.service";
-
-export const routes = RouterModule.register([{
-  path: "servers",
-  module: ServersModule,
-  children: [{
-    path: ":serverId/groups",
-    module: GroupsModule,
-    children: [{
-      path: ":groupId/channels",
-      module: ChannelsModule,
-      children: [{
-        path: ":channelId/messages",
-        module: ChannelMessagesModule,
-        children: [{
-          path: ":messageId/reactions",
-          module: ReactionsModule
-        }]
-      }]
-    }]
-  }, {
-    path: ":serverId/emojis",
-    module: EmojisModule
-  }]
-}, {
-  path: "members",
-  module: MembersModule
-}, {
-  path: "friendships",
-  module: FriendshipsModule,
-  children: [{
-    path: ":friendshipId/channel-messages",
-    module: FriendshipMessagesModule
-  }]
-}]);
+import { ServersController } from "./servers/servers.controller";
+import { GroupsController } from "./groups/groups.controller";
+import { ChannelsController } from "./channels/channels.controller";
+import { ChannelMessagesController } from "./channel-messages/channel-messages.controller";
+import { FriendshipsController } from "./friendships/friendships.controller";
+import { FriendshipMessagesController } from "./friendship-messages/friendship-messages.controller";
+import { ReactionsController } from "./reactions/reactions.controller";
+import { MembersController } from "./members/members.controller";
 
 @Module({
   imports: [
@@ -69,7 +43,8 @@ export const routes = RouterModule.register([{
       authServerUrl: "http://127.0.0.1:8080/auth",
       realm: "rendezvous",
       clientId: "rendezvous-api",
-      secret: "7841029b-8636-4085-93bd-890ce135aa28"
+      secret: "d3c093d3-b403-44d4-8b62-12f014a0a3d1",
+      useNestLogger: false
     }),
     MongooseModule.forFeature([
       { name: Server.name, schema: ServerSchema },
@@ -78,16 +53,16 @@ export const routes = RouterModule.register([{
       { name: Friendship.name, schema: FriendshipSchema },
       { name: FriendshipMessage.name, schema: FriendshipMessageSchema }
     ]),
-    ServersModule,
-    GroupsModule,
-    EmojisModule,
-    ChannelsModule,
-    ChannelMessagesModule,
-    ReactionsModule,
-    MembersModule,
-    FriendshipsModule,
-    FriendshipMessagesModule,
-    routes
+  ],
+  controllers: [
+    MembersController,
+    ServersController,
+    GroupsController,
+    ChannelsController,
+    ChannelMessagesController,
+    ReactionsController,
+    FriendshipsController,
+    FriendshipMessagesController
   ],
   providers: [
     {
