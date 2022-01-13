@@ -1,12 +1,10 @@
-import { BaseWsExceptionFilter, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, WebSocketGateway, WsException } from "@nestjs/websockets";
-import { Socket } from "socket.io";
-import SocketIoServerEvents from "../dtos/SocketIoServerEvents";
-import { MembersService } from "../members/members.service";
-import { SocketIoService } from "./socket-io.service";
+import { Inject } from "@nestjs/common";
+import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, WebSocketGateway } from "@nestjs/websockets";
 import { Keycloak } from "keycloak-connect";
 import { KEYCLOAK_INSTANCE } from "nest-keycloak-connect";
-import { Inject, UseFilters } from "@nestjs/common";
-import { Server as SocketIoServer } from "socket.io";
+import { Server as SocketIoServer, Socket } from "socket.io";
+import { MembersService } from "../members/members.service";
+import { SocketIoService } from "./socket-io.service";
 
 @WebSocketGateway(3101, { cors: ["*"] })
 class SocketIoGateway implements OnGatewayInit<SocketIoServer>, OnGatewayConnection<Socket>, OnGatewayDisconnect<Socket> {
@@ -20,6 +18,7 @@ class SocketIoGateway implements OnGatewayInit<SocketIoServer>, OnGatewayConnect
   afterInit(server: SocketIoServer) {
     this.socketIoService.socketIoServer = server;
   }
+
   async handleConnection(client: Socket) {
     const access_token = client.handshake.auth.token;
     let userId: string;
@@ -44,11 +43,6 @@ class SocketIoGateway implements OnGatewayInit<SocketIoServer>, OnGatewayConnect
   }
 
   async handleDisconnect(client: Socket) {
-    // const userId = client.handshake.auth.userId;
-    // const servers = await this.membersService.getServers(userId);
-    // servers.forEach((server) => {
-    //   client.to(server.id).emit(SocketIoServerEvents.userOffline, userId);
-    // });
   }
 }
 

@@ -126,16 +126,16 @@ export class ServersService {
     return newServer;
   }
 
-  async deleteMember(userId: string, memberId: string) {
+  async deleteMember(userId: string, serverId: string) {
     let member: Member;
     try {
-      member = await this.membersService.deleteMember(memberId, userId);
+      member = await this.membersService.deleteMember(userId, serverId);
     } catch (e) {
       throw new NotAMemberException();
     }
     if (member === undefined || member === null) throw new NotAMemberException();
-    await this.socketIoService.leaveServer(userId, member.serverId);
-    this.socketIoService.memberLeft({serverId: member.serverId, memberId});
+    await this.socketIoService.leaveServer(userId, member.serverId.toString());
+    this.socketIoService.memberLeft({serverId: member.serverId.toString(), memberId: member._id.toString()});
     await this.fixServersOrder([userId]);
   }
 

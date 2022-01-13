@@ -12,7 +12,7 @@ async function bootstrap() {
   );
   app.enableCors();
   app.useGlobalPipes(new ValidationPipe());
-  app.useGlobalFilters(new HttpExceptionFilter(), new BaseWsExceptionFilter());
+  app.useGlobalFilters(new HttpExceptionFilter());
   await app.listen(3100);
 }
 

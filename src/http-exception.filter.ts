@@ -6,8 +6,7 @@ import ResourceNotFoundException from "./exceptions/NotFoundExceptions";
 export class HttpExceptionFilter implements ExceptionFilter<Error> {
   catch(error: Error, host: ArgumentsHost) {
 
-    if (error instanceof BadRequestException || error instanceof ResourceNotFoundException)
-      throw error.toHttpException();
+    if (error instanceof BadRequestException || error instanceof ResourceNotFoundException) throw error.toHttpException();
 
     throw error;
   }

@@ -1,29 +1,28 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import Member, { MemberDocument } from "../entities/member";
 import { AnyKeys, AnyObject, Model } from "mongoose";
-import Server, { ServerDocument } from "src/entities/server";
+import { ServerDocument } from "src/entities/server";
+import Member, { MemberDocument } from "../entities/member";
 
 @Injectable()
 export class MembersService {
-
-  constructor(
-    @InjectModel(Member.name) private readonly memberModel: Model<Member>
-  ) {
-  }
+  constructor(@InjectModel(Member.name) private readonly memberModel: Model<Member>) {}
 
   newMember(member: AnyKeys<Member> & AnyObject) {
     return new this.memberModel(member);
   }
 
-  deleteMember(id: string, userId: string) {
-    return this.memberModel.findOneAndDelete({ _id: id, userId });
+  deleteMember(userId: string, serverId: string) {
+    return this.memberModel.findOneAndDelete({ userId, serverId });
   }
 
   async getServers(userId: string) {
-    return (await this.memberModel.find({ userId }).populate({
-      path: "serverId", populate: "members"
-    }) as (Member & {serverId: ServerDocument})[]).map(member => member.serverId as ServerDocument);
+    return (
+      (await this.memberModel.find({ userId }).populate({
+        path: "serverId",
+        populate: "members",
+      })) as (Member & { serverId: ServerDocument })[]
+    ).map((member) => member.serverId as ServerDocument);
   }
 
   getMembers(serverId: string) {
@@ -53,5 +52,4 @@ export class MembersService {
       return false;
     }
   }
-
 }
