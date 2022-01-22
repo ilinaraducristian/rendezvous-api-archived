@@ -56,8 +56,8 @@ export class SocketIoService {
     this.emit(serverId, SocketIoServerEvents.channelUpdate, payload);
   }
 
-  channelDeleted(serverId: string, channelId: string, channels: Pick<Channel, "id" | "order">[]) {
-    this.emit(serverId, SocketIoServerEvents.channelDeleted, { channelId, channels });
+  channelDeleted(ids: ChannelIds, channels: Pick<Channel, "id" | "order">[]) {
+    this.emit(ids.serverId, SocketIoServerEvents.channelDeleted, ids, channels);
   }
 
   groupUpdated(serverId: string, payload: Partial<Group> & Pick<Group, "id">) {
@@ -68,8 +68,8 @@ export class SocketIoService {
     this.emit(ids.serverId, SocketIoServerEvents.memberLeft, ids);
   }
 
-  groupDelete(serverId: string, groupId: string, groups: Pick<Group, "id" | "order">[]) {
-    this.emit(serverId, SocketIoServerEvents.groupDeleted, { groupId, groups });
+  groupDeleted(ids: GroupIds, groups: Pick<Group, "id" | "order">[]) {
+    this.emit(ids.serverId, SocketIoServerEvents.groupDeleted, ids, groups);
   }
 
   private emit(id: string, event: SocketIoServerEvents, ...payloads: any[]) {

@@ -123,6 +123,8 @@ export class ChannelsService {
       order: channel.order
     }));
 
+    this.socketIoService.channelDeleted({serverId, groupId, channelId}, channels);
+
   }
 
 }
