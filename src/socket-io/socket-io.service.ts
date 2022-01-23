@@ -6,7 +6,7 @@ import Server from "../dtos/server";
 import Channel from "../dtos/channel";
 import { WebSocketServer } from "@nestjs/websockets";
 import Group from "../dtos/group";
-import { ChannelIds, ChannelMessageIds, GroupIds, MemberIds } from "src/dtos/common-ids";
+import { ChannelIds, ChannelMessageIds, FriendshipMessageIds, GroupIds, MemberIds } from "src/dtos/common-ids";
 import ChannelMessage from "src/entities/channel-message";
 import Reaction from "src/dtos/reaction";
 
@@ -70,6 +70,10 @@ export class SocketIoService {
 
   groupDeleted(ids: GroupIds, groups: Pick<Group, "id" | "order">[]) {
     this.emit(ids.serverId, SocketIoServerEvents.groupDeleted, ids, groups);
+  }
+
+  channelMessageDeleted(ids: ChannelMessageIds) {
+    this.emit(ids.serverId, SocketIoServerEvents.channelMessageDeleted, ids);
   }
 
   private emit(id: string, event: SocketIoServerEvents, ...payloads: any[]) {

@@ -10,16 +10,13 @@ import { SocketIoService } from "src/socket-io/socket-io.service";
 
 @Injectable()
 export class ChannelMessagesService {
-
   constructor(
     @InjectModel(ChannelMessage.name) private readonly messageModel: Model<ChannelMessage>,
     private readonly channelsService: ChannelsService,
     private readonly socketIoService: SocketIoService
-  ) {
-  }
+  ) {}
 
   async createMessage(userId: string, serverId: string, groupId: string, channelId: string, text: string, files: string[]) {
-
     await this.channelsService.getByIdAndType(userId, serverId, groupId, channelId, ChannelType.text);
 
     const newMessage = new this.messageModel({
@@ -27,12 +24,11 @@ export class ChannelMessagesService {
       userId,
       text,
       timestamp: new Date(),
-      files
+      files,
     });
     await newMessage.save();
 
-    this.socketIoService.newChannelMessage({serverId, groupId, channelId}, ChannelMessage.toDTO(newMessage, serverId, groupId))
-
+    this.socketIoService.newChannelMessage({ serverId, groupId, channelId }, ChannelMessage.toDTO(newMessage, serverId, groupId));
   }
 
   async getById(userId: string, serverId: string, groupId: string, channelId: string, messageId: string) {
@@ -48,19 +44,20 @@ export class ChannelMessagesService {
   }
 
   async getMessages(userId: string, serverId: string, groupId: string, channelId: string, offset: number) {
-
     await this.channelsService.getByIdAndType(userId, serverId, groupId, channelId, ChannelType.text);
 
-    const messages = await this.messageModel.find({
-      channelId
-    }).sort({ timestamp: -1 }).skip(offset).limit(30);
+    const messages = await this.messageModel
+      .find({
+        channelId,
+      })
+      .sort({ timestamp: 1 })
+      .skip(offset)
+      .limit(30);
 
-    return messages.map(message => ChannelMessage.toDTO(message, serverId, groupId));
-
+    return messages.map((message) => ChannelMessage.toDTO(message, serverId, groupId));
   }
 
   async deleteMessage(userId: string, serverId: string, groupId: string, channelId: string, messageId: string) {
-
     await this.channelsService.getByIdAndType(userId, serverId, groupId, channelId, ChannelType.text);
 
     let message;
@@ -72,6 +69,6 @@ export class ChannelMessagesService {
     }
     if (message === null || message === undefined) throw new MessageNotFoundException();
 
+    this.socketIoService.channelMessageDeleted({ serverId, groupId, channelId, messageId });
   }
-
 }
