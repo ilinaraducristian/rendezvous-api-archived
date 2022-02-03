@@ -8,7 +8,7 @@ class BadRequestException extends Error {
 
 }
 
-class AlreadyMemberException extends BadRequestException {
+export class AlreadyMemberException extends BadRequestException {
 
   constructor() {
     super("you are already a member of this server");
@@ -16,7 +16,7 @@ class AlreadyMemberException extends BadRequestException {
 
 }
 
-class BadChannelTypeException extends BadRequestException {
+export class BadChannelTypeException extends BadRequestException {
 
   constructor() {
     super("bad channel type");
@@ -24,7 +24,7 @@ class BadChannelTypeException extends BadRequestException {
 
 }
 
-class BadOrExpiredInvitationException extends BadRequestException {
+export class BadOrExpiredInvitationException extends BadRequestException {
 
   constructor() {
     super("invitation is invalid or expired");
@@ -32,7 +32,7 @@ class BadOrExpiredInvitationException extends BadRequestException {
 
 }
 
-class NotAMemberException extends BadRequestException {
+export class NotAMemberException extends BadRequestException {
 
   constructor() {
     super("you are not a member of this server");
@@ -40,7 +40,7 @@ class NotAMemberException extends BadRequestException {
 
 }
 
-class AlreadyFriendsException extends BadRequestException {
+export class AlreadyFriendsException extends BadRequestException {
 
   constructor() {
     super("you are already friends with this user");
@@ -48,7 +48,7 @@ class AlreadyFriendsException extends BadRequestException {
 
 }
 
-class FriendshipCannotBeUpdatedException extends BadRequestException {
+export class FriendshipCannotBeUpdatedException extends BadRequestException {
 
   constructor() {
     super("the friendship cannot be updated");
@@ -56,7 +56,15 @@ class FriendshipCannotBeUpdatedException extends BadRequestException {
 
 }
 
-class BadFriendshipStatusException extends BadRequestException {
+export class FriendshipNotAccessibleException extends BadRequestException {
+
+  constructor() {
+    super("the friendship cannot be accessed");
+  }
+
+}
+
+export class BadFriendshipStatusException extends BadRequestException {
 
   constructor() {
     super("invalid status provided");
@@ -64,7 +72,7 @@ class BadFriendshipStatusException extends BadRequestException {
 
 }
 
-class DefaultGroupCannotBeDeletedException extends BadRequestException {
+export class DefaultGroupCannotBeDeletedException extends BadRequestException {
 
   constructor() {
     super("the server's default group cannot be deleted");
@@ -73,14 +81,3 @@ class DefaultGroupCannotBeDeletedException extends BadRequestException {
 }
 
 export default BadRequestException;
-
-export {
-  AlreadyMemberException,
-  BadChannelTypeException,
-  BadOrExpiredInvitationException,
-  NotAMemberException,
-  AlreadyFriendsException,
-  FriendshipCannotBeUpdatedException,
-  BadFriendshipStatusException,
-  DefaultGroupCannotBeDeletedException
-};

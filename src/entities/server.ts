@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import ServerDTO from "../dtos/server";
 import { Document, Types } from "mongoose";
-import Member from "./member";
-import Group, { GroupDocument, GroupSchema } from "./group";
 import Invitation from "../dtos/invitation";
+import ServerDTO from "../dtos/server";
 import Emoji, { EmojiDocument } from "../entities/emoji";
+import Group, { GroupDocument, GroupSchema } from "./group";
+import Member from "./member";
 
 @Schema()
 class Server {

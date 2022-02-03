@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { ChannelType } from "../dtos/channel";
 import { Document } from "mongoose";
+import { ChannelType } from "../dtos/channel";
 
 @Schema()
 class Channel {

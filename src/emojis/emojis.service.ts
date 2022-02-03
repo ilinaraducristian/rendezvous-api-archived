@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
-import { ServersService } from "../servers/servers.service";
 import EmojiDTO from "../dtos/emoji";
-import { EmojiNotFoundException } from "../exceptions/NotFoundExceptions";
 import UpdateEmojiRequest from "../dtos/requests/update-emoji-request";
+import { EmojiNotFoundException } from "../exceptions/NotFoundExceptions";
+import { ServersService } from "../servers/servers.service";
 
 @Injectable()
 export class EmojisService {

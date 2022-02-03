@@ -1,8 +1,8 @@
-import { Test, TestingModule } from "@nestjs/testing";
-import { FastifyAdapter, NestFastifyApplication } from "@nestjs/platform-fastify";
 import { ValidationPipe } from "@nestjs/common";
-import { ChannelsController } from "./channels.controller";
+import { FastifyAdapter, NestFastifyApplication } from "@nestjs/platform-fastify";
+import { Test, TestingModule } from "@nestjs/testing";
 import { ChannelType } from "../dtos/channel";
+import { ChannelsController } from "./channels.controller";
 
 describe("ChannelsController", () => {
   let app: NestFastifyApplication;

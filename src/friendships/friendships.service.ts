@@ -1,15 +1,17 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
+import { SocketIoService } from "src/socket-io/socket-io.service";
+import FriendshipStatus from "../dtos/friendship-status";
 import Friendship, { FriendshipDocument } from "../entities/friendship";
+import FriendshipMessage from "../entities/friendship-message";
 import {
   AlreadyFriendsException,
   BadFriendshipStatusException,
   FriendshipCannotBeUpdatedException,
+  FriendshipNotAccessibleException
 } from "../exceptions/BadRequestExceptions";
-import FriendshipStatus from "../dtos/friendship-status";
 import { FriendshipNotFoundException } from "../exceptions/NotFoundExceptions";
-import FriendshipMessage from "../entities/friendship-message";
 
 @Injectable()
 export class FriendshipsService {
@@ -17,7 +19,8 @@ export class FriendshipsService {
     @InjectModel(Friendship.name)
     private readonly friendshipModel: Model<Friendship>,
     @InjectModel(FriendshipMessage.name)
-    private readonly messageModel: Model<FriendshipMessage>
+    private readonly messageModel: Model<FriendshipMessage>,
+    private readonly socketIoService: SocketIoService
   ) {}
 
   async createFriendship(user1Id: string, user2Id: string) {
@@ -42,7 +45,9 @@ export class FriendshipsService {
 
     await newFriendship.save();
 
-    return newFriendship.toObject();
+    const friendshipDTO = Friendship.toDTO(newFriendship);
+    this.socketIoService.newFriendship(friendshipDTO.user2Id, friendshipDTO);
+    return friendshipDTO;
   }
 
   async getById(userId: string, friendshipId: string) {
@@ -61,11 +66,7 @@ export class FriendshipsService {
     return friendships as FriendshipDocument[];
   }
 
-  async updateFriendship(
-    userId: string,
-    friendshipId: string,
-    status: FriendshipStatus
-  ) {
+  async updateFriendship(userId: string, friendshipId: string, status: FriendshipStatus) {
     if (status === FriendshipStatus.pending) {
       throw new BadFriendshipStatusException();
     }
@@ -80,8 +81,7 @@ export class FriendshipsService {
     } catch (e) {
       throw new FriendshipNotFoundException();
     }
-    if (friendship === null || friendship === undefined)
-      throw new FriendshipNotFoundException();
+    if (friendship === null || friendship === undefined) throw new FriendshipNotFoundException();
 
     if (friendship.status !== FriendshipStatus.pending) {
       throw new FriendshipCannotBeUpdatedException();
@@ -91,27 +91,26 @@ export class FriendshipsService {
 
     await friendship.save();
 
-    return {
-      user1Id: friendship.user1Id,
-      user2Id: friendship.user2Id,
-      status,
-    };
+    this.socketIoService.friendshipUpdate(friendship.user1Id, friendshipId, status);
   }
 
   async deleteFriendship(userId: string, friendshipId: string) {
-    let deleteResult;
+    const friendship = await this.friendshipModel.findOne({
+      _id: friendshipId,
+      $or: [{ user1Id: userId }, { user2Id: userId }],
+    });
 
-    await this.messageModel.deleteMany({ friendshipId });
+    if (friendship === null || friendship === undefined) throw new FriendshipNotFoundException();
 
-    try {
-      deleteResult = await this.friendshipModel.deleteOne({
+    if (friendship.user1Id !== userId && friendship.user2Id !== userId) throw new FriendshipNotAccessibleException();
+
+    await Promise.all([
+      this.messageModel.deleteMany({ friendshipId }),
+      this.friendshipModel.deleteOne({
         _id: friendshipId,
-        user1Id: userId,
-      });
-    } catch (e) {
-      throw new FriendshipNotFoundException();
-    }
-    if (deleteResult === null || deleteResult === undefined)
-      throw new FriendshipNotFoundException();
+      }),
+    ]);
+
+    this.socketIoService.friendshipDeleted(userId === friendship.user1Id ? friendship.user2Id : friendship.user1Id, friendshipId);
   }
 }

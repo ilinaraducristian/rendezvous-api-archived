@@ -1,8 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Post, Query } from "@nestjs/common";
-import { ChannelMessagesService } from "./channel-messages.service";
-import NewMessageRequest from "../dtos/requests/new-message-request";
 import { AuthenticatedUser } from "nest-keycloak-connect";
+import NewMessageRequest from "../dtos/requests/new-message-request";
 import KeycloakUser from "../keycloak-user";
+import { ChannelMessagesService } from "./channel-messages.service";
 
 @Controller("servers/:serverId/groups/:groupId/channels/:channelId/messages")
 export class ChannelMessagesController {

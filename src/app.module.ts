@@ -1,40 +1,31 @@
 import { Module } from "@nestjs/common";
-import { ServersModule } from "./servers/servers.module";
+import { APP_GUARD } from "@nestjs/core";
 import { MongooseModule } from "@nestjs/mongoose";
-import { APP_GUARD, RouterModule } from "@nestjs/core";
-import { GroupsModule } from "./groups/groups.module";
-import { ChannelsModule } from "./channels/channels.module";
 import { AuthGuard, KeycloakConnectModule } from "nest-keycloak-connect";
-import { FriendshipsModule } from "./friendships/friendships.module";
-import { FriendshipMessagesModule } from "./friendship-messages/friendship-messages.module";
-import { ChannelMessagesModule } from "./channel-messages/channel-messages.module";
-import { ServersService } from "./servers/servers.service";
-import { GroupsService } from "./groups/groups.service";
-import { ChannelsService } from "./channels/channels.service";
+import { ChannelMessagesController } from "./channel-messages/channel-messages.controller";
 import { ChannelMessagesService } from "./channel-messages/channel-messages.service";
-import { FriendshipMessagesService } from "./friendship-messages/friendship-messages.service";
-import { MembersService } from "./members/members.service";
-import Member, { MemberSchema } from "./entities/member";
-import Server, { ServerSchema } from "./entities/server";
+import { ChannelsController } from "./channels/channels.controller";
+import { ChannelsService } from "./channels/channels.service";
+import { EmojisService } from "./emojis/emojis.service";
 import ChannelMessage, { ChannelMessageSchema } from "./entities/channel-message";
 import Friendship, { FriendshipSchema } from "./entities/friendship";
 import FriendshipMessage, { FriendshipMessageSchema } from "./entities/friendship-message";
-import { MembersModule } from "./members/members.module";
-import SocketIoGateway from "./socket-io/socket-io.gateway";
-import { SocketIoService } from "./socket-io/socket-io.service";
+import Member, { MemberSchema } from "./entities/member";
+import Server, { ServerSchema } from "./entities/server";
+import { FriendshipMessagesController } from "./friendship-messages/friendship-messages.controller";
+import { FriendshipMessagesService } from "./friendship-messages/friendship-messages.service";
+import { FriendshipsController } from "./friendships/friendships.controller";
 import { FriendshipsService } from "./friendships/friendships.service";
-import { EmojisModule } from "./emojis/emojis.module";
-import { EmojisService } from "./emojis/emojis.service";
-import { ReactionsModule } from "./reactions/reactions.module";
+import { GroupsController } from "./groups/groups.controller";
+import { GroupsService } from "./groups/groups.service";
+import { MembersController } from "./members/members.controller";
+import { MembersService } from "./members/members.service";
+import { ReactionsController } from "./reactions/reactions.controller";
 import { ReactionsService } from "./reactions/reactions.service";
 import { ServersController } from "./servers/servers.controller";
-import { GroupsController } from "./groups/groups.controller";
-import { ChannelsController } from "./channels/channels.controller";
-import { ChannelMessagesController } from "./channel-messages/channel-messages.controller";
-import { FriendshipsController } from "./friendships/friendships.controller";
-import { FriendshipMessagesController } from "./friendship-messages/friendship-messages.controller";
-import { ReactionsController } from "./reactions/reactions.controller";
-import { MembersController } from "./members/members.controller";
+import { ServersService } from "./servers/servers.service";
+import SocketIoGateway from "./socket-io/socket-io.gateway";
+import { SocketIoService } from "./socket-io/socket-io.service";
 
 @Module({
   imports: [
@@ -43,8 +34,9 @@ import { MembersController } from "./members/members.controller";
       authServerUrl: "http://127.0.0.1:8080/auth",
       realm: "rendezvous",
       clientId: "rendezvous-api",
-      secret: "d3c093d3-b403-44d4-8b62-12f014a0a3d1",
-      useNestLogger: false
+      secret: "tjPGlJ5PDi49SaeCO135QhZC6hSSPMNq",
+      useNestLogger: false,
+      logLevels: ['error']
     }),
     MongooseModule.forFeature([
       { name: Server.name, schema: ServerSchema },

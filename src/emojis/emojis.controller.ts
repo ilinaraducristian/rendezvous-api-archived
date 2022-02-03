@@ -1,9 +1,9 @@
 import { Body, Controller, Delete, Param, Post, Put } from "@nestjs/common";
-import { EmojisService } from "./emojis.service";
 import { AuthenticatedUser } from "nest-keycloak-connect";
-import KeycloakUser from "../keycloak-user";
 import NewEmojisRequest from "../dtos/requests/new-emojis-request";
 import UpdateEmojiRequest from "../dtos/requests/update-emoji-request";
+import KeycloakUser from "../keycloak-user";
+import { EmojisService } from "./emojis.service";
 
 @Controller("servers/:serverId/emojis")
 export class EmojisController {

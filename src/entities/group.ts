@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import Channel, { ChannelDocument, ChannelSchema } from "./channel";
 import { Document } from "mongoose";
+import Channel, { ChannelDocument, ChannelSchema } from "./channel";
 
 @Schema()
 class Group {

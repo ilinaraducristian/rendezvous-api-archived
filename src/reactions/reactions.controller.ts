@@ -1,8 +1,8 @@
 import { Body, Controller, Delete, Param, Post } from "@nestjs/common";
 import { AuthenticatedUser } from "nest-keycloak-connect";
+import NewReactionRequest from "../dtos/requests/new-reaction-request";
 import KeycloakUser from "../keycloak-user";
 import { ReactionsService } from "./reactions.service";
-import NewReactionRequest from "../dtos/requests/new-reaction-request";
 
 @Controller("servers/:serverId/groups/:groupId/channels/:channelId/messages/:messageId/reactions")
 export class ReactionsController {

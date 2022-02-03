@@ -1,7 +1,7 @@
-import { Test, TestingModule } from "@nestjs/testing";
-import { GroupsService } from "./groups.service";
 import { getModelToken } from "@nestjs/mongoose";
+import { Test, TestingModule } from "@nestjs/testing";
 import Group from "../entities/group";
+import { GroupsService } from "./groups.service";
 
 describe('GroupsService', () => {
   let groupsService: GroupsService;

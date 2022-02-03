@@ -1,9 +1,9 @@
-import { Test, TestingModule } from "@nestjs/testing";
-import { ChannelMessagesService } from "./channel-messages.service";
 import { MongooseModule } from "@nestjs/mongoose";
-import { ChannelMessagesModule } from "./channel-messages.module";
-import { ServersService } from "../servers/servers.service";
+import { Test, TestingModule } from "@nestjs/testing";
 import { ChannelType } from "../dtos/channel";
+import { ServersService } from "../servers/servers.service";
+import { ChannelMessagesModule } from "./channel-messages.module";
+import { ChannelMessagesService } from "./channel-messages.service";
 
 describe("ChannelMessagesService", () => {
   let messagesService: ChannelMessagesService,

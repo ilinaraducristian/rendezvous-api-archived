@@ -1,14 +1,14 @@
-import { Test, TestingModule } from "@nestjs/testing";
-import { ChannelsService } from "./channels.service";
 import { MongooseModule } from "@nestjs/mongoose";
-// import MongooseModules from "../MongooseModules";
-import { ServersService } from "../servers/servers.service";
-import { ServersModule } from "../servers/servers.module";
+import { Test, TestingModule } from "@nestjs/testing";
 import { routes } from "../app.module";
 import { ChannelType } from "../dtos/channel";
 import { NotAMemberException } from "../exceptions/BadRequestExceptions";
 import { ChannelNameNotEmptyException } from "../exceptions/NotEmptyExceptions";
 import { GroupNotFoundException } from "../exceptions/NotFoundExceptions";
+import { ServersModule } from "../servers/servers.module";
+// import MongooseModules from "../MongooseModules";
+import { ServersService } from "../servers/servers.service";
+import { ChannelsService } from "./channels.service";
 
 const uid1 = "d368a4be-b04a-44dd-a945-41f88c1e46f6";
 const uid2 = "d368a4be-b04a-44dd-a945-41f88c1e46f7";

@@ -1,6 +1,6 @@
-import { Test, TestingModule } from "@nestjs/testing";
-import { FastifyAdapter, NestFastifyApplication } from "@nestjs/platform-fastify";
 import { ValidationPipe } from "@nestjs/common";
+import { FastifyAdapter, NestFastifyApplication } from "@nestjs/platform-fastify";
+import { Test, TestingModule } from "@nestjs/testing";
 import { GroupsController } from "./groups.controller";
 
 describe("GroupsController", () => {

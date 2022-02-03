@@ -1,6 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { ServersService } from "./servers.service";
 import { v4 as uuid } from "uuid";
+import { ServersService } from "./servers.service";
 
 describe("ServersService", () => {
   let serversService: ServersService;

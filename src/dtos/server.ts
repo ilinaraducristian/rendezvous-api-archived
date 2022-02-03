@@ -1,6 +1,6 @@
 import Group from "./group";
-import Member from "./member";
 import Invitation from "./invitation";
+import Member from "./member";
 
 type Server = {
     id: string,

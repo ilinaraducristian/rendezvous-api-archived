@@ -1,16 +1,16 @@
 import { Injectable } from "@nestjs/common";
-import Group, { GroupDocument } from "../entities/group";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model } from "mongoose";
+import { ChannelType } from "../dtos/channel";
 import UpdateGroupRequest from "../dtos/requests/update-group-request";
-import { SocketIoService } from "../socket-io/socket-io.service";
+import ChannelMessage from "../entities/channel-message";
+import Group, { GroupDocument } from "../entities/group";
+import { ServerDocument } from "../entities/server";
 import { DefaultGroupCannotBeDeletedException } from "../exceptions/BadRequestExceptions";
 import { GroupNotFoundException } from "../exceptions/NotFoundExceptions";
 import { ServersService } from "../servers/servers.service";
+import { SocketIoService } from "../socket-io/socket-io.service";
 import { changeDocumentOrder, getMaxOrder } from "../util";
-import { ServerDocument } from "../entities/server";
-import { ChannelType } from "../dtos/channel";
-import { InjectModel } from "@nestjs/mongoose";
-import ChannelMessage from "../entities/channel-message";
-import { Model } from "mongoose";
 
 @Injectable()
 export class GroupsService {

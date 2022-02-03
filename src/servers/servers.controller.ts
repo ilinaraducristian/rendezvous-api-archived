@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Param, Post, Put } from "@nestjs/common";
+import { AuthenticatedUser } from "nest-keycloak-connect";
 import NewServerRequest from "../dtos/requests/new-server-request";
 import UpdateServerRequest from "../dtos/requests/update-server-request";
-import { AuthenticatedUser } from "nest-keycloak-connect";
 import KeycloakUser from "../keycloak-user";
 import { ServersService } from "./servers.service";
 

@@ -2,8 +2,8 @@ import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import FriendshipMessage from "../entities/friendship-message";
-import { FriendshipsService } from "../friendships/friendships.service";
 import { MessageNotFoundException } from "../exceptions/NotFoundExceptions";
+import { FriendshipsService } from "../friendships/friendships.service";
 
 @Injectable()
 export class FriendshipMessagesService {
@@ -35,7 +35,7 @@ export class FriendshipMessagesService {
 
     const messages = await this.messageModel.find({
       friendshipId
-    }).sort({ timestamp: -1 }).skip(offset).limit(30);
+    }).sort({ timestamp: 1 }).skip(offset).limit(30);
 
     return messages.map(message => FriendshipMessage.toDTO(message));
 

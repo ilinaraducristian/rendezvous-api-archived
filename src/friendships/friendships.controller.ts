@@ -1,9 +1,9 @@
 import { Body, Controller, Delete, Param, Post, Put } from "@nestjs/common";
 import { AuthenticatedUser } from "nest-keycloak-connect";
-import KeycloakUser from "../keycloak-user";
 import NewFriendshipRequest from "../dtos/requests/new-friendship-request";
-import { FriendshipsService } from "./friendships.service";
 import UpdateFriendshipRequest from "../dtos/requests/update-friendship-request";
+import KeycloakUser from "../keycloak-user";
+import { FriendshipsService } from "./friendships.service";
 
 @Controller("friendships")
 export class FriendshipsController {
@@ -27,7 +27,7 @@ export class FriendshipsController {
     @Param("friendshipId") friendshipId: string,
     @Body() updateFriendshipRequest: UpdateFriendshipRequest
   ) {
-    return this.friendshipsService.updateFriendship(user.sub, friendshipId, updateFriendshipRequest.status);
+    this.friendshipsService.updateFriendship(user.sub, friendshipId, updateFriendshipRequest.status);
   }
 
   @Delete(":friendshipId")
@@ -35,7 +35,7 @@ export class FriendshipsController {
     @AuthenticatedUser() user: KeycloakUser,
     @Param("friendshipId") id: string
   ) {
-    return this.friendshipsService.deleteFriendship(user.sub, id);
+    this.friendshipsService.deleteFriendship(user.sub, id);
   }
 
 }

@@ -1,8 +1,10 @@
 enum SocketIoServerEvents {
   newMember = 'new-member',
   memberLeft = 'member-left',
+
   serverUpdate = 'server-update',
   serverDeleted = 'server-deleted',
+
   newGroup = 'new-group',
   groupUpdate = 'group-update',
   groupDeleted = 'group-deleted',
@@ -25,6 +27,11 @@ enum SocketIoServerEvents {
 
   userOnline = 'user-online',
   userOffline = 'user-offline',
+
+  newFriendship = 'new-friendship',
+  friendshipUpdate = 'friendship-update',
+  friendshipDeleted = 'friendship-deleted'
+
 }
 
 export default SocketIoServerEvents;

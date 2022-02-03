@@ -1,12 +1,11 @@
 import { Injectable } from "@nestjs/common";
-import ChannelMessage, { ChannelMessageDocument } from "../entities/channel-message";
-import { ChannelType } from "../dtos/channel";
-import { MessageNotFoundException } from "../exceptions/NotFoundExceptions";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { ChannelsService } from "../channels/channels.service";
-import SocketIoServerEvents from "src/dtos/SocketIoServerEvents";
 import { SocketIoService } from "src/socket-io/socket-io.service";
+import { ChannelsService } from "../channels/channels.service";
+import { ChannelType } from "../dtos/channel";
+import ChannelMessage, { ChannelMessageDocument } from "../entities/channel-message";
+import { MessageNotFoundException } from "../exceptions/NotFoundExceptions";
 
 @Injectable()
 export class ChannelMessagesService {

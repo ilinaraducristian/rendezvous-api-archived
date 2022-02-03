@@ -1,16 +1,16 @@
 import { Injectable } from "@nestjs/common";
-import Channel, { ChannelDocument } from "../entities/channel";
-import UpdateChannelRequest from "../dtos/requests/update-channel-request";
-import { SocketIoService } from "../socket-io/socket-io.service";
-import { ChannelNotFoundException } from "../exceptions/NotFoundExceptions";
-import { changeDocumentOrder, getMaxOrder, sortDocuments } from "../util";
-import { GroupsService } from "../groups/groups.service";
-import { ChannelType } from "../dtos/channel";
-import { ServerDocument } from "../entities/server";
-import { GroupDocument } from "../entities/group";
-import ChannelMessage from "../entities/channel-message";
-import { Model } from "mongoose";
 import { InjectModel } from "@nestjs/mongoose";
+import { Model } from "mongoose";
+import { ChannelType } from "../dtos/channel";
+import UpdateChannelRequest from "../dtos/requests/update-channel-request";
+import Channel, { ChannelDocument } from "../entities/channel";
+import ChannelMessage from "../entities/channel-message";
+import { GroupDocument } from "../entities/group";
+import { ServerDocument } from "../entities/server";
+import { ChannelNotFoundException } from "../exceptions/NotFoundExceptions";
+import { GroupsService } from "../groups/groups.service";
+import { SocketIoService } from "../socket-io/socket-io.service";
+import { changeDocumentOrder, getMaxOrder, sortDocuments } from "../util";
 
 @Injectable()
 export class ChannelsService {
