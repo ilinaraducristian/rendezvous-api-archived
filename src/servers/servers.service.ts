@@ -117,7 +117,7 @@ export class ServersService {
     });
     server.members.push(newMember.id);
     await Promise.all([newMember.save(), server.save()]);
-    this.socketIoService.newMember(Member.toDTO(newMember));
+    this.socketIoService.newMember(server.id, Member.toDTO(newMember));
     server = await this.serverModel.findById(server.id).populate("members");
     const newServer = Server.toDTO(server);
     newServer.order = newOrder;

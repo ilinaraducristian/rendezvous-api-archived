@@ -25,8 +25,8 @@ export class SocketIoService {
     await client.leave(serverId);
   }
 
-  newMember(member: Member) {
-    this.emitToServer(member.serverId, SocketIoServerEvents.newMember, member);
+  newMember(serverId: string, member: Member) {
+    this.emitToServer(member.serverId, SocketIoServerEvents.newMember, serverId, member);
   }
 
   serverUpdate(serverId: string, payload: Partial<Server>) {
