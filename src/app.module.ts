@@ -8,11 +8,11 @@ import { ChannelsController } from "./channels/channels.controller";
 import { ChannelsService } from "./channels/channels.service";
 import { EmojisService } from "./emojis/emojis.service";
 import ChannelMessage, {
-  ChannelMessageSchema,
+    ChannelMessageSchema
 } from "./entities/channel-message";
 import Friendship, { FriendshipSchema } from "./entities/friendship";
 import FriendshipMessage, {
-  FriendshipMessageSchema,
+    FriendshipMessageSchema
 } from "./entities/friendship-message";
 import Member, { MemberSchema } from "./entities/member";
 import Server, { ServerSchema } from "./entities/server";

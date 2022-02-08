@@ -1,9 +1,9 @@
 import { Inject } from "@nestjs/common";
 import {
-  OnGatewayConnection,
-  OnGatewayDisconnect,
-  OnGatewayInit,
-  WebSocketGateway,
+    OnGatewayConnection,
+    OnGatewayDisconnect,
+    OnGatewayInit,
+    WebSocketGateway
 } from "@nestjs/websockets";
 import { Keycloak } from "keycloak-connect";
 import { KEYCLOAK_INSTANCE } from "nest-keycloak-connect";

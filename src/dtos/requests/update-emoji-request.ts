@@ -1,5 +1,5 @@
-import { IsNotBlank } from "../../IsNotBlank";
 import { IsHash } from "class-validator";
+import { IsNotBlank } from "../../IsNotBlank";
 
 class UpdateEmojiRequest {
   @IsNotBlank()

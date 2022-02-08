@@ -3,8 +3,8 @@ import { ChannelMessagesService } from "../channel-messages/channel-messages.ser
 import NewReactionRequest from "../dtos/requests/new-reaction-request";
 import { ServerDocument } from "../entities/server";
 import {
-  EmojiNotFoundException,
-  ReactionNotFoundException,
+    EmojiNotFoundException,
+    ReactionNotFoundException
 } from "../exceptions/NotFoundExceptions";
 
 @Injectable()

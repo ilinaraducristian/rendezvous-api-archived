@@ -1,7 +1,7 @@
 import { ValidationPipe } from "@nestjs/common";
 import {
-  FastifyAdapter,
-  NestFastifyApplication,
+    FastifyAdapter,
+    NestFastifyApplication
 } from "@nestjs/platform-fastify";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ServersController } from "./servers.controller";

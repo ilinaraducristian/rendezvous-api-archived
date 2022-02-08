@@ -1,7 +1,7 @@
 import { ValidationPipe } from "@nestjs/common";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  NestFastifyApplication
 } from "@nestjs/platform-fastify";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ChannelMessagesController } from "./channel-messages.controller";

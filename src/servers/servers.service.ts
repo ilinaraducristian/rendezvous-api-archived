@@ -9,9 +9,9 @@ import ChannelMessage from "../entities/channel-message";
 import Member from "../entities/member";
 import Server from "../entities/server";
 import {
-  AlreadyMemberException,
-  BadOrExpiredInvitationException,
-  NotAMemberException,
+    AlreadyMemberException,
+    BadOrExpiredInvitationException,
+    NotAMemberException
 } from "../exceptions/BadRequestExceptions";
 import { ServerNotFoundException } from "../exceptions/NotFoundExceptions";
 import { MembersService } from "../members/members.service";

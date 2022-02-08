@@ -5,7 +5,7 @@ import { SocketIoService } from "src/socket-io/socket-io.service";
 import { ChannelsService } from "../channels/channels.service";
 import { ChannelType } from "../dtos/channel";
 import ChannelMessage, {
-  ChannelMessageDocument,
+    ChannelMessageDocument
 } from "../entities/channel-message";
 import { MessageNotFoundException } from "../exceptions/NotFoundExceptions";
 

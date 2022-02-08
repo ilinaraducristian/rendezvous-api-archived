@@ -1,11 +1,11 @@
 import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Put,
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Param,
+    Post,
+    Put
 } from "@nestjs/common";
 import { AuthenticatedUser } from "nest-keycloak-connect";
 import Friendship from "src/entities/friendship";

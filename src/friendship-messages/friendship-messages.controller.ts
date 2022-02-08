@@ -1,11 +1,11 @@
 import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Query,
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Param,
+    Post,
+    Query
 } from "@nestjs/common";
 import { AuthenticatedUser } from "nest-keycloak-connect";
 import NewMessageRequest from "../dtos/requests/new-message-request";

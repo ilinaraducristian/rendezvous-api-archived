@@ -1,5 +1,5 @@
-import { IsNotBlank } from "../../IsNotBlank";
 import { IsArray } from "class-validator";
+import { IsNotBlank } from "../../IsNotBlank";
 
 class NewMessageRequest {
   @IsNotBlank()

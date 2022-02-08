@@ -6,10 +6,10 @@ import FriendshipStatus from "../dtos/friendship-status";
 import Friendship, { FriendshipDocument } from "../entities/friendship";
 import FriendshipMessage from "../entities/friendship-message";
 import {
-  AlreadyFriendsException,
-  BadFriendshipStatusException,
-  FriendshipCannotBeUpdatedException,
-  FriendshipNotAccessibleException,
+    AlreadyFriendsException,
+    BadFriendshipStatusException,
+    FriendshipCannotBeUpdatedException,
+    FriendshipNotAccessibleException
 } from "../exceptions/BadRequestExceptions";
 import { FriendshipNotFoundException } from "../exceptions/NotFoundExceptions";
 
