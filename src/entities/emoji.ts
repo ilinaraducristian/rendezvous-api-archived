@@ -3,7 +3,6 @@ import { Document } from "mongoose";
 
 @Schema()
 class Emoji {
-
   _id?: string;
 
   @Prop({ required: true })
@@ -18,7 +17,6 @@ class Emoji {
     dtoEmoji.id = emoji._id.toString();
     return dtoEmoji;
   }
-
 }
 
 export type EmojiDocument = Document<any, any, Emoji> & Emoji;

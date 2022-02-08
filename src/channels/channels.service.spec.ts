@@ -23,13 +23,14 @@ describe("ChannelsService", () => {
       imports: [
         ServersModule,
         MongooseModules,
-        MongooseModule.forRoot("mongodb://user:user@127.0.0.1:27017/rendezvous"),
-        routes
+        MongooseModule.forRoot(
+          "mongodb://user:user@127.0.0.1:27017/rendezvous"
+        ),
+        routes,
       ],
       controllers: [],
-      providers: []
+      providers: [],
     }).compile();
-
 
     channelsService = module.get<ChannelsService>(ChannelsService);
     serversService = module.get<ServersService>(ServersService);
@@ -46,55 +47,100 @@ describe("ChannelsService", () => {
   });
 
   describe("create a new channel", () => {
-
     const channelName = "a new channel";
 
     it("should return the new channel for a server", async () => {
-      await expect(channelsService.createChannel(uid1, serverId, null, `   ${channelName}   `, ChannelType.text))
-        .resolves.toEqual(expect.objectContaining({
+      await expect(
+        channelsService.createChannel(
+          uid1,
+          serverId,
+          null,
+          `   ${channelName}   `,
+          ChannelType.text
+        )
+      ).resolves.toEqual(
+        expect.objectContaining({
           serverId,
           groupId: "",
           name: channelName,
-          type: ChannelType.text
-        }));
+          type: ChannelType.text,
+        })
+      );
     });
 
     it("should return the new channel for a group", async () => {
-      await expect(channelsService.createChannel(uid1, serverId, groupId, `   ${channelName}   `, ChannelType.text))
-        .resolves.toEqual(expect.objectContaining({ serverId, groupId, name: channelName, type: ChannelType.text }));
+      await expect(
+        channelsService.createChannel(
+          uid1,
+          serverId,
+          groupId,
+          `   ${channelName}   `,
+          ChannelType.text
+        )
+      ).resolves.toEqual(
+        expect.objectContaining({
+          serverId,
+          groupId,
+          name: channelName,
+          type: ChannelType.text,
+        })
+      );
     });
 
     it("should throw name not empty", async () => {
-      await expect(channelsService.createChannel(uid1, serverId, groupId, `   `, ChannelType.text))
-        .rejects.toThrowError(ChannelNameNotEmptyException);
+      await expect(
+        channelsService.createChannel(
+          uid1,
+          serverId,
+          groupId,
+          `   `,
+          ChannelType.text
+        )
+      ).rejects.toThrowError(ChannelNameNotEmptyException);
     });
 
     it("should throw not a member", async () => {
-      await expect(channelsService.createChannel(uid2, serverId, groupId, `   `, ChannelType.text))
-        .rejects.toThrowError(NotAMemberException);
+      await expect(
+        channelsService.createChannel(
+          uid2,
+          serverId,
+          groupId,
+          `   `,
+          ChannelType.text
+        )
+      ).rejects.toThrowError(NotAMemberException);
     });
 
     it("should throw not a member", async () => {
-      await expect(channelsService.createChannel(uid1, "fakeid", groupId, `   `, ChannelType.text))
-        .rejects.toThrowError(NotAMemberException);
+      await expect(
+        channelsService.createChannel(
+          uid1,
+          "fakeid",
+          groupId,
+          `   `,
+          ChannelType.text
+        )
+      ).rejects.toThrowError(NotAMemberException);
     });
 
     it("should throw not a member", async () => {
-      await expect(channelsService.createChannel(uid1, serverId, "fakeid", `   `, ChannelType.text))
-        .rejects.toThrowError(GroupNotFoundException);
+      await expect(
+        channelsService.createChannel(
+          uid1,
+          serverId,
+          "fakeid",
+          `   `,
+          ChannelType.text
+        )
+      ).rejects.toThrowError(GroupNotFoundException);
     });
-
   });
 
   describe("delete a channel", () => {
-
-    it("should remove the channel", async () => {
-    });
-
+    it("should remove the channel", async () => {});
   });
 
   afterEach(async () => {
     await serversService.deleteServer(uid1, serverId);
   });
-
 });

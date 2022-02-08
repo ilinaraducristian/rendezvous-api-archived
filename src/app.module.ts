@@ -7,9 +7,13 @@ import { ChannelMessagesService } from "./channel-messages/channel-messages.serv
 import { ChannelsController } from "./channels/channels.controller";
 import { ChannelsService } from "./channels/channels.service";
 import { EmojisService } from "./emojis/emojis.service";
-import ChannelMessage, { ChannelMessageSchema } from "./entities/channel-message";
+import ChannelMessage, {
+  ChannelMessageSchema,
+} from "./entities/channel-message";
 import Friendship, { FriendshipSchema } from "./entities/friendship";
-import FriendshipMessage, { FriendshipMessageSchema } from "./entities/friendship-message";
+import FriendshipMessage, {
+  FriendshipMessageSchema,
+} from "./entities/friendship-message";
 import Member, { MemberSchema } from "./entities/member";
 import Server, { ServerSchema } from "./entities/server";
 import { FriendshipMessagesController } from "./friendship-messages/friendship-messages.controller";
@@ -36,14 +40,14 @@ import { SocketIoService } from "./socket-io/socket-io.service";
       clientId: "rendezvous-api",
       secret: "tjPGlJ5PDi49SaeCO135QhZC6hSSPMNq",
       useNestLogger: false,
-      logLevels: ['error']
+      logLevels: ["error"],
     }),
     MongooseModule.forFeature([
       { name: Server.name, schema: ServerSchema },
       { name: ChannelMessage.name, schema: ChannelMessageSchema },
       { name: Member.name, schema: MemberSchema },
       { name: Friendship.name, schema: FriendshipSchema },
-      { name: FriendshipMessage.name, schema: FriendshipMessageSchema }
+      { name: FriendshipMessage.name, schema: FriendshipMessageSchema },
     ]),
   ],
   controllers: [
@@ -54,12 +58,12 @@ import { SocketIoService } from "./socket-io/socket-io.service";
     ChannelMessagesController,
     ReactionsController,
     FriendshipsController,
-    FriendshipMessagesController
+    FriendshipMessagesController,
   ],
   providers: [
     {
       provide: APP_GUARD,
-      useClass: AuthGuard
+      useClass: AuthGuard,
     },
     ServersService,
     GroupsService,
@@ -71,8 +75,7 @@ import { SocketIoService } from "./socket-io/socket-io.service";
     MembersService,
     SocketIoGateway,
     SocketIoService,
-    FriendshipsService
-  ]
+    FriendshipsService,
+  ],
 })
-export class AppModule {
-}
+export class AppModule {}

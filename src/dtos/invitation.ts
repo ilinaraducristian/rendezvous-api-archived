@@ -1,6 +1,6 @@
 type Invitation = {
-  link: string
-  exp: Date
-}
+  link: string;
+  exp: Date;
+};
 
 export default Invitation;

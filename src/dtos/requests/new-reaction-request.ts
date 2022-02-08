@@ -1,7 +1,6 @@
 import { IsNotBlank } from "../../IsNotBlank";
 
 class NewReactionRequest {
-
   @IsNotBlank()
   userId: string;
 
@@ -9,7 +8,6 @@ class NewReactionRequest {
 
   @IsNotBlank()
   emoji: string;
-
 }
 
 export default NewReactionRequest;

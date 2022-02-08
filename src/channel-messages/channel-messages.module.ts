@@ -2,7 +2,6 @@ import { Module } from "@nestjs/common";
 import { ChannelMessagesController } from "./channel-messages.controller";
 
 @Module({
-  controllers: [ChannelMessagesController]
+  controllers: [ChannelMessagesController],
 })
-export class ChannelMessagesModule {
-}
+export class ChannelMessagesModule {}

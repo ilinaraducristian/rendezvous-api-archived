@@ -9,13 +9,17 @@ import { FriendshipsService } from "../friendships/friendships.service";
 @Injectable()
 export class FriendshipMessagesService {
   constructor(
-    @InjectModel(FriendshipMessage.name) private readonly messageModel: Model<FriendshipMessage>,
+    @InjectModel(FriendshipMessage.name)
+    private readonly messageModel: Model<FriendshipMessage>,
     private readonly friendshipsService: FriendshipsService,
     private readonly socketioService: SocketIoService
   ) {}
 
   async createMessage(userId: string, friendshipId: string, text: string) {
-    const friendship = await this.friendshipsService.getById(userId, friendshipId);
+    const friendship = await this.friendshipsService.getById(
+      userId,
+      friendshipId
+    );
 
     const newMessage = new this.messageModel({
       friendshipId,
@@ -25,7 +29,12 @@ export class FriendshipMessagesService {
     });
     await newMessage.save();
 
-    this.socketioService.newFriendshipMessage(friendship.id, friendship.user1Id, friendship.user2Id, FriendshipMessage.toDTO(newMessage));
+    this.socketioService.newFriendshipMessage(
+      friendship.id,
+      friendship.user1Id,
+      friendship.user2Id,
+      FriendshipMessage.toDTO(newMessage)
+    );
   }
 
   async getMessages(userId: string, friendshipId: string, offset: number) {
@@ -47,10 +56,15 @@ export class FriendshipMessagesService {
     let message;
 
     try {
-      message = await this.messageModel.findOneAndDelete({ _id: messageId, friendshipId, userId });
+      message = await this.messageModel.findOneAndDelete({
+        _id: messageId,
+        friendshipId,
+        userId,
+      });
     } catch (e) {
       throw new MessageNotFoundException();
     }
-    if (message === null || message === undefined) throw new MessageNotFoundException();
+    if (message === null || message === undefined)
+      throw new MessageNotFoundException();
   }
 }

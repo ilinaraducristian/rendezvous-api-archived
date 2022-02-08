@@ -2,7 +2,6 @@ import { Module } from "@nestjs/common";
 import { EmojisController } from "./emojis.controller";
 
 @Module({
-  controllers: [EmojisController]
+  controllers: [EmojisController],
 })
-export class EmojisModule {
-}
+export class EmojisModule {}

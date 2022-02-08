@@ -1,7 +1,7 @@
 enum FriendshipStatus {
   pending,
   accepted,
-  rejected
+  rejected,
 }
 
 export default FriendshipStatus;

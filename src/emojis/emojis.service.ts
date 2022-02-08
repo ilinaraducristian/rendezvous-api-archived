@@ -6,11 +6,7 @@ import { ServersService } from "../servers/servers.service";
 
 @Injectable()
 export class EmojisService {
-
-  constructor(
-    private readonly serversService: ServersService
-  ) {
-  }
+  constructor(private readonly serversService: ServersService) {}
 
   async createEmojis(userId: string, serverId: string, emojis: EmojiDTO[]) {
     const server = await this.serversService.getById(userId, serverId);
@@ -18,11 +14,21 @@ export class EmojisService {
     await server.save();
   }
 
-  async updateEmoji(userId: string, serverId: string, emojiId: string, emojiUpdate: UpdateEmojiRequest) {
+  async updateEmoji(
+    userId: string,
+    serverId: string,
+    emojiId: string,
+    emojiUpdate: UpdateEmojiRequest
+  ) {
     const server = await this.serversService.getById(userId, serverId);
-    const foundEmoji = server.emojis.find(emoji => emoji._id.toString() === emojiId);
+    const foundEmoji = server.emojis.find(
+      (emoji) => emoji._id.toString() === emojiId
+    );
     if (foundEmoji === undefined) throw new EmojiNotFoundException();
-    if (foundEmoji.alias !== emojiUpdate.alias || foundEmoji.md5 !== emojiUpdate.md5) {
+    if (
+      foundEmoji.alias !== emojiUpdate.alias ||
+      foundEmoji.md5 !== emojiUpdate.md5
+    ) {
       foundEmoji.alias = emojiUpdate.alias;
       foundEmoji.md5 = emojiUpdate.md5;
       await server.save();
@@ -31,10 +37,11 @@ export class EmojisService {
 
   async deleteEmoji(userId: string, serverId: string, emojiId: string) {
     const server = await this.serversService.getById(userId, serverId);
-    const index = server.emojis.findIndex(emoji => emoji._id.toString() === emojiId);
+    const index = server.emojis.findIndex(
+      (emoji) => emoji._id.toString() === emojiId
+    );
     if (index === -1) throw new EmojiNotFoundException();
     server.emojis.splice(index, 1);
     await server.save();
   }
-
 }

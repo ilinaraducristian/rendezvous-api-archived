@@ -7,11 +7,7 @@ import { EmojisService } from "./emojis.service";
 
 @Controller("servers/:serverId/emojis")
 export class EmojisController {
-
-  constructor(
-    private readonly emojisService: EmojisService
-  ) {
-  }
+  constructor(private readonly emojisService: EmojisService) {}
 
   @Post()
   async createEmojis(
@@ -29,7 +25,12 @@ export class EmojisController {
     @Param("emojiId") emojiId: string,
     @Body() emojiUpdate: UpdateEmojiRequest
   ) {
-    await this.emojisService.updateEmoji(user.sub, serverId, emojiId, emojiUpdate);
+    await this.emojisService.updateEmoji(
+      user.sub,
+      serverId,
+      emojiId,
+      emojiUpdate
+    );
   }
 
   @Delete(":emojiId")
@@ -40,5 +41,4 @@ export class EmojisController {
   ) {
     await this.emojisService.deleteEmoji(user.sub, serverId, emojiId);
   }
-
 }

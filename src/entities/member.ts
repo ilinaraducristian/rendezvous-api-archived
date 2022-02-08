@@ -5,7 +5,6 @@ import MemberDTO from "../dtos/member";
 
 @Schema()
 class Member {
-
   _id?: string;
 
   @Prop({ required: true })
@@ -21,10 +20,9 @@ class Member {
     return {
       id: member.id.toString(),
       userId: member.userId,
-      serverId: member.serverId.toString()
+      serverId: member.serverId.toString(),
     };
   }
-
 }
 
 export type MemberDocument = Document<any, any, Member> & Member;

@@ -7,11 +7,7 @@ import { ChannelsService } from "./channels.service";
 
 @Controller("servers/:serverId/groups/:groupId/channels")
 export class ChannelsController {
-
-  constructor(
-    private readonly channelsService: ChannelsService
-  ) {
-  }
+  constructor(private readonly channelsService: ChannelsService) {}
 
   @Post()
   async createChannel(
@@ -20,7 +16,12 @@ export class ChannelsController {
     @Param("groupId") groupId: string,
     @Body() newChannel: NewChannelRequest
   ) {
-    await this.channelsService.createChannel(user.sub, serverId, groupId, newChannel);
+    await this.channelsService.createChannel(
+      user.sub,
+      serverId,
+      groupId,
+      newChannel
+    );
   }
 
   @Put(":channelId")
@@ -31,7 +32,13 @@ export class ChannelsController {
     @Param("channelId") channelId: string,
     @Body() updateChannel: UpdateChannelRequest
   ) {
-    await this.channelsService.updateChannel(user.sub, serverId, groupId, channelId, updateChannel);
+    await this.channelsService.updateChannel(
+      user.sub,
+      serverId,
+      groupId,
+      channelId,
+      updateChannel
+    );
   }
 
   @Delete(":channelId")
@@ -41,7 +48,11 @@ export class ChannelsController {
     @Param("groupId") groupId: string,
     @Param("channelId") channelId: string
   ) {
-    await this.channelsService.deleteChannel(user.sub, serverId, groupId, channelId);
+    await this.channelsService.deleteChannel(
+      user.sub,
+      serverId,
+      groupId,
+      channelId
+    );
   }
-
 }

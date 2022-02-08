@@ -6,7 +6,9 @@ import Member, { MemberDocument } from "../entities/member";
 
 @Injectable()
 export class MembersService {
-  constructor(@InjectModel(Member.name) private readonly memberModel: Model<Member>) {}
+  constructor(
+    @InjectModel(Member.name) private readonly memberModel: Model<Member>
+  ) {}
 
   newMember(member: AnyKeys<Member> & AnyObject) {
     return new this.memberModel(member);

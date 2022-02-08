@@ -2,7 +2,6 @@ import { Module } from "@nestjs/common";
 import { FriendshipMessagesController } from "./friendship-messages.controller";
 
 @Module({
-  controllers: [FriendshipMessagesController]
+  controllers: [FriendshipMessagesController],
 })
-export class FriendshipMessagesModule {
-}
+export class FriendshipMessagesModule {}

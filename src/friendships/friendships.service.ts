@@ -9,7 +9,7 @@ import {
   AlreadyFriendsException,
   BadFriendshipStatusException,
   FriendshipCannotBeUpdatedException,
-  FriendshipNotAccessibleException
+  FriendshipNotAccessibleException,
 } from "../exceptions/BadRequestExceptions";
 import { FriendshipNotFoundException } from "../exceptions/NotFoundExceptions";
 
@@ -66,7 +66,11 @@ export class FriendshipsService {
     return friendships as FriendshipDocument[];
   }
 
-  async updateFriendship(userId: string, friendshipId: string, status: FriendshipStatus) {
+  async updateFriendship(
+    userId: string,
+    friendshipId: string,
+    status: FriendshipStatus
+  ) {
     if (status === FriendshipStatus.pending) {
       throw new BadFriendshipStatusException();
     }
@@ -81,7 +85,8 @@ export class FriendshipsService {
     } catch (e) {
       throw new FriendshipNotFoundException();
     }
-    if (friendship === null || friendship === undefined) throw new FriendshipNotFoundException();
+    if (friendship === null || friendship === undefined)
+      throw new FriendshipNotFoundException();
 
     if (friendship.status !== FriendshipStatus.pending) {
       throw new FriendshipCannotBeUpdatedException();
@@ -91,7 +96,11 @@ export class FriendshipsService {
 
     await friendship.save();
 
-    this.socketIoService.friendshipUpdate(friendship.user1Id, friendshipId, status);
+    this.socketIoService.friendshipUpdate(
+      friendship.user1Id,
+      friendshipId,
+      status
+    );
   }
 
   async deleteFriendship(userId: string, friendshipId: string) {
@@ -100,9 +109,11 @@ export class FriendshipsService {
       $or: [{ user1Id: userId }, { user2Id: userId }],
     });
 
-    if (friendship === null || friendship === undefined) throw new FriendshipNotFoundException();
+    if (friendship === null || friendship === undefined)
+      throw new FriendshipNotFoundException();
 
-    if (friendship.user1Id !== userId && friendship.user2Id !== userId) throw new FriendshipNotAccessibleException();
+    if (friendship.user1Id !== userId && friendship.user2Id !== userId)
+      throw new FriendshipNotAccessibleException();
 
     await Promise.all([
       this.messageModel.deleteMany({ friendshipId }),
@@ -111,6 +122,9 @@ export class FriendshipsService {
       }),
     ]);
 
-    this.socketIoService.friendshipDeleted(userId === friendship.user1Id ? friendship.user2Id : friendship.user1Id, friendshipId);
+    this.socketIoService.friendshipDeleted(
+      userId === friendship.user1Id ? friendship.user2Id : friendship.user1Id,
+      friendshipId
+    );
   }
 }

@@ -1,8 +1,13 @@
-import { IsDecimal, IsMongoId, IsNumber, Min, ValidateIf } from "class-validator";
+import {
+  IsDecimal,
+  IsMongoId,
+  IsNumber,
+  Min,
+  ValidateIf,
+} from "class-validator";
 import { IsNotBlank } from "../../IsNotBlank";
 
 class UpdateChannelRequest {
-
   @ValidateIf((_, val) => val !== undefined)
   @IsNotBlank()
   name?: string;
@@ -16,7 +21,6 @@ class UpdateChannelRequest {
   @IsDecimal()
   @Min(0)
   order?: number;
-
 }
 
 export default UpdateChannelRequest;

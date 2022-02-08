@@ -15,7 +15,8 @@ import { changeDocumentOrder, getMaxOrder } from "../util";
 @Injectable()
 export class GroupsService {
   constructor(
-    @InjectModel(ChannelMessage.name) private readonly messageModel: Model<ChannelMessage>,
+    @InjectModel(ChannelMessage.name)
+    private readonly messageModel: Model<ChannelMessage>,
     private readonly serversService: ServersService,
     private readonly socketIoService: SocketIoService
   ) {}
@@ -33,18 +34,28 @@ export class GroupsService {
     const length = server.groups.push(newGroup);
     await server.save();
 
-    const newGroupDto = Group.toDTO(server.groups[length - 1] as GroupDocument, serverId);
+    const newGroupDto = Group.toDTO(
+      server.groups[length - 1] as GroupDocument,
+      serverId
+    );
     this.socketIoService.newGroup(serverId, newGroupDto);
   }
 
   async getById(userId: string, serverId: string, groupId: string) {
     const server = await this.serversService.getById(userId, serverId);
-    const group = server.groups.find((group) => group._id.toString() === groupId);
+    const group = server.groups.find(
+      (group) => group._id.toString() === groupId
+    );
     if (group === undefined) throw new GroupNotFoundException();
     return group as GroupDocument;
   }
 
-  async updateGroup(userId: string, serverId: string, groupId: string, groupUpdate: UpdateGroupRequest) {
+  async updateGroup(
+    userId: string,
+    serverId: string,
+    groupId: string,
+    groupUpdate: UpdateGroupRequest
+  ) {
     const group = await this.getById(userId, serverId, groupId);
     const server = group.$parent() as ServerDocument;
 
@@ -59,7 +70,11 @@ export class GroupsService {
 
     if (groupUpdate.order !== undefined) {
       isGroupModified = true;
-      const sortedGroups = changeDocumentOrder(server.groups as GroupDocument[], groupId, groupUpdate.order);
+      const sortedGroups = changeDocumentOrder(
+        server.groups as GroupDocument[],
+        groupId,
+        groupUpdate.order
+      );
       server.groups = sortedGroups;
 
       groups = sortedGroups.map((group) => ({
@@ -78,14 +93,17 @@ export class GroupsService {
   async deleteGroup(userId: string, serverId: string, groupId: string) {
     const group = await this.getById(userId, serverId, groupId);
     const server = group.$parent() as ServerDocument;
-    const index = server.groups.findIndex((group) => group._id.toString() === groupId);
+    const index = server.groups.findIndex(
+      (group) => group._id.toString() === groupId
+    );
 
     if (group.order === 0) throw new DefaultGroupCannotBeDeletedException();
 
     const textChannelsIds = group.channels
       .filter((channel) => channel.type === ChannelType.text)
       .map((channel) => ({ channelId: channel._id.toString() }));
-    if (textChannelsIds.length > 0) await this.messageModel.deleteMany({ $or: textChannelsIds });
+    if (textChannelsIds.length > 0)
+      await this.messageModel.deleteMany({ $or: textChannelsIds });
 
     server.groups.splice(index, 1);
     server.groups = server.groups

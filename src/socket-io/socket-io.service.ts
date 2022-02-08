@@ -1,6 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { Server as SocketIoServer } from "socket.io";
-import { ChannelIds, ChannelMessageIds, FriendshipMessageIds, GroupIds, MemberIds } from "src/dtos/common-ids";
+import {
+  ChannelIds,
+  ChannelMessageIds,
+  FriendshipMessageIds,
+  GroupIds,
+  MemberIds,
+} from "src/dtos/common-ids";
 import Friendship from "src/dtos/friendship";
 import FriendshipStatus from "src/dtos/friendship-status";
 import Reaction from "src/dtos/reaction";
@@ -17,17 +23,26 @@ export class SocketIoService {
   socketIoServer: SocketIoServer;
 
   async joinServer(userId: string, serverId: string) {
-    const client = await Array.from(this.socketIoServer.sockets.sockets).find(([_, socket]) => socket.handshake.auth.userId === userId)[1];
+    const client = await Array.from(this.socketIoServer.sockets.sockets).find(
+      ([_, socket]) => socket.handshake.auth.userId === userId
+    )[1];
     await client.join(serverId);
   }
 
   async leaveServer(userId: string, serverId: string) {
-    const client = await Array.from(this.socketIoServer.sockets.sockets).find(([_, socket]) => socket.handshake.auth.userId === userId)[1];
+    const client = await Array.from(this.socketIoServer.sockets.sockets).find(
+      ([_, socket]) => socket.handshake.auth.userId === userId
+    )[1];
     await client.leave(serverId);
   }
 
   newMember(serverId: string, member: Member) {
-    this.emitToServer(member.serverId, SocketIoServerEvents.newMember, serverId, member);
+    this.emitToServer(
+      member.serverId,
+      SocketIoServerEvents.newMember,
+      serverId,
+      member
+    );
   }
 
   serverUpdate(serverId: string, payload: Partial<Server>) {
@@ -43,23 +58,46 @@ export class SocketIoService {
   }
 
   newChannel(ids: GroupIds, channel: Channel) {
-    this.emitToServer(ids.serverId, SocketIoServerEvents.newChannel, ids, channel);
+    this.emitToServer(
+      ids.serverId,
+      SocketIoServerEvents.newChannel,
+      ids,
+      channel
+    );
   }
 
   newChannelMessage(ids: ChannelIds, message: ChannelMessage) {
-    this.emitToServer(ids.serverId, SocketIoServerEvents.newChannelMessage, ids, message);
+    this.emitToServer(
+      ids.serverId,
+      SocketIoServerEvents.newChannelMessage,
+      ids,
+      message
+    );
   }
 
   newChannelMessageReaction(ids: ChannelMessageIds, message: Reaction) {
-    this.emitToServer(ids.serverId, SocketIoServerEvents.newChannelMessageReaction, ids, message);
+    this.emitToServer(
+      ids.serverId,
+      SocketIoServerEvents.newChannelMessageReaction,
+      ids,
+      message
+    );
   }
 
-  channelUpdate(serverId: string, payload: Partial<Channel> & Pick<Channel, "id">) {
+  channelUpdate(
+    serverId: string,
+    payload: Partial<Channel> & Pick<Channel, "id">
+  ) {
     this.emitToServer(serverId, SocketIoServerEvents.channelUpdate, payload);
   }
 
   channelDeleted(ids: ChannelIds, channels: Pick<Channel, "id" | "order">[]) {
-    this.emitToServer(ids.serverId, SocketIoServerEvents.channelDeleted, ids, channels);
+    this.emitToServer(
+      ids.serverId,
+      SocketIoServerEvents.channelDeleted,
+      ids,
+      channels
+    );
   }
 
   groupUpdated(serverId: string, payload: Partial<Group> & Pick<Group, "id">) {
@@ -71,39 +109,84 @@ export class SocketIoService {
   }
 
   groupDeleted(ids: GroupIds, groups: Pick<Group, "id" | "order">[]) {
-    this.emitToServer(ids.serverId, SocketIoServerEvents.groupDeleted, ids, groups);
+    this.emitToServer(
+      ids.serverId,
+      SocketIoServerEvents.groupDeleted,
+      ids,
+      groups
+    );
   }
 
   channelMessageDeleted(ids: ChannelMessageIds) {
-    this.emitToServer(ids.serverId, SocketIoServerEvents.channelMessageDeleted, ids);
+    this.emitToServer(
+      ids.serverId,
+      SocketIoServerEvents.channelMessageDeleted,
+      ids
+    );
   }
 
   newFriendship(userId: string, friendship: Friendship) {
     this.emitToUser(userId, SocketIoServerEvents.newFriendship, friendship);
   }
 
-  newFriendshipMessage(friendshipId: string, friendshipUser1Id: string, friendshipUser2Id: string, message: FriendshipMessage) {
-    this.emitToUser(friendshipUser1Id, SocketIoServerEvents.newFriendshipMessage, friendshipId, message)
-    this.emitToUser(friendshipUser2Id, SocketIoServerEvents.newFriendshipMessage, friendshipId, message)
+  newFriendshipMessage(
+    friendshipId: string,
+    friendshipUser1Id: string,
+    friendshipUser2Id: string,
+    message: FriendshipMessage
+  ) {
+    this.emitToUser(
+      friendshipUser1Id,
+      SocketIoServerEvents.newFriendshipMessage,
+      friendshipId,
+      message
+    );
+    this.emitToUser(
+      friendshipUser2Id,
+      SocketIoServerEvents.newFriendshipMessage,
+      friendshipId,
+      message
+    );
   }
 
-  friendshipUpdate(userId: string, friendshipId: string, friendshipStatus: FriendshipStatus) {
-    this.emitToUser(userId, SocketIoServerEvents.friendshipUpdate, friendshipId, friendshipStatus);
+  friendshipUpdate(
+    userId: string,
+    friendshipId: string,
+    friendshipStatus: FriendshipStatus
+  ) {
+    this.emitToUser(
+      userId,
+      SocketIoServerEvents.friendshipUpdate,
+      friendshipId,
+      friendshipStatus
+    );
   }
 
   friendshipDeleted(userId: string, friendshipId: string) {
-    this.emitToUser(userId, SocketIoServerEvents.friendshipDeleted, friendshipId);
+    this.emitToUser(
+      userId,
+      SocketIoServerEvents.friendshipDeleted,
+      friendshipId
+    );
   }
 
-  private emitToUser(userId: string, event: SocketIoServerEvents, ...payloads: any[]) {
-    const socket = Array.from(this.socketIoServer.of("/").sockets).find((socket) => 
-      socket[1].handshake.auth.userId === userId
-    )
+  private emitToUser(
+    userId: string,
+    event: SocketIoServerEvents,
+    ...payloads: any[]
+  ) {
+    const socket = Array.from(this.socketIoServer.of("/").sockets).find(
+      (socket) => socket[1].handshake.auth.userId === userId
+    );
     if (socket === undefined) return;
     this.socketIoServer.to(socket[0]).emit(event, ...payloads);
   }
 
-  private emitToServer(id: string, event: SocketIoServerEvents, ...payloads: any[]) {
+  private emitToServer(
+    id: string,
+    event: SocketIoServerEvents,
+    ...payloads: any[]
+  ) {
     this.socketIoServer.to(id).emit(event, ...payloads);
   }
 }

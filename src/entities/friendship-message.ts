@@ -4,7 +4,6 @@ import Message from "./message";
 
 @Schema()
 class FriendshipMessage extends Message {
-
   @Prop({ type: Types.ObjectId, ref: "Friendship" })
   friendshipId: string;
 
@@ -14,9 +13,10 @@ class FriendshipMessage extends Message {
     dtoMessage.id = message._id.toString();
     return dtoMessage;
   }
-
 }
 
-export type FriendshipMessageDocument = Document<any, any, FriendshipMessage> & FriendshipMessage;
-export const FriendshipMessageSchema = SchemaFactory.createForClass(FriendshipMessage);
+export type FriendshipMessageDocument = Document<any, any, FriendshipMessage> &
+  FriendshipMessage;
+export const FriendshipMessageSchema =
+  SchemaFactory.createForClass(FriendshipMessage);
 export default FriendshipMessage;

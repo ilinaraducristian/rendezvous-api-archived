@@ -2,7 +2,6 @@ import { Module } from "@nestjs/common";
 import { ReactionsController } from "./reactions.controller";
 
 @Module({
-  controllers: [ReactionsController]
+  controllers: [ReactionsController],
 })
-export class ReactionsModule {
-}
+export class ReactionsModule {}

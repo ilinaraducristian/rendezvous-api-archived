@@ -8,7 +8,11 @@ import ServerDTO from "../dtos/server";
 import ChannelMessage from "../entities/channel-message";
 import Member from "../entities/member";
 import Server from "../entities/server";
-import { AlreadyMemberException, BadOrExpiredInvitationException, NotAMemberException } from "../exceptions/BadRequestExceptions";
+import {
+  AlreadyMemberException,
+  BadOrExpiredInvitationException,
+  NotAMemberException,
+} from "../exceptions/BadRequestExceptions";
 import { ServerNotFoundException } from "../exceptions/NotFoundExceptions";
 import { MembersService } from "../members/members.service";
 import { SocketIoService } from "../socket-io/socket-io.service";
@@ -17,7 +21,8 @@ import { SocketIoService } from "../socket-io/socket-io.service";
 export class ServersService {
   constructor(
     @InjectModel(Server.name) private readonly serverModel: Model<Server>,
-    @InjectModel(ChannelMessage.name) private readonly messageModel: Model<ChannelMessage>,
+    @InjectModel(ChannelMessage.name)
+    private readonly messageModel: Model<ChannelMessage>,
     private readonly membersService: MembersService,
     private readonly socketIoService: SocketIoService
   ) {}
@@ -100,11 +105,14 @@ export class ServersService {
   async createMember(userId: string, invitation: string) {
     let server;
     try {
-      server = await this.serverModel.findOne({ "invitation.link": invitation }).populate("members");
+      server = await this.serverModel
+        .findOne({ "invitation.link": invitation })
+        .populate("members");
     } catch (e) {
       throw new BadOrExpiredInvitationException();
     }
-    if (server === null || new Date() > server.date) throw new BadOrExpiredInvitationException();
+    if (server === null || new Date() > server.date)
+      throw new BadOrExpiredInvitationException();
     const isMember = await this.membersService.isMember(userId, server.id);
     if (isMember === true) throw new AlreadyMemberException();
     const servers = await this.membersService.getUserLastServer(userId);
@@ -133,24 +141,37 @@ export class ServersService {
     } catch (e) {
       throw new NotAMemberException();
     }
-    if (member === undefined || member === null) throw new NotAMemberException();
+    if (member === undefined || member === null)
+      throw new NotAMemberException();
     await this.socketIoService.leaveServer(userId, member.serverId.toString());
-    this.socketIoService.memberLeft({serverId: member.serverId.toString(), memberId: member._id.toString()});
+    this.socketIoService.memberLeft({
+      serverId: member.serverId.toString(),
+      memberId: member._id.toString(),
+    });
     await this.fixServersOrder([userId]);
   }
 
-  async updateServer(userId: string, id: string, serverUpdate: UpdateServerRequest) {
+  async updateServer(
+    userId: string,
+    id: string,
+    serverUpdate: UpdateServerRequest
+  ) {
     const isMember = await this.membersService.isMember(userId, id);
     if (isMember === false) throw new NotAMemberException();
 
     if (serverUpdate.name !== undefined) {
       let newServer;
       try {
-        newServer = await this.serverModel.findOneAndUpdate({ _id: id }, { name: serverUpdate.name }, { new: true });
+        newServer = await this.serverModel.findOneAndUpdate(
+          { _id: id },
+          { name: serverUpdate.name },
+          { new: true }
+        );
       } catch (e) {
         throw new ServerNotFoundException();
       }
-      if (newServer === null || newServer === undefined) throw new ServerNotFoundException();
+      if (newServer === null || newServer === undefined)
+        throw new ServerNotFoundException();
     }
 
     return { name: serverUpdate.name, servers: [] };
@@ -169,7 +190,10 @@ export class ServersService {
     await this.messageModel.deleteMany({ $or: textChannelsIds });
 
     try {
-      await Promise.all([this.serverModel.findOneAndRemove({ _id: serverId }), this.membersService.deleteServerMembers(serverId)]);
+      await Promise.all([
+        this.serverModel.findOneAndRemove({ _id: serverId }),
+        this.membersService.deleteServerMembers(serverId),
+      ]);
       await this.fixServersOrder(membersUserIds);
     } catch (e) {
       throw e;

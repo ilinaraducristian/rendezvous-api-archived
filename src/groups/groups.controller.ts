@@ -7,11 +7,7 @@ import { GroupsService } from "./groups.service";
 
 @Controller("servers/:serverId/groups")
 export class GroupsController {
-
-  constructor(
-    private readonly groupsService: GroupsService
-  ) {
-  }
+  constructor(private readonly groupsService: GroupsService) {}
 
   @Post()
   async createNewGroup(
@@ -29,7 +25,12 @@ export class GroupsController {
     @Param("groupId") groupId: string,
     @Body() groupUpdate: UpdateGroupRequest
   ) {
-    await this.groupsService.updateGroup(user.sub, serverId, groupId, groupUpdate);
+    await this.groupsService.updateGroup(
+      user.sub,
+      serverId,
+      groupId,
+      groupUpdate
+    );
   }
 
   @Delete(":groupId")
@@ -40,5 +41,4 @@ export class GroupsController {
   ) {
     await this.groupsService.deleteGroup(user.sub, serverId, groupId);
   }
-
 }

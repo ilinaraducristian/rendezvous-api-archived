@@ -4,7 +4,6 @@ import ReactionDTO from "../dtos/reaction";
 
 @Schema()
 class Reaction {
-
   _id?: string;
 
   @Prop({ required: true })
@@ -22,7 +21,6 @@ class Reaction {
     dtoReaction.id = reaction._id.toString();
     return dtoReaction;
   }
-
 }
 
 export type ReactionDocument = Document<any, any, Reaction> & Reaction;

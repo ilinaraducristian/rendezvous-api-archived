@@ -4,13 +4,11 @@ import NewReactionRequest from "../dtos/requests/new-reaction-request";
 import KeycloakUser from "../keycloak-user";
 import { ReactionsService } from "./reactions.service";
 
-@Controller("servers/:serverId/groups/:groupId/channels/:channelId/messages/:messageId/reactions")
+@Controller(
+  "servers/:serverId/groups/:groupId/channels/:channelId/messages/:messageId/reactions"
+)
 export class ReactionsController {
-
-  constructor(
-    private readonly reactionsService: ReactionsService
-  ) {
-  }
+  constructor(private readonly reactionsService: ReactionsService) {}
 
   @Post()
   async createReaction(
@@ -21,7 +19,14 @@ export class ReactionsController {
     @Param("messageId") messageId: string,
     @Body() newReaction: NewReactionRequest
   ) {
-    await this.reactionsService.createReaction(user.sub, serverId, groupId, channelId, messageId, newReaction);
+    await this.reactionsService.createReaction(
+      user.sub,
+      serverId,
+      groupId,
+      channelId,
+      messageId,
+      newReaction
+    );
   }
 
   @Delete(":emojiId")
@@ -33,7 +38,13 @@ export class ReactionsController {
     @Param("messageId") messageId: string,
     @Param("reactionId") reactionId: string
   ) {
-    await this.reactionsService.deleteReaction(user.sub, serverId, groupId, channelId, messageId, reactionId);
+    await this.reactionsService.deleteReaction(
+      user.sub,
+      serverId,
+      groupId,
+      channelId,
+      messageId,
+      reactionId
+    );
   }
-
 }

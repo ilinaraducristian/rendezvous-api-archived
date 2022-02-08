@@ -6,8 +6,7 @@ import { ChannelMessagesModule } from "./channel-messages.module";
 import { ChannelMessagesService } from "./channel-messages.service";
 
 describe("ChannelMessagesService", () => {
-  let messagesService: ChannelMessagesService,
-    serversService: ServersService;
+  let messagesService: ChannelMessagesService, serversService: ServersService;
   let module: TestingModule;
 
   jest.setTimeout(30000);
@@ -15,26 +14,49 @@ describe("ChannelMessagesService", () => {
   beforeAll(async () => {
     module = await Test.createTestingModule({
       imports: [
-        MongooseModule.forRoot("mongodb://user:user@127.0.0.1:27017/rendezvous"),
-        ChannelMessagesModule
-      ]
+        MongooseModule.forRoot(
+          "mongodb://user:user@127.0.0.1:27017/rendezvous"
+        ),
+        ChannelMessagesModule,
+      ],
     }).compile();
 
-    messagesService = module.get<ChannelMessagesService>(ChannelMessagesService);
+    messagesService = module.get<ChannelMessagesService>(
+      ChannelMessagesService
+    );
     serversService = module.get<ServersService>(ServersService);
   });
 
   afterAll(() => module.close());
 
   let userId = "61aa0b90c85c37292276eb39",
-    serverId, groupId, channelId;
+    serverId,
+    groupId,
+    channelId;
 
   beforeEach(async () => {
     const server = await serversService.createServer(userId, "a new server");
     serverId = server.id;
-    groupId = server.groups.find(group => group.channels.find(channel => channel.type === ChannelType.text) !== undefined).id;
-    channelId = server.groups.find(group => group.id === groupId).channels[0].id;
-    await Promise.all(new Array(100).fill(0).map((_, i) => messagesService.createMessage(userId, serverId, groupId, channelId, `message_${i}`)));
+    groupId = server.groups.find(
+      (group) =>
+        group.channels.find((channel) => channel.type === ChannelType.text) !==
+        undefined
+    ).id;
+    channelId = server.groups.find((group) => group.id === groupId).channels[0]
+      .id;
+    await Promise.all(
+      new Array(100)
+        .fill(0)
+        .map((_, i) =>
+          messagesService.createMessage(
+            userId,
+            serverId,
+            groupId,
+            channelId,
+            `message_${i}`
+          )
+        )
+    );
   });
 
   afterEach(async () => {
@@ -42,8 +64,13 @@ describe("ChannelMessagesService", () => {
   });
 
   it("should return the channel messages", async () => {
-    const messages = await messagesService.getMessages(userId, serverId, groupId, channelId, 0);
+    const messages = await messagesService.getMessages(
+      userId,
+      serverId,
+      groupId,
+      channelId,
+      0
+    );
     expect(messages.length).toBeGreaterThan(0);
   });
-
 });

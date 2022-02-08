@@ -2,7 +2,6 @@ import { Module } from "@nestjs/common";
 import { ChannelsController } from "./channels.controller";
 
 @Module({
-  controllers: [ChannelsController]
+  controllers: [ChannelsController],
 })
-export class ChannelsModule {
-}
+export class ChannelsModule {}

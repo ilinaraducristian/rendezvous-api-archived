@@ -4,7 +4,6 @@ import Channel, { ChannelDocument, ChannelSchema } from "./channel";
 
 @Schema()
 class Group {
-
   _id?: string;
 
   @Prop({ required: true })
@@ -26,7 +25,6 @@ class Group {
     );
     return dtoGroup;
   }
-
 }
 
 export type GroupDocument = Document<any, any, Group> & Group;

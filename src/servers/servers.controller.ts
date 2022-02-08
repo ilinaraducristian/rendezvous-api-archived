@@ -7,11 +7,7 @@ import { ServersService } from "./servers.service";
 
 @Controller("servers")
 export class ServersController {
-
-  constructor(
-    private readonly serversService: ServersService
-  ) {
-  }
+  constructor(private readonly serversService: ServersService) {}
 
   @Post()
   async createServer(
@@ -38,7 +34,6 @@ export class ServersController {
     await this.serversService.updateServer(user.sub, serverId, serverUpdate);
   }
 
-
   @Delete(":serverId")
   async deleteServer(
     @AuthenticatedUser() user: KeycloakUser,
@@ -46,5 +41,4 @@ export class ServersController {
   ) {
     await this.serversService.deleteServer(user.sub, serverId);
   }
-
 }

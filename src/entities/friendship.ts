@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
-import FriendshipDTO from '../dtos/friendship';
+import FriendshipDTO from "../dtos/friendship";
 import FriendshipStatus from "../dtos/friendship-status";
 
 @Schema()
@@ -22,7 +22,6 @@ class Friendship {
     dtoFriendship.id = friendship._id.toString();
     return dtoFriendship;
   }
-
 }
 
 export type FriendshipDocument = Document<any, any, Friendship> & Friendship;

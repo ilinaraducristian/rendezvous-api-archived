@@ -3,7 +3,6 @@ import Reaction from "./reaction";
 
 @Schema()
 class Message {
-
   _id?: string;
 
   @Prop({ required: true })
@@ -20,7 +19,6 @@ class Message {
 
   @Prop({ default: [] })
   reactions: Reaction[];
-
 }
 
 export default Message;

@@ -3,20 +3,19 @@ import { Test, TestingModule } from "@nestjs/testing";
 import Group from "../entities/group";
 import { GroupsService } from "./groups.service";
 
-describe('GroupsService', () => {
+describe("GroupsService", () => {
   let groupsService: GroupsService;
   let module: TestingModule;
 
   beforeAll(async () => {
-    const mockGroup = {
-
-    }
+    const mockGroup = {};
     module = await Test.createTestingModule({
-      providers: [GroupsService,
+      providers: [
+        GroupsService,
         {
           provide: getModelToken(Group.name),
           useValue: mockGroup,
-        }
+        },
       ],
     }).compile();
 
@@ -26,7 +25,6 @@ describe('GroupsService', () => {
   afterAll(() => module.close());
 
   describe("create a new group", () => {
-
     // it('should return a new group', async() => {
     //   const groupName = "        a new group      ";
     //   const group  = await groupsService.createGroup('61a85ac8115dbc842ce9aa6d', groupName);
@@ -46,7 +44,5 @@ describe('GroupsService', () => {
     //   const groupName = "group name";
     //   await expect(groupsService.createGroup('61a85ac8115dbc842ce9aa6f', groupName)).rejects.toThrowError(ServerNotFoundException);
     // })
-
   });
-
 });

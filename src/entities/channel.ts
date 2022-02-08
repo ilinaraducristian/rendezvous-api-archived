@@ -4,7 +4,6 @@ import { ChannelType } from "../dtos/channel";
 
 @Schema()
 class Channel {
-
   _id?: string;
 
   @Prop({ required: true })
@@ -24,7 +23,6 @@ class Channel {
     dtoChannel.groupId = groupId;
     return dtoChannel;
   }
-
 }
 
 export type ChannelDocument = Document<any, any, Channel> & Channel;

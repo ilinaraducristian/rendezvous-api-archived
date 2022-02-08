@@ -1,20 +1,20 @@
 import Reaction from "./reaction";
 
 type Message = {
-  id: string
-  userId: string
-  text: string
-  timestamp: Date
-  files: string[]
-  reactions: Reaction[]
-}
+  id: string;
+  userId: string;
+  text: string;
+  timestamp: Date;
+  files: string[];
+  reactions: Reaction[];
+};
 
 export type ChannelMessage = Message & {
-  channelId: string
-}
+  channelId: string;
+};
 
 export type FriendshipMessage = Message & {
-  friendshipId: string
-}
+  friendshipId: string;
+};
 
 export default Message;

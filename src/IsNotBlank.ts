@@ -1,7 +1,11 @@
-import { registerDecorator, ValidationArguments, ValidationOptions } from "class-validator";
+import {
+  registerDecorator,
+  ValidationArguments,
+  ValidationOptions,
+} from "class-validator";
 
 export function IsNotBlank(validationOptions?: ValidationOptions) {
-  return function(object: Object, propertyName: string) {
+  return function (object: Object, propertyName: string) {
     registerDecorator({
       name: "isNotBlank",
       target: object.constructor,
@@ -12,8 +16,8 @@ export function IsNotBlank(validationOptions?: ValidationOptions) {
           if (typeof value !== "string") return false;
           const trimmed = value.trim();
           return trimmed !== "";
-        }
-      }
+        },
+      },
     });
   };
 }
