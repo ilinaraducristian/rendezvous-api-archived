@@ -25,9 +25,9 @@ export class FriendshipMessagesController {
   async getMessages(
     @AuthenticatedUser() user: KeycloakUser,
     @Param("friendshipId") friendshipId: string,
-    @Query("offset") offset: number = 0
+    @Query("offset") offset: string = '0'
   ) {
-    return await this.messagesService.getMessages(user.sub, friendshipId, offset);
+    return await this.messagesService.getMessages(user.sub, friendshipId, parseInt(offset));
   }
 
   @Delete(":messageId")

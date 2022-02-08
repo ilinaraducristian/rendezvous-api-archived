@@ -1,10 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { Server as SocketIoServer } from "socket.io";
-import { ChannelIds, ChannelMessageIds, GroupIds, MemberIds } from "src/dtos/common-ids";
+import { ChannelIds, ChannelMessageIds, FriendshipMessageIds, GroupIds, MemberIds } from "src/dtos/common-ids";
 import Friendship from "src/dtos/friendship";
 import FriendshipStatus from "src/dtos/friendship-status";
 import Reaction from "src/dtos/reaction";
 import ChannelMessage from "src/entities/channel-message";
+import FriendshipMessage from "src/entities/friendship-message";
 import Channel from "../dtos/channel";
 import Group from "../dtos/group";
 import Member from "../dtos/member";
@@ -79,6 +80,11 @@ export class SocketIoService {
 
   newFriendship(userId: string, friendship: Friendship) {
     this.emitToUser(userId, SocketIoServerEvents.newFriendship, friendship);
+  }
+
+  newFriendshipMessage(friendshipId: string, friendshipUser1Id: string, friendshipUser2Id: string, message: FriendshipMessage) {
+    this.emitToUser(friendshipUser1Id, SocketIoServerEvents.newFriendshipMessage, friendshipId, message)
+    this.emitToUser(friendshipUser2Id, SocketIoServerEvents.newFriendshipMessage, friendshipId, message)
   }
 
   friendshipUpdate(userId: string, friendshipId: string, friendshipStatus: FriendshipStatus) {
