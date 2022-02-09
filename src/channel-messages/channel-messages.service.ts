@@ -92,7 +92,7 @@ export class ChannelMessagesService {
       .find({
         channelId,
       })
-      .sort({ timestamp: 1 })
+      .sort({ timestamp: -1 })
       .skip(offset)
       .limit(30);
 
