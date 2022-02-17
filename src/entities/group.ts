@@ -20,9 +20,7 @@ class Group {
     delete dtoGroup._id;
     dtoGroup.id = group._id.toString();
     dtoGroup.serverId = serverId;
-    dtoGroup.channels = group.channels.map((channel: ChannelDocument) =>
-      Channel.toDTO(channel, serverId, dtoGroup.id)
-    );
+    dtoGroup.channels = group.channels.map((channel: ChannelDocument) => Channel.toDTO(channel, serverId, dtoGroup.id));
     return dtoGroup;
   }
 }

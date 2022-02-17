@@ -9,11 +9,7 @@ function sortDocuments<T extends Document & { order: number }>(documents: T[]) {
     }));
 }
 
-function changeDocumentOrder<T extends Document & { order: number }>(
-  documents: T[],
-  id: string,
-  order: number
-) {
+function changeDocumentOrder<T extends Document & { order: number }>(documents: T[], id: string, order: number) {
   const sortedDocuments = sortDocuments(documents);
   const index = sortedDocuments.findIndex((document) => document.id === id);
   const document = sortedDocuments[index];

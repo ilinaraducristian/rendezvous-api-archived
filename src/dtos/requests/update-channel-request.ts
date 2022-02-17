@@ -1,10 +1,4 @@
-import {
-    IsDecimal,
-    IsMongoId,
-    IsNumber,
-    Min,
-    ValidateIf
-} from "class-validator";
+import { IsDecimal, IsMongoId, IsNumber, Min, ValidateIf } from "class-validator";
 import { IsNotBlank } from "../../IsNotBlank";
 
 class UpdateChannelRequest {

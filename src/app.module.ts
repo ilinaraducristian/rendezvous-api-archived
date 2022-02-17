@@ -2,34 +2,30 @@ import { Module } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { MongooseModule } from "@nestjs/mongoose";
 import { AuthGuard, KeycloakConnectModule } from "nest-keycloak-connect";
-import { ChannelMessagesController } from "./channel-messages/channel-messages.controller";
-import { ChannelMessagesService } from "./channel-messages/channel-messages.service";
-import { ChannelsController } from "./channels/channels.controller";
-import { ChannelsService } from "./channels/channels.service";
-import { EmojisService } from "./emojis/emojis.service";
-import ChannelMessage, {
-    ChannelMessageSchema
-} from "./entities/channel-message";
+import { ChannelMessagesController } from "./controllers/channel-messages.controller";
+import { ChannelMessagesService } from "./services/channel-messages.service";
+import { ChannelsController } from "./controllers/channels.controller";
+import { ChannelsService } from "./services/channels.service";
+import { EmojisService } from "./services/emojis.service";
 import Friendship, { FriendshipSchema } from "./entities/friendship";
-import FriendshipMessage, {
-    FriendshipMessageSchema
-} from "./entities/friendship-message";
 import Member, { MemberSchema } from "./entities/member";
 import Server, { ServerSchema } from "./entities/server";
-import { FriendshipMessagesController } from "./friendship-messages/friendship-messages.controller";
-import { FriendshipMessagesService } from "./friendship-messages/friendship-messages.service";
-import { FriendshipsController } from "./friendships/friendships.controller";
-import { FriendshipsService } from "./friendships/friendships.service";
-import { GroupsController } from "./groups/groups.controller";
-import { GroupsService } from "./groups/groups.service";
-import { MembersController } from "./members/members.controller";
-import { MembersService } from "./members/members.service";
-import { ReactionsController } from "./reactions/reactions.controller";
-import { ReactionsService } from "./reactions/reactions.service";
-import { ServersController } from "./servers/servers.controller";
-import { ServersService } from "./servers/servers.service";
-import SocketIoGateway from "./socket-io/socket-io.gateway";
-import { SocketIoService } from "./socket-io/socket-io.service";
+import { FriendshipMessagesController } from "./controllers/friendship-messages.controller";
+import { FriendshipMessagesService } from "./services/friendship-messages.service";
+import { FriendshipsController } from "./controllers/friendships.controller";
+import { FriendshipsService } from "./services/friendships.service";
+import { GroupsController } from "./controllers/groups.controller";
+import { GroupsService } from "./services/groups.service";
+import { UsersController } from "./controllers/users.controller";
+import { UsersService } from "./services/users.service";
+import { ReactionsController } from "./controllers/reactions.controller";
+import { ReactionsService } from "./services/reactions.service";
+import { ServersController } from "./controllers/servers.controller";
+import { ServersService } from "./services/servers.service";
+import SocketIoGateway from "./controllers/socket-io.gateway";
+import { SocketIoService } from "./services/socket-io.service";
+import { ChannelMessage, ChannelMessageSchema, FriendshipMessage, FriendshipMessageSchema } from "./entities/message";
+import { KeycloakAdminService } from "./services/keycloak-admin.service";
 
 @Module({
   imports: [
@@ -51,7 +47,7 @@ import { SocketIoService } from "./socket-io/socket-io.service";
     ]),
   ],
   controllers: [
-    MembersController,
+    UsersController,
     ServersController,
     GroupsController,
     ChannelsController,
@@ -72,10 +68,11 @@ import { SocketIoService } from "./socket-io/socket-io.service";
     ChannelMessagesService,
     ReactionsService,
     FriendshipMessagesService,
-    MembersService,
+    UsersService,
     SocketIoGateway,
     SocketIoService,
     FriendshipsService,
+    KeycloakAdminService,
   ],
 })
 export class AppModule {}

@@ -32,10 +32,4 @@ class ServerNameNotEmptyException extends ResourceNotEmptyException {
 
 export default ResourceNotEmptyException;
 
-export {
-    ChannelNameNotEmptyException,
-    GroupNameNotEmptyException,
-    MessageNotEmptyException,
-    ServerNameNotEmptyException,
-};
-
+export { ChannelNameNotEmptyException, GroupNameNotEmptyException, MessageNotEmptyException, ServerNameNotEmptyException };

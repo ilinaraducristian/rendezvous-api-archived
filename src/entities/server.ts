@@ -28,13 +28,9 @@ class Server {
     delete dtoServer._id;
     delete dtoServer.__v;
     dtoServer.id = server._id.toString();
-    dtoServer.groups = server.groups.map((group: GroupDocument) =>
-      Group.toDTO(group, dtoServer.id)
-    );
+    dtoServer.groups = server.groups.map((group: GroupDocument) => Group.toDTO(group, dtoServer.id));
     dtoServer.members = server.members.map((member) => Member.toDTO(member));
-    dtoServer.emojis = server.emojis.map((emoji: EmojiDocument) =>
-      Emoji.toDTO(emoji)
-    );
+    dtoServer.emojis = server.emojis.map((emoji: EmojiDocument) => Emoji.toDTO(emoji));
     return dtoServer;
   }
 }
